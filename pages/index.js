@@ -12,7 +12,7 @@ export default function Home() {
       <main>
       <h1 className="title">
         Read{' '}
-        <Link href="/tests/store-buffer">
+        <Link href="/tests/message-passing">
         <a>this page!</a>
         </Link>
       </h1>
