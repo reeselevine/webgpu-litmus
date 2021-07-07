@@ -112,7 +112,7 @@ async function doMessagePassing() {
       [[group(0), binding(1)]] var<storage, read_write> y : MemLoc;
       [[group(0), binding(2)]] var<storage, read_write> results : Result;
 
-      [[stage(compute)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>) {
+      [[stage(compute), workgroup_size(1)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>) {
         if (workgroup_id[0] == 1u && local_invocation_id[0] == 0u) {
           atomicStore(&x.value, 1u);
           atomicStore(&y.value, 1u);
