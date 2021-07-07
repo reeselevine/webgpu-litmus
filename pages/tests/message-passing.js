@@ -138,7 +138,7 @@ async function doMessagePassing() {
   });
 
   // Commands submission
-
+  for (let i = 0; i < 2; i++) {
   const commandEncoder = device.createCommandEncoder();
 
   const passEncoder = commandEncoder.beginComputePass();
@@ -168,7 +168,8 @@ async function doMessagePassing() {
   await resultsReadBuffer.mapAsync(GPUMapMode.READ);
   const arrayBuffer = resultsReadBuffer.getMappedRange();
   console.log(new Uint32Array(arrayBuffer));
-  return new Uint32Array(arrayBuffer);
+
+  }
 }
 
 export default function StoreBuffer() {

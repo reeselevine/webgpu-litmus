@@ -363,7 +363,6 @@ export async function runLitmusTest() {
         }
       }
       
-
       fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
         for(var i: u32 = 0u; i < iterations; i = i + 1u) {
           if (pattern == 0u) {
@@ -394,8 +393,7 @@ export async function runLitmusTest() {
         }
       }
       
-      [[override]] let workgroupXSize: i32;
-      [[stage(compute), workgroup_size(1u)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
+      let workgroupXSize = 1;[[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
         var y : u32 = mem_locations.value[0];
         var x : u32 = mem_locations.value[1];
         if (shuffled_ids.value[global_invocation_id[0]] == local_invocation_index) {
