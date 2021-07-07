@@ -1,9 +1,34 @@
 import { getRouteRegex } from "next/dist/next-server/lib/router/utils";
 
+/** Default stress parameters */
+const defaultParameters = {
+    minWorkgroups: 4,
+    maxWorkgroups: 4,
+    minWorkgroupSize: 1,
+    maxWorkgroupSize: 1,
+    shufflePct: 100,
+    barrierPct: 100,
+    numMemLocations: 2,
+    testMemorySize: 128,
+    numOutputs: 2,
+    scratchMemorySize: 256,
+    memStride: 8,
+    memStressPct: 100,
+    memStressIterations: 100,
+    memStressPattern: 0,
+    preStressPct: 100,
+    preStressIterations: 100,
+    preStressPattern: 0,
+    stressLineSize: 4,
+    stressTargetLines: 4,
+    stressAssignmentStrategy = "round-robin"
+}
+
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
+/** Returns a random number in between the min and max values. */
 function getRandomInRange(min, max) {
     if (min == max) {
         return min;
@@ -11,6 +36,173 @@ function getRandomInRange(min, max) {
         const offset = getRandomInt(max - min);
         return min + size;
     }
+}
+
+/** Returns a GPU that can be used to run compute shaders. */
+async function getDevice() {
+    if (!navigator.gpu) {
+        console.log(
+        "WebGPU is not supported. Enable chrome://flags/#enable-unsafe-webgpu flag."
+        );
+        return;
+    }
+
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.log("Failed to get GPU adapter.");
+        return;
+    }
+    const device = await adapter.requestDevice();
+    return device;
+}
+
+function createBuffer(device, bufferSize, copySrc, copyDst) {
+    var extraFlags = 0;
+    var readBuffer = undefined;
+    var writeBuffer = undefined;
+    if (copySrc) {
+        readBuffer = device.createBuffer({
+            mappedAtCreation: false,
+            size: bufferSize * 4,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+        });
+        extraFlags = extraFlags | GPUBufferUsage.COPY_SRC;
+    }
+    if (copyDst) {
+        writeBuffer = device.createBuffer({
+            mappedAtCreation: false,
+            size: bufferSize * 4,
+            usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.MAP_WRITE
+        });
+        extraFlags = extraFlags | GPUBufferUsage.COPY_DST;
+    }
+    const deviceBuffer = device.createBuffer({
+        mappedAtCreation: true,
+        size: bufferSize * 4,
+        usage: GPUBufferUsage.STORAGE
+    });
+    const deviceArrayBuffer = deviceBuffer.getMappedRange();
+    new Uint32Array(deviceArrayBuffer).fill(0, 0, bufferSize);
+    deviceArrayBuffer.unmap();
+    return {
+        buffer: deviceBuffer,
+        readBuffer: readBuffer,
+        writeBuffer: writeBuffer
+    }
+}
+
+async function clearBuffer(buffer, bufferSize) {
+    const arrayBuffer = buffer.writeBuffer.getMappedRange();
+    new Uint32Array(testDataArrayBuffer).fill(0, 0, bufferSize);
+    buffer.writeBuffer.unmap();
+}
+
+async function setMemLocations(memLocations, stressParams) {
+    const memLocationsArrayBuffer = memLocations.writeBuffer.getMappedRange();
+    const memLocationsArray = new Uint32Array(memLocationsArrayBuffer);
+    const usedRegions = new Set();
+    const numRegions = params.testMemorySize / params.memStride;
+    for (let i = 0; i < params.numMemLocations; i++) {
+        let region = getRandomInt(numRegions);
+        while(usedRegions.has(region)) {
+            region = getRandomInt(numRegions);
+        }
+        const locInRegion = getRandomInt(params.memStride);
+        memLocationsArray[i] = region*params.memStride + locInRegion;
+        usedRegions.add(region);
+    }
+    memLocations.writeBuffer.unmap();
+}
+
+async function setShuffleIds(shuffleIds, stressParams, numWorkgroups, workgroupSize) {
+  await shuffleIds.writeBuffer.mapAsync(GPUMapMode.READ);
+  const shuffleIdsArrayBuffer = buffers.writeBuffer.getMappedRange();
+  const shuffleIdsArray = new Uint32Array(shuffleIdsArrayBuffer);
+    for (let i = 0; i < stressParams.maxWorkgroups * stressParams.maxWorkgroupSize; i++) {
+        shuffleIdsArray[i] = i;
+    }
+    if (getRandomInt(100) < shufflePct) {
+        for (let i = numWorkgroups - 1; i >= 0; i--) {
+            const x = getRandomInt(i + 1);
+            if (workgroupSize > 1) {
+                for (let j = 0; j < workgroupSize; j++) {
+                    const temp = shuffleIdsArray[i*workgroupSize + j]
+                    shuffleIdsArray[i*workgroupSize + j] = shuffleIdsArray[x*workgroupSize + j];
+                    shuffleIdsArray[x*workgroupSize + j] = temp;
+                }
+                for (let j = workgroupSize - 1; j > 0; j--) {
+                    const y = getRandomInt(j + 1);
+                    const temp = shuffleIdsArray[i*workgroupSize + y];
+                    shuffleIdsArray[i*workgroupSize + y] = shuffleIdsArray[i*workgroupSize + j];
+                    shuffleIdsArray[i*workgroupSize + j] = temp;
+                }
+            } else {
+                const temp = shuffleIdsArray[i];
+                shuffleIdsArray[i] = shuffleIdsArray[x];
+                shuffleIdsArray[x] = temp;
+            }
+        }
+    }
+    shuffleIds.writeBuffer.unmap();
+}
+
+async function setScratchLocations(scratchLocations, stressParams, numWorkgroups) {
+    const scratchLocationsArrayBuffer = scratchLocations.writeBuffer.getMappedRange();
+    const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
+    const scratchUsedRegions = new Set();
+    const scratchNumRegions = stressParams.scratchMemorySize / stressParams.stressLineSize;
+    for (let i = 0; i < stressParams.stressTargetLines; i++) {
+        let region = getRandomInt(scratchNumRegions);
+        while(scratchUsedRegions.has(region)) {
+            region = getRandomInt(scratchNumRegions);
+        }
+        const locInRegion = getRandomInt(stressParams.stressLineSize);
+        if (stressParams.stressAssignmentStrategy == "round-robin") {
+            for (let j = i; j < numWorkgroups; j += stressParams.stressTargetLines) {
+                scratchLocationsArray[j] = region * stressParams.stressLineSize + locInRegion;
+
+            }
+        } else if (stressParams.stressAssignmentStrategy == "chunking") {
+            const workgroupsPerLocation = numWorkgroups/stressParams.stressTargetLines;
+            for (let j = 0; j < workgroupsPerLocation; j++) {
+                scratchLocationsArray[i*workgroupsPerLocation + j] = region * stressParams.stressLineSize + locInRegion;
+            }
+            if (i == stressParams.stressTargetLines - 1 && numWorkgroups % stressParams.stressTargetLines != 0) {
+                for (let j = 0; j < numWorkgroups % stressParams.stressTargetLines; j++) {
+                    scratchLocationsArray[numWorkgroups - j - 1] = region * stressParams.stressLineSize + locInRegion;
+                }
+            }
+        }
+        scratchUsedRegions.add(region);
+ 
+    }
+    scratchLocations.writeBuffer.unmap();
+}
+
+async function setStressParams(stressParamsBuffer, stressParams) {
+    const stressParamsArrayBuffer = stressParamsBuffer.writeBuffer.getMappedRange();
+    const stressParamsArray = new Uint32Array(stressParamsArrayBuffer);
+    if (getRandomInt(100) < stressParams.barrierPct) {
+        stressParamsArray[0] = 1;
+    } else {
+        stressParamsArray[0] = 0;
+    }
+    if (getRandomInt(100) < stressParams.memStressPct) {
+        stressParamsArray[1] = 1;
+    } else {
+        stressParamsArray[1] = 0;
+    }
+    stressParamsArray[2] = stressParams.memStressIterations;
+    stressParamsArray[3] = stressParams.memStressPattern;
+    if (getRandomInt(100) < stressParams.preStressPct) {
+        stressParamsArray[4] = 1;
+    } else {
+        stressParamsArray[4] = 0;
+    }
+    stressParamsArray[5] = stressParams.preStressIterations;
+    stressParamsArray[6] = stressParams.preStressPattern;
+
+    stressParams.writeBuffer.unmap();
 }
   
 export async function runLitmusTest() {
