@@ -386,6 +386,14 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     testParams.numOutputs * uint32ByteSize
   );
 
+  commandEncoder.copyBufferToBuffer(
+      buffers.testData.deviceBuffer,
+      0,
+      buffers.testData.readBuffer,
+      0,
+      testParams.testMemorySize * uint32ByteSize
+  );
+
   // Submit GPU commands.
   const gpuCommands = commandEncoder.finish();
   device.queue.submit([gpuCommands]);
@@ -397,7 +405,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   buffers.results.readBuffer.unmap();
 }
 
-export async function runLitmusTest(shaderCode, testParams) {
+export async function runLitmusTest(shaderCode, testParams, iterations) {
     const device = await getDevice();
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
@@ -415,7 +423,7 @@ export async function runLitmusTest(shaderCode, testParams) {
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < iterations; i++) {
         await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
     }
 }

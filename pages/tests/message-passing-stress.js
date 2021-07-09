@@ -60,10 +60,11 @@ const shaderCode = `
     }
   }
   
-  let workgroupXSize = 1;[[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
+  let workgroupXSize = 1;
+  [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
     var y : u32 = mem_locations.value[0];
     var x : u32 = mem_locations.value[1];
-    if (shuffled_ids.value[global_invocation_id[0]] == local_invocation_index) {
+    if (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 0u + 0u) {
       if (stress_params.value[4] == 1u) {
         do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
       }
@@ -72,7 +73,7 @@ const shaderCode = `
       }
       atomicStore(&test_data.value[y], 1u);
       atomicStore(&test_data.value[x], 1u);
-    } elseif (shuffled_ids.value[global_invocation_id[0]] == local_invocation_index) {
+    } elseif (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 1u + 0u) {
       if (stress_params.value[4] == 1u) {
         do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
       }
@@ -91,7 +92,7 @@ const shaderCode = `
 
 export default function MessagePassingStress() {
   try {
-    const p = runLitmusTest(shaderCode, defaultTestParams);
+    const p = runLitmusTest(shaderCode, defaultTestParams, 1000);
     if (p instanceof Promise) {
       p.catch((err) => {
         console.error(err);
