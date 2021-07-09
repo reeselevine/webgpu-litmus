@@ -401,8 +401,10 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   // Read buffer.
   await buffers.results.readBuffer.mapAsync(GPUMapMode.READ);
   const arrayBuffer = buffers.results.readBuffer.getMappedRange();
-  console.log(new Uint32Array(arrayBuffer));
+  const result = new Uint32Array(arrayBuffer).slice(0);
+  console.log(result);
   buffers.results.readBuffer.unmap();
+  return result;
 }
 
 export async function runLitmusTest(shaderCode, testParams, iterations) {
@@ -423,7 +425,23 @@ export async function runLitmusTest(shaderCode, testParams, iterations) {
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
-    for (let i = 0; i < iterations; i++) {
-        await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
+    const behaviors = {
+        bothOne: 0,
+        oneZero: 0,
+        zeroOne: 0,
+        bothZero: 0
     }
+    for (let i = 0; i < iterations; i++) {
+        const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
+        if (result[0] == 1 && result[1] == 1) {
+            behaviors.bothOne = behaviors.bothOne + 1; 
+        } else if (result[0] == 1 && result[1] == 0) {
+            behaviors.oneZero = behaviors.oneZero + 1;
+        } else if (result[0] == 0 && result[1] == 1) {
+            behaviors.zeroOne = behaviors.zeroOne + 1;
+        } else if (result[0] == 0 && result[1] == 0) {
+            behaviors.bothZero = behaviors.bothZero + 1;
+        }
+    }
+    return behaviors;
 }
