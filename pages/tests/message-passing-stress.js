@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import {Bar} from 'react-chartjs-2';
 import { useState } from "react"
 import { defaultTestParams, runLitmusTest } from '../../components/litmus-setup.js'
 
@@ -126,6 +127,17 @@ export default function MessagePassingStress() {
     );
   }
 
+  const chartConfig = {
+    labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0 (weak behavior)"],
+    datasets: [
+      {
+        label: "Times behavior observed",
+        backgroundColor: 'rgba(216,27,96,0.5)',
+        data: [results.bothOne, results.bothZero, results.zeroOne, results.oneZero]
+      }
+    ]
+  }
+
   return (
       <>
         <h1>Message Passing (with stress)</h1>
@@ -135,10 +147,22 @@ export default function MessagePassingStress() {
           </Link>
         </h2>
         <div>
-          <p> r0=1 and r1=1: {results.bothOne} </p>
-          <p> r0=0 and r1=0: {results.bothZero} </p>
-          <p> r0=0 and r1=1: {results.zeroOne} </p>
-          <p> r0=1 and r1=0 (weak behavior): {results.oneZero} </p>
+        <Bar
+          data={chartConfig}
+          options={{
+            title:{
+              display:true,
+              text:'Message Passing Litmus Test Results',
+              fontSize:20
+            },
+            legend:{
+              display:true,
+              position:'right'
+            }
+          }}
+        />
+      </div>
+        <div>
           <button onClick={() => doMessagePassing()}>
             Run Message Passing Litmus Test
           </button>

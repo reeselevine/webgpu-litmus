@@ -8,8 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "chart.js": "^3.4.1",
     "next": "^10.0.0",
     "react": "17.0.1",
+    "react-chartjs-2": "^3.0.3",
     "react-dom": "17.0.1"
   }
 }
