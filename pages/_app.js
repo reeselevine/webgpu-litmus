@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }) {
       <div>
         <Head>
          <title>WebGPU-LitmusTest</title>
-         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css"></link>
+         <link rel="stylesheet" href="https://www.jsdelivr.com/package/npm/bulma"></link>
         </Head>
       <div className="columns">
         <div className="column is-one-quarter">

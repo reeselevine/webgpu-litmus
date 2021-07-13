@@ -12,7 +12,7 @@ export default function StoreBuffer() {
   const [sourceSwitch, setSource]=useState("is-hidden");
   const [pesudoActive, setPesudoActive]=useState("is-active");
   const [sourceActive, setSourceActive]=useState("");
-  
+
   async function doMessagePassing(num) {
     setLoading(true);
     let sum = 1;
@@ -40,10 +40,10 @@ export default function StoreBuffer() {
   // }
   return (
   <>
-    <div class="columns">
-      <div class="column">
-        <h1 class="testName">Message Passing</h1>
-          <h2 class="testDescription">Description goes here</h2>
+    <div className="columns">
+      <div className="column">
+        <h1 className="testName">Message Passing</h1>
+          <h2 className="testDescription">Description goes here</h2>
       </div>
     </div>
     <div class=" columns">
