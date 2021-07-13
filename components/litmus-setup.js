@@ -407,7 +407,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   return result;
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations) {
+export async function runLitmusTest(shaderCode, testParams, iterations, updateFuncs) {
     const device = await getDevice();
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
@@ -435,12 +435,16 @@ export async function runLitmusTest(shaderCode, testParams, iterations) {
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
         if (result[0] == 1 && result[1] == 1) {
             behaviors.bothOne = behaviors.bothOne + 1; 
+            updateFuncs.bothOne(behaviors.bothOne);
         } else if (result[0] == 1 && result[1] == 0) {
             behaviors.oneZero = behaviors.oneZero + 1;
+            updateFuncs.oneZero(behaviors.oneZero);
         } else if (result[0] == 0 && result[1] == 1) {
             behaviors.zeroOne = behaviors.zeroOne + 1;
+            updateFuncs.zeroOne(behaviors.zeroOne);
         } else if (result[0] == 0 && result[1] == 0) {
             behaviors.bothZero = behaviors.bothZero + 1;
+            updateFuncs.bothZero(behaviors.bothZero);
         }
     }
     return behaviors;

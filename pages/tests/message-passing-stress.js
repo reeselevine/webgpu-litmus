@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import _ from 'lodash'
 import {Bar} from 'react-chartjs-2';
 import { useState } from "react"
 import { defaultTestParams, runLitmusTest } from '../../components/litmus-setup.js'
@@ -107,21 +108,32 @@ let workgroupXSize = 1;
 }
 `
 
+function buildThrottle(updateFunc) {
+  const throttled = _.throttle((newValue) => updateFunc(newValue), 50);
+  return throttled;
+}
+
 export default function MessagePassingStress() {
-  const initialResults = {
-    bothOne: 0,
-    oneZero: 0,
-    zeroOne: 0,
-    bothZero: 0
+  const [bothOne, setBothOne] = useState(0);
+  const [oneZero, setOneZero] = useState(0);
+  const [zeroOne, setZeroOne] = useState(0);
+  const [bothZero, setBothZero] = useState(0);
+
+  const updateFuncs = {
+    bothOne: buildThrottle(setBothOne),
+    oneZero: buildThrottle(setOneZero),
+    zeroOne: buildThrottle(setZeroOne),
+    bothZero: buildThrottle(setBothZero)
   }
-  const [results, setResults] = useState(initialResults);
   function doMessagePassing() {
-    setResults(initialResults);
-    const p = runLitmusTest(shaderCode, defaultTestParams, 100);
+    updateFuncs.bothOne(0);
+    updateFuncs.oneZero(0);
+    updateFuncs.zeroOne(0);
+    updateFuncs.bothZero(0);
+    const p = runLitmusTest(shaderCode, defaultTestParams, 1000, updateFuncs);
     p.then(
       success => {
         console.log(success)
-        setResults(success)
       },
       error => console.log(error)
     );
@@ -133,7 +145,7 @@ export default function MessagePassingStress() {
       {
         label: "Times behavior observed",
         backgroundColor: 'rgba(216,27,96,0.5)',
-        data: [results.bothOne, results.bothZero, results.zeroOne, results.oneZero]
+        data: [bothOne, bothZero, zeroOne, oneZero]
       }
     ]
   }
@@ -158,6 +170,17 @@ export default function MessagePassingStress() {
             legend:{
               display:true,
               position:'right'
+            },
+            scales:{
+              yAxis: {
+                axis: 'y',
+                type: 'logarithmic',
+                min: 0,
+                max: 1000
+              }
+            },
+            animation: {
+              duration: 0
             }
           }}
         />
