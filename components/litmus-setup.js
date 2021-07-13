@@ -407,7 +407,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   return result;
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations, updateFuncs) {
+export async function runLitmusTest(shaderCode, testParams, iterations, handleResult, state) {
     const device = await getDevice();
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
@@ -425,27 +425,8 @@ export async function runLitmusTest(shaderCode, testParams, iterations, updateFu
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
-    const behaviors = {
-        bothOne: 0,
-        oneZero: 0,
-        zeroOne: 0,
-        bothZero: 0
-    }
     for (let i = 0; i < iterations; i++) {
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
-        if (result[0] == 1 && result[1] == 1) {
-            behaviors.bothOne = behaviors.bothOne + 1; 
-            updateFuncs.bothOne(behaviors.bothOne);
-        } else if (result[0] == 1 && result[1] == 0) {
-            behaviors.oneZero = behaviors.oneZero + 1;
-            updateFuncs.oneZero(behaviors.oneZero);
-        } else if (result[0] == 0 && result[1] == 1) {
-            behaviors.zeroOne = behaviors.zeroOne + 1;
-            updateFuncs.zeroOne(behaviors.zeroOne);
-        } else if (result[0] == 0 && result[1] == 0) {
-            behaviors.bothZero = behaviors.bothZero + 1;
-            updateFuncs.bothZero(behaviors.bothZero);
-        }
+        handleResult(result, state);
     }
-    return behaviors;
 }

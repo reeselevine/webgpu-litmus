@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import _ from 'lodash'
-import {Bar} from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import { useState } from "react"
 import { defaultTestParams, runLitmusTest } from '../../components/litmus-setup.js'
 
@@ -113,27 +113,59 @@ function buildThrottle(updateFunc) {
   return throttled;
 }
 
+function handleResult(result, state) {
+  if (result[0] == 1 && result[1] == 1) {
+    state.bothOne.value = state.bothOne.value + 1;
+    state.bothOne.update(state.bothOne.value);
+  } else if (result[0] == 1 && result[1] == 0) {
+    state.oneZero.value = state.oneZero.value + 1;
+    state.oneZero.update(state.oneZero.value);
+  } else if (result[0] == 0 && result[1] == 1) {
+    state.zeroOne.value = state.zeroOne.value + 1;
+    state.zeroOne.update(state.zeroOne.value);
+  } else if (result[0] == 0 && result[1] == 0) {
+    state.bothZero.value = state.bothZero.value + 1;
+    state.bothZero.update(state.bothZero.value);
+  }
+}
+
 export default function MessagePassingStress() {
   const [bothOne, setBothOne] = useState(0);
   const [oneZero, setOneZero] = useState(0);
   const [zeroOne, setZeroOne] = useState(0);
   const [bothZero, setBothZero] = useState(0);
 
-  const updateFuncs = {
-    bothOne: buildThrottle(setBothOne),
-    oneZero: buildThrottle(setOneZero),
-    zeroOne: buildThrottle(setZeroOne),
-    bothZero: buildThrottle(setBothZero)
+  const state = {
+    bothOne: {
+      update: buildThrottle(setBothOne),
+      value: 0
+    },
+    oneZero: {
+      update: buildThrottle(setOneZero),
+      value: 0
+    },
+    zeroOne: {
+      update: buildThrottle(setZeroOne),
+      value: 0
+    },
+    bothZero: {
+      update: buildThrottle(setBothZero),
+      value: 0
+    }
   }
   function doMessagePassing() {
-    updateFuncs.bothOne(0);
-    updateFuncs.oneZero(0);
-    updateFuncs.zeroOne(0);
-    updateFuncs.bothZero(0);
-    const p = runLitmusTest(shaderCode, defaultTestParams, 1000, updateFuncs);
+    state.bothZero.value = 0;
+    state.bothZero.update(0);
+    state.bothOne.value = 0;
+    state.bothOne.update(0);
+    state.oneZero.value = 0;
+    state.oneZero.update(0);
+    state.zeroOne.value = 0;
+    state.zeroOne.update(0);
+    const p = runLitmusTest(shaderCode, defaultTestParams, 1000, handleResult, state);
     p.then(
       success => {
-        console.log(success)
+        console.log("success!")
       },
       error => console.log(error)
     );
@@ -151,27 +183,27 @@ export default function MessagePassingStress() {
   }
 
   return (
-      <>
-        <h1>Message Passing (with stress)</h1>
-        <h2>
-          <Link href="/">
-            <a>Back to home</a>
-          </Link>
-        </h2>
-        <div>
+    <>
+      <h1>Message Passing (with stress)</h1>
+      <h2>
+        <Link href="/">
+          <a>Back to home</a>
+        </Link>
+      </h2>
+      <div>
         <Bar
           data={chartConfig}
           options={{
-            title:{
-              display:true,
-              text:'Message Passing Litmus Test Results',
-              fontSize:20
+            title: {
+              display: true,
+              text: 'Message Passing Litmus Test Results',
+              fontSize: 20
             },
-            legend:{
-              display:true,
-              position:'right'
+            legend: {
+              display: true,
+              position: 'right'
             },
-            scales:{
+            scales: {
               yAxis: {
                 axis: 'y',
                 type: 'logarithmic',
@@ -185,11 +217,11 @@ export default function MessagePassingStress() {
           }}
         />
       </div>
-        <div>
-          <button onClick={() => doMessagePassing()}>
-            Run Message Passing Litmus Test
-          </button>
-        </div>
-      </>
-    )
+      <div>
+        <button onClick={() => doMessagePassing()}>
+          Run Message Passing Litmus Test
+        </button>
+      </div>
+    </>
+  )
 }
