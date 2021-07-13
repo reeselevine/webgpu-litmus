@@ -46,32 +46,32 @@ export default function StoreBuffer() {
           <h2 className="testDescription">Description goes here</h2>
       </div>
     </div>
-    <div class=" columns">
-    <div class=" column">
-      <div class="  columns is-one-fifth">
-        <div class="column">
+    <div className=" columns">
+    <div className=" column">
+      <div className="  columns is-one-fifth">
+        <div className="column">
           Starting value
         </div>
       </div>
-      <div class=" columns">
-        <div class="column">
-          <div class="columns">
-            <div class="column">
-              <div class="tabs is-medium is-centered">
+      <div className=" columns">
+        <div className="column">
+          <div className="columns">
+            <div className="column">
+              <div className="tabs is-medium is-centered">
                 <ul>
-                  <li class={pesudoActive} onClick={()=>{setPesudoActive("is-active"); setSourceActive(""); setSource("is-hidden");setPesudo(""); }}><a>Pesudo-Code</a></li>
-                  <li class={sourceActive} onClick={()=>{setPesudoActive(""); setSourceActive("is-active"); setSource(""); setPesudo("is-hidden"); }}><a>Source Code</a></li>
+                  <li className={pesudoActive} onClick={()=>{setPesudoActive("is-active"); setSourceActive(""); setSource("is-hidden");setPesudo(""); }}><a>Pesudo-Code</a></li>
+                  <li className={sourceActive} onClick={()=>{setPesudoActive(""); setSourceActive("is-active"); setSource(""); setPesudo("is-hidden"); }}><a>Source Code</a></li>
                 </ul>
               </div>
             </div>
           </div>
-          <div class="columns">
-            <div class="column">
-              <div class="px-2" id="tab-content">
-                <div id="pesudoCode" class={pesudoSwitch}>
+          <div className="columns">
+            <div className="column">
+              <div className="px-2" id="tab-content">
+                <div id="pesudoCode" className={pesudoSwitch}>
                   <p>here is goes the pesudo code</p>
                 </div>
-                <div id="sourceCode" class={sourceSwitch}>
+                <div id="sourceCode" className={sourceSwitch}>
                   <p>here goes the source code</p>
                 </div>
               </div>
@@ -79,82 +79,82 @@ export default function StoreBuffer() {
           </div>
         </div>
         
-        {/* <div class="column">
+        {/* <div className="column">
           T1
         </div>
-        <div class="column">
+        <div className="column">
           T2
         </div>
-        <div class="column">
+        <div className="column">
           T3
         </div>
-        <div class="column">
+        <div className="column">
           T4
         </div> */}
       </div>
-      <div class="columns is-one-fifth">
-        <div class="column">
+      <div className="columns is-one-fifth">
+        <div className="column">
           result
         </div>
       </div>
     </div>
-    <div class="column is-one-third mr-2">
-      <nav class="panel">
-        <p class="panel-heading">
+    <div className="column is-one-third mr-2">
+      <nav className="panel">
+        <p className="panel-heading">
           Stress Parameters
         </p>
-        <p class="control">
-          <div class="columns p-2">
-            <div class="column is-one-third">
+        <p className="control">
+          <div className="columns p-2">
+            <div className="column is-one-third">
             <span>Param 1</span>
             </div>
-            <div class="column">
-              <input class="input is-small" type="text" placeholder="Parameter 1"/>
+            <div className="column">
+              <input className="input is-small" type="text" placeholder="Parameter 1"/>
             </div>
           </div>
         </p>
-        <p class="control">
-          <div class="columns p-2">
-            <div class="column is-one-third">
+        <p className="control">
+          <div className="columns p-2">
+            <div className="column is-one-third">
             <span>Param 2</span>
             </div>
-            <div class="column">
-              <input class="input is-small" type="text" placeholder="Parameter 2"/>
+            <div className="column">
+              <input className="input is-small" type="text" placeholder="Parameter 2"/>
             </div>
           </div>
         </p>
-        <p class="control">
-          <div class="columns p-2">
-            <div class="column is-one-third">
+        <p className="control">
+          <div className="columns p-2">
+            <div className="column is-one-third">
             <span>Param 3</span>
             </div>
-            <div class="column">
-              <input class="input is-small" type="text" placeholder="Parameter 3"/>
+            <div className="column">
+              <input className="input is-small" type="text" placeholder="Parameter 3"/>
             </div>
           </div>
         </p>
-        <div class="panel-block">
-          <button class="button is-link is-outlined is-fullwidth">
+        <div className="panel-block">
+          <button className="button is-link is-outlined is-fullwidth">
             Reset all Paramters
           </button>
         </div>
       </nav>
     </div>
   </div>
-  <div class="columns">
-    <div class="column is-one-fifth">
-    <p class="control">
-      <input class="input" type="text" placeholder="Iterations" onInput={(e) => {
+  <div className="columns">
+    <div className="column is-one-fifth">
+    <p className="control">
+      <input className="input" type="text" placeholder="Iterations" onInput={(e) => {
         setiteration(e.target.value);
       }}/>
     </p>
-    <div class="buttons mt-2">
-      <button class="button is-primary" onClick={()=>{
+    <div className="buttons mt-2">
+      <button className="button is-primary" onClick={()=>{
         doMessagePassing(iteration);
       }} disabled={iteration<0}>Start Test</button>
     </div>
     </div>
-    <div class="column">
+    <div className="column">
      {loading ?  (<ReactBootStrap.Spinner animation="border" />):(<><p> {result}</p></>) }
      {/* <p> {result}</p> */}
     </div>
