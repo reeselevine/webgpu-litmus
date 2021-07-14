@@ -185,28 +185,22 @@ export default function StoreBuffer() {
     datasets: [
       {
         label: "Times behavior observed",
-        backgroundColor: 'rgba(216,27,96,0.5)',
+        backgroundColor: ['rgba(21,161,42,0.7)','rgba(21,161,42,0.7)','rgba(3,35,173,0.7)','rgba(212,8,8,0.7)'],
         data: [bothOne, bothZero, zeroOne, oneZero]
       }
     ]
   }
-
 
   return (
   <>
     <div className="columns">
       <div className="column">
         <h1 className="testName">Message Passing</h1>
-          <h2 className="testDescription">Description goes here</h2>
+          <h2 className="testDescription">The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.</h2>
       </div>
     </div>
     <div className=" columns">
     <div className=" column">
-      <div className="  columns is-one-fifth">
-        <div className="column">
-          Starting value
-        </div>
-      </div>
       <div className=" columns">
         <div className="column">
           <div className="columns">
@@ -223,10 +217,10 @@ export default function StoreBuffer() {
             <div className="column">
               <div className="px-2" id="tab-content">
                 <div id="pseudoCode" className={pseudoSwitch}>
-                  <p>here is goes the pseudo code</p>
+                  <p>Pseudocode goes here</p>
                 </div>
                 <div id="sourceCode" className={sourceSwitch}>
-                  <p>here goes the source code</p>
+                  <p>Source code goes here</p>
                 </div>
               </div>
             </div>          
@@ -251,8 +245,19 @@ export default function StoreBuffer() {
                     yAxis: {
                       axis: 'y',
                       type: 'logarithmic',
-                      min: 0,
-                      max: iterations
+                      min: 1,
+                      max: iterations,
+                      ticks: {
+                        callback: function(value,index,values) {
+                          var val = value;
+                          while(val >= 10 && val % 10 == 0) {
+                            val = val / 10;
+                          }
+                          if (val == 1) {
+                            return value;
+                          }
+                        }
+                      }
                     }
                   },
                   animation: {

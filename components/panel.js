@@ -3,7 +3,9 @@ export default function Panel(){
 return(
 <nav className="panel is-shadowless">
   <p className="panel-heading">
-    Litmus Test Menu
+    <Link href="/">
+      <a>WebGPU Litmus</a>
+    </Link>
   </p>
   <div className="panel-block ">
     <div className="columns">
