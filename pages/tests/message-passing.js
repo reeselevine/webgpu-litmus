@@ -1,9 +1,7 @@
-import Link from 'next/link'
 import React,{ useState } from 'react';
 import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
 import { defaultTestParams, runLitmusTest } from '../../components/litmus-setup.js'
-import Layout from '../../components/layout';
 import * as ReactBootStrap from 'react-bootstrap';
 
 const shaderCode = `
@@ -130,19 +128,17 @@ function handleResult(result, state) {
   }
 }
 
-const results = [];
-
 export default function StoreBuffer() {
   const [bothOne, setBothOne] = useState(0);
   const [oneZero, setOneZero] = useState(0);
   const [zeroOne, setZeroOne] = useState(0);
   const [bothZero, setBothZero] = useState(0);
 
-  const [iterations, setIterations] = useState(null);
+  const [iterations, setIterations] = useState(1000);
   const [loading, setLoading] = useState(false);
-  const [pesudoSwitch, setPesudo]=useState("");
+  const [pseudoSwitch, setPseudo]=useState("");
   const [sourceSwitch, setSource]=useState("is-hidden");
-  const [pesudoActive, setPesudoActive]=useState("is-active");
+  const [pseudoActive, setPseudoActive]=useState("is-active");
   const [sourceActive, setSourceActive]=useState("");
 
   const state = {
@@ -217,8 +213,8 @@ export default function StoreBuffer() {
             <div className="column">
               <div className="tabs is-medium is-centered">
                 <ul>
-                  <li className={pesudoActive} onClick={()=>{setPesudoActive("is-active"); setSourceActive(""); setSource("is-hidden");setPesudo(""); }}><a>Pesudo-Code</a></li>
-                  <li className={sourceActive} onClick={()=>{setPesudoActive(""); setSourceActive("is-active"); setSource(""); setPesudo("is-hidden"); }}><a>Source Code</a></li>
+                  <li className={pseudoActive} onClick={()=>{setPseudoActive("is-active"); setSourceActive(""); setSource("is-hidden");setPseudo(""); }}><a>Pseudo-Code</a></li>
+                  <li className={sourceActive} onClick={()=>{setPseudoActive(""); setSourceActive("is-active"); setSource(""); setPseudo("is-hidden"); }}><a>Source Code</a></li>
                 </ul>
               </div>
             </div>
@@ -226,8 +222,8 @@ export default function StoreBuffer() {
           <div className="columns">
             <div className="column">
               <div className="px-2" id="tab-content">
-                <div id="pesudoCode" className={pesudoSwitch}>
-                  <p>here is goes the pesudo code</p>
+                <div id="pseudoCode" className={pseudoSwitch}>
+                  <p>here is goes the pseudo code</p>
                 </div>
                 <div id="sourceCode" className={sourceSwitch}>
                   <p>here goes the source code</p>
@@ -236,19 +232,6 @@ export default function StoreBuffer() {
             </div>          
           </div>
         </div>
-        
-        {/* <div className="column">
-          T1
-        </div>
-        <div className="column">
-          T2
-        </div>
-        <div className="column">
-          T3
-        </div>
-        <div className="column">
-          T4
-        </div> */}
       </div>
       <div className="columns is-one-fifth">
         <div className="column">
@@ -269,7 +252,7 @@ export default function StoreBuffer() {
                       axis: 'y',
                       type: 'logarithmic',
                       min: 0,
-                      max: 1000
+                      max: iterations
                     }
                   },
                   animation: {
@@ -317,7 +300,7 @@ export default function StoreBuffer() {
         </p>
         <div className="panel-block">
           <button className="button is-link is-outlined is-fullwidth">
-            Reset all Paramters
+            Reset all Parameters
           </button>
         </div>
       </nav>
@@ -338,7 +321,6 @@ export default function StoreBuffer() {
     </div>
     <div className="column">
           {loading ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
-     {/* <p> {result}</p> */}
     </div>
   </div>
 </>
