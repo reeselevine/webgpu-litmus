@@ -8,17 +8,17 @@
     "start": "next start"
   },
   "dependencies": {
-    "chart.js": "^3.4.1",
-    "lodash.throttle": "^4.1.1",
     "@popperjs/core": "^2.9.2",
     "bootstrap": "^4.6.0",
     "bulma": "^0.9.3",
+    "chart.js": "^3.4.1",
     "jquery": "^3.6.0",
+    "lodash.throttle": "^4.1.1",
     "next": "^10.0.0",
     "popper.js": "^1.16.1",
     "react": "17.0.1",
-    "react-chartjs-2": "^3.0.3",
     "react-bootstrap": "^1.6.1",
+    "react-chartjs-2": "^3.0.3",
     "react-dom": "17.0.1"
   }
 }

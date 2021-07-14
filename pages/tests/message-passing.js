@@ -298,8 +298,8 @@ export default function StoreBuffer() {
             </div>
           </div>
         </p>
-        <div className="panel-block">
-          <button className="button is-link is-outlined is-fullwidth">
+        <div className="panel-block p-2">
+          <button className="button is-link is-outlined is-fullwidth "style={{width: "200px", marginLeft:"10px"}}>
             Reset all Parameters
           </button>
         </div>

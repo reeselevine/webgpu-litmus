@@ -48,7 +48,7 @@ export default function Layout({ children }) {
           </div>
          </p>
         <div class="panel-block">
-          <button class="button is-link is-outlined is-fullwidth">
+          <button class="button is-link  ">
             Reset all Paramters
           </button>
         </div>
