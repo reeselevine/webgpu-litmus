@@ -1,9 +1,11 @@
 import Link from'next/link'
-export default function Panel(){
+export default function Panel({children}){
 return(
 <nav className="panel is-shadowless">
   <p className="panel-heading">
+    <a href="/">
     Litmus Test Menu
+    </a>
   </p>
   <div className="panel-block ">
     <div className="columns">

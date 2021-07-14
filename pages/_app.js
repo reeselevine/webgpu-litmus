@@ -2,6 +2,7 @@
 import '../sass/style.css'
 import Head from 'next/head'
 import Panel from '../components/panel'
+import Link from'next/link'
 export default function App({ Component, pageProps }) {
     return(
       <div>
@@ -11,7 +12,11 @@ export default function App({ Component, pageProps }) {
         </Head>
       <div className="columns">
         <div className="column is-one-quarter">
-         <Panel></Panel>
+         <Panel>
+          <Link href="/">
+              <a>← Back to home</a>
+            </Link>
+         </Panel>
         </div>
         <div className="column is-two-thrid">
          <Component {...pageProps} />
