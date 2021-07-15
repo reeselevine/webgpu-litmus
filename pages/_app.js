@@ -18,7 +18,7 @@ export default function App({ Component, pageProps }) {
             </Link>
          </Panel>
         </div>
-        <div className="column is-two-thrid">
+        <div className="column is-three-quarters">
          <Component {...pageProps} />
         </div>
       </div>

@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
 import { defaultTestParams, runLitmusTest } from '../../components/litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-
+import StressPanel from '../../components/stressPanel.js';
 const shaderCode = `
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
@@ -263,48 +263,7 @@ export default function StoreBuffer() {
         </div>
       </div>
     </div>
-    <div className="column is-one-third mr-2">
-      <nav className="panel">
-        <p className="panel-heading">
-          Stress Parameters
-        </p>
-        <p className="control">
-          <div className="columns p-2">
-            <div className="column is-one-third">
-            <span>Param 1</span>
-            </div>
-            <div className="column">
-              <input className="input is-small" type="text" placeholder="Parameter 1"/>
-            </div>
-          </div>
-        </p>
-        <p className="control">
-          <div className="columns p-2">
-            <div className="column is-one-third">
-            <span>Param 2</span>
-            </div>
-            <div className="column">
-              <input className="input is-small" type="text" placeholder="Parameter 2"/>
-            </div>
-          </div>
-        </p>
-        <p className="control">
-          <div className="columns p-2">
-            <div className="column is-one-third">
-            <span>Param 3</span>
-            </div>
-            <div className="column">
-              <input className="input is-small" type="text" placeholder="Parameter 3"/>
-            </div>
-          </div>
-        </p>
-        <div className="panel-block p-2">
-          <button className="button is-link is-outlined is-fullwidth "style={{width: "200px", marginLeft:"10px"}}>
-            Reset all Parameters
-          </button>
-        </div>
-      </nav>
-    </div>
+    <StressPanel></StressPanel>
   </div>
   <div className="columns">
     <div className="column is-one-fifth">

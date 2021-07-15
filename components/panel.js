@@ -16,7 +16,7 @@ return(
         </div>
         <div className="column">
             <a href="https://github.com/reeselevine/webgpu-litmus">
-                <a>Github!</a>
+                <p>Github!</p>
             </a>
         </div>
     </div>
