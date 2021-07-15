@@ -181,12 +181,22 @@ export default function StoreBuffer() {
   }
 
   const chartConfig = {
-    labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0 (weak behavior)"],
+    labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0"],
     datasets: [
       {
-        label: "Times behavior observed",
-        backgroundColor: ['rgba(21,161,42,0.7)','rgba(21,161,42,0.7)','rgba(3,35,173,0.7)','rgba(212,8,8,0.7)'],
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        data: []
+      },
+      {
+        label: "Sequential",
+        backgroundColor: ['rgba(21,161,42,0.7)','rgba(21,161,42,0.7)', 'rgba(3,35,173,0.7)','rgba(212,8,8,0.7)'],
         data: [bothOne, bothZero, zeroOne, oneZero]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        data: []
       }
     ]
   }
@@ -232,14 +242,13 @@ export default function StoreBuffer() {
               <Bar
                 data={chartConfig}
                 options={{
-                  title: {
-                    display: true,
-                    text: 'Message Passing Litmus Test Results',
-                    fontSize: 20
-                  },
-                  legend: {
-                    display: true,
-                    position: 'right'
+                  plugins: {
+                    title: {
+                      display: true,
+                      position: "top",
+                      text: ['Histogram of Observed Behaviors', 'Log Scale'],
+                      fontSize: 20
+                    }
                   },
                   scales: {
                     yAxis: {

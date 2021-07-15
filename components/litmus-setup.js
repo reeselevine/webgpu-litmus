@@ -2,8 +2,8 @@ import { getRouteRegex } from "next/dist/next-server/lib/router/utils";
 
 /** Default test parameters */
 export const defaultTestParams = {
-    minWorkgroups: 4,
-    maxWorkgroups: 4,
+    minWorkgroups: 32,
+    maxWorkgroups: 32,
     minWorkgroupSize: 1,
     maxWorkgroupSize: 1,
     shufflePct: 100,
