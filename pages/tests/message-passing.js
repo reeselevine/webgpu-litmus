@@ -245,7 +245,7 @@ export default function StoreBuffer() {
                     yAxis: {
                       axis: 'y',
                       type: 'logarithmic',
-                      min: 1,
+                      min: 0.1,
                       max: iterations,
                       ticks: {
                         callback: function(value,index,values) {
