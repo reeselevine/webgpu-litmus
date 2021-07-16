@@ -9,7 +9,7 @@ export default function Home() {
     </p>
 
     <p>
-      In order to run theses tests, you must be using Chrome Canary and have the flag &quot;--enable-unsafe-webgpu&quot; enabled.
+      In order to run these tests, you must be using Chrome Canary and have the flag &quot;--enable-unsafe-webgpu&quot; switched on.
     </p>
   </main>
   )

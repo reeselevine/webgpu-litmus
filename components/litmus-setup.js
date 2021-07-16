@@ -414,7 +414,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   return result;
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations, handleResult, state) {
+export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
     const device = await getDevice();
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
@@ -434,6 +434,6 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
     for (let i = 0; i < iterations; i++) {
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
-        handleResult(result, state);
+        handleResult(result);
     }
 }
