@@ -214,7 +214,7 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
               </div>
             </div>
           </div>
-          <StressPanel></StressPanel>
+          <StressPanel params={testParams}></StressPanel>
         </div>
         <div className="columns">
           <div className="column is-one-fifth">
