@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
+import StressPanel from './stressPanel.js';
 
 function getTwoOutputState() {
     const [bothOneVal, setBothOne] = useState(0);
@@ -213,48 +214,7 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
               </div>
             </div>
           </div>
-          <div className="column is-one-third mr-2">
-            <nav className="panel">
-              <div className="panel-heading">
-                Stress Parameters
-              </div>
-              <div className="control">
-                <div className="columns p-2">
-                  <div className="column is-one-third">
-                  <span>Param 1</span>
-                  </div>
-                  <div className="column">
-                    <input className="input is-small" type="text" placeholder="Parameter 1"/>
-                  </div>
-                </div>
-              </div>
-              <div className="control">
-                <div className="columns p-2">
-                  <div className="column is-one-third">
-                  <span>Param 2</span>
-                  </div>
-                  <div className="column">
-                    <input className="input is-small" type="text" placeholder="Parameter 2"/>
-                  </div>
-                </div>
-              </div>
-              <div className="control">
-                <div className="columns p-2">
-                  <div className="column is-one-third">
-                  <span>Param 3</span>
-                  </div>
-                  <div className="column">
-                    <input className="input is-small" type="text" placeholder="Parameter 3"/>
-                  </div>
-                </div>
-              </div>
-              <div className="panel-block">
-                <button className="button is-link is-outlined is-fullwidth">
-                  Reset all Parameters
-                </button>
-              </div>
-            </nav>
-          </div>
+          <StressPanel></StressPanel>
         </div>
         <div className="columns">
           <div className="column is-one-fifth">

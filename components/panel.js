@@ -1,5 +1,5 @@
 import Link from'next/link'
-export default function Panel(){
+export default function Panel({children}){
 return(
 <nav className="panel is-shadowless">
   <div className="panel-heading">

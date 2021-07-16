@@ -1,7 +1,6 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeTwoOutputTest } from '../../components/test-page-setup.js';
 
-
 const shaderCode = `
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
