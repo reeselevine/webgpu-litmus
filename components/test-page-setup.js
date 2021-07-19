@@ -122,7 +122,28 @@ function chartData(testState) {
         ]
     }
 }
-
+function chartDataEmpty(){
+    return {
+        labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0"],
+        datasets: [
+            {
+                label: "Sequential Interleaving",
+                backgroundColor: 'rgba(3,35,173,0.7)',
+                data: []
+            },
+            {
+                label: "Sequential",
+                backgroundColor: ['rgba(21,161,42,0.7)', 'rgba(21,161,42,0.7)', 'rgba(3,35,173,0.7)', 'rgba(212,8,8,0.7)'],
+                data: []
+            },
+            {
+                label: "Weak Behavior",
+                backgroundColor: 'rgba(212,8,8,0.7)',
+                data: []
+            }
+        ]
+    }
+}
 function chartConfig(pageState) {
     return {
         plugins: {
@@ -166,6 +187,10 @@ function setVis(stateVar, str) {
     }
 }
 let totalIteration = 0;
+let clearChart = false;
+function resetChart(){
+    clearChart= true;
+}
 export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
     const testState = getTwoOutputState();
     const pageState = getPageState();
@@ -207,10 +232,17 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
             </div>
             <div className="columns is-one-fifth">
               <div className="column">
-                    <Bar
-                      data={chartData(testState)}
-                      options={chartConfig(pageState)}
-                    />
+                  {clearChart 
+                   ? 
+                   <Bar
+                    data={chartDataEmpty()}
+                    options={chartConfig(pageState)} 
+                   /> 
+                   :
+                   <Bar
+                   data={chartData(testState)}
+                   options={chartConfig(pageState)}
+                 />}
               </div>
             </div>
             <div className="columns" >
@@ -227,6 +259,7 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
           <div className="column is-one-fifth">
           <div className="control">
             <input className="input" type="text" placeholder="Iterations" onInput={(e) => {
+                    resetChart();
                     pageState.iterations.updateFunc(e.target.value);
             }}/>
           </div>
@@ -235,6 +268,7 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
                     doTwoOutputTest(pageState, testState, testParams, shaderCode);
                     resetProgressBar();
                     setProgressBarState();
+                    clearChart=false;
                     totalIteration = pageState.iterations.value;
                   }} disabled={pageState.iterations.value < 0}>Start Test</button>
           </div>
