@@ -1,7 +1,7 @@
 import React,{ useState } from 'react';
 import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
-import { runLitmusTest } from './litmus-setup.js'
+import { runLitmusTest, reportTime } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { resetProgressBar, setProgressBarState } from '../components/progressBar';
@@ -188,6 +188,7 @@ function setVis(stateVar, str) {
 }
 let totalIteration = 0;
 let clearChart = false;
+let time =  reportTime();
 function resetChart(){
     clearChart= true;
 }
@@ -277,6 +278,9 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
             <div className="columns">
                 <div className="column is-one-fifth">
                     {pageState.loading.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)} 
+                </div>
+                <div className="column">
+                 <p>Run time: {reportTime()}</p> 
                 </div>
             </div>
           </div>
