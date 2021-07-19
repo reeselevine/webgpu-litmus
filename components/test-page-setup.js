@@ -4,7 +4,7 @@ import { Bar } from 'react-chartjs-2';
 import { runLitmusTest } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
-
+import ProgressBar, { resetProgressBar, setProgressBarState } from '../components/progressBar';
 function getTwoOutputState() {
     const [bothOneVal, setBothOne] = useState(0);
     const [oneZeroVal, setOneZero] = useState(0);
@@ -165,7 +165,7 @@ function setVis(stateVar, str) {
         return ""
     }
 }
-
+let totalIteration = 0;
 export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
     const testState = getTwoOutputState();
     const pageState = getPageState();
@@ -213,6 +213,13 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
                     />
               </div>
             </div>
+            <div className="columns" >
+                <div className="column" style={{width:'300px',paddingLeft:'0px'}}>
+                    <div className="column " style={{width:"200px"}}>
+                        <ProgressBar></ProgressBar>
+                    </div>
+                </div>
+            </div>
           </div>
           <StressPanel params={testParams}></StressPanel>
         </div>
@@ -226,13 +233,24 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={()=>{
                     doTwoOutputTest(pageState, testState, testParams, shaderCode);
+                    resetProgressBar();
+                    setProgressBarState();
+                    totalIteration = pageState.iterations.value;
                   }} disabled={pageState.iterations.value < 0}>Start Test</button>
           </div>
           </div>
           <div className="column">
-                {pageState.loading.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
+            <div className="columns">
+                <div className="column is-one-fifth">
+                    {pageState.loading.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)} 
+                </div>
+            </div>
           </div>
         </div>
       </>
     );
+}
+
+export function getIterationNum(){
+    return totalIteration;
 }
