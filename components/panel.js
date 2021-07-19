@@ -1,12 +1,12 @@
 import Link from'next/link'
-export default function Panel(){
+export default function Panel({children}){
 return(
 <nav className="panel is-shadowless">
-  <p className="panel-heading">
+  <div className="panel-heading">
     <Link href="/">
-      <a>WebGPU Litmus</a>
+      WebGPU Litmus
     </Link>
-  </p>
+  </div>
   <div className="panel-block ">
     <div className="columns">
         <div className="column">
@@ -16,7 +16,7 @@ return(
         </div>
         <div className="column">
             <a href="https://github.com/reeselevine/webgpu-litmus">
-                <a>Github!</a>
+                Github!
             </a>
         </div>
     </div>
@@ -26,11 +26,10 @@ return(
           Message-Passing
     </Link>
   </div>
-  <div className="panel-block">
-    Load Buffering
-  </div>
-  <div className="panel-block">
-    Store Buffering
+  <div className="panel-block ">
+    <Link href='/tests/corr'>
+         CoRR 
+    </Link>
   </div>
 </nav>
   );

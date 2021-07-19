@@ -21,7 +21,8 @@ export const defaultTestParams = {
     preStressPattern: 0,
     stressLineSize: 4,
     stressTargetLines: 4,
-    stressAssignmentStrategy: "round-robin"
+    stressAssignmentStrategy: "round-robin",
+    memoryAliases: {}
 }
 
 function getRandomInt(max) {
@@ -103,15 +104,21 @@ async function setMemLocations(memLocations, testParams) {
     const memLocationsArrayBuffer = memLocations.writeBuffer.getMappedRange();
     const memLocationsArray = new Uint32Array(memLocationsArrayBuffer);
     const usedRegions = new Set();
+    const locations = {};
     const numRegions = testParams.testMemorySize / testParams.memStride;
     for (let i = 0; i < testParams.numMemLocations; i++) {
-        let region = getRandomInt(numRegions);
-        while(usedRegions.has(region)) {
-            region = getRandomInt(numRegions);
+        if (testParams.memoryAliases[i] !== undefined) {
+            memLocationsArray[i] = locations[testParams.memoryAliases[i]];
+        } else {
+            let region = getRandomInt(numRegions);
+            while(usedRegions.has(region)) {
+                region = getRandomInt(numRegions);
+            }
+            const locInRegion = getRandomInt(testParams.memStride);
+            memLocationsArray[i] = region*testParams.memStride + locInRegion;
+            locations[i] = region*testParams.memStride + locInRegion;
+            usedRegions.add(region);
         }
-        const locInRegion = getRandomInt(testParams.memStride);
-        memLocationsArray[i] = region*testParams.memStride + locInRegion;
-        usedRegions.add(region);
     }
     memLocations.writeBuffer.unmap();
 }
@@ -407,7 +414,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   return result;
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations, handleResult, state) {
+export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
     const device = await getDevice();
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
@@ -427,6 +434,6 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
     for (let i = 0; i < iterations; i++) {
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
-        handleResult(result, state);
+        handleResult(result);
     }
 }
