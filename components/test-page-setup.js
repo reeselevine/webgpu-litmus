@@ -280,7 +280,8 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
                     {pageState.loading.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)} 
                 </div>
                 <div className="column">
-                 <p>Run time: {reportTime()}</p> 
+                 <p>Run time : {reportTime()} seconds</p> 
+                 <p>Rate : {Math.round(pageState.iterations.value/(reportTime()))} iterations per second</p>
                 </div>
             </div>
           </div>
