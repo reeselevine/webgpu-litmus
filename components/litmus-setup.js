@@ -36,7 +36,7 @@ function getRandomInRange(min, max) {
         return min;
     } else {
         const offset = getRandomInt(max - min);
-        return min + size;
+        return min + offset;
     }
 }
 
@@ -178,7 +178,7 @@ async function setScratchLocations(scratchLocations, testParams, numWorkgroups) 
             for (let j = 0; j < workgroupsPerLocation; j++) {
                 scratchLocationsArray[i*workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
             }
-            if (i == stressParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
+            if (i == testParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
                 for (let j = 0; j < numWorkgroups % testParams.stressTargetLines; j++) {
                     scratchLocationsArray[numWorkgroups - j - 1] = region * testParams.stressLineSize + locInRegion;
                 }
