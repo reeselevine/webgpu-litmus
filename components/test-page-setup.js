@@ -199,7 +199,7 @@ export function makeTwoOutputTest(
                   </div>
                 </div>
                 <div className="columns">
-                  <div className="column" style={{"overflow-x": "auto"}}>
+                  <div className="column">
                     <div className="px-2" id="tab-content">
                         <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
                           {pseudoCode.setup}
@@ -238,7 +238,7 @@ export function makeTwoOutputTest(
         <div className="columns">
           <div className="column is-one-fifth">
           <div className="control">
-            <label>Iterations: </label>
+            <label><b>Iterations:</b></label>
             <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
                     pageState.iterations.updateFunc(e.target.value);
             }}/>

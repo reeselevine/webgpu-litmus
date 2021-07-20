@@ -2,6 +2,8 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeTwoOutputTest } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 
+const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+
 const shaderCode = `
 [[block]] struct AtomicMemory {
     value: array<atomic<u32>>;
@@ -105,7 +107,6 @@ const shaderCode = `
 `
 
 export default function CoRR() {
-  const testParams = JSON.parse(JSON.stringify(defaultTestParams));
   testParams.memoryAliases[1] = 0;
   const thread1 = `1.1: r0=x;
 1.2; r1=x;`

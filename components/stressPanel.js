@@ -17,6 +17,34 @@ function DropdownOption(props) {
   return (<option value={props.value}>{props.value}</option>)
 }
 
+function stressPatternOnChange(params, paramName) {
+  return function onChange(e) {
+    switch(e.target.value) {
+      case "store-store":
+        params[paramName] = 0;
+        break;
+      case "store-load":
+        params[paramName] = 1;
+        break;
+      case "load-store":
+        params[paramName] = 2;
+        break;
+      case "load-load":
+        params[paramName] = 3;
+        break;
+      default:
+        console.log("Unexpected value");
+    }
+  }
+}
+
+function stressAssignmentStrategyOnChange(params, paramName) {
+  return function onChange(e) {
+    console.log(params);
+    params[paramName] = e.target.value;
+  }
+}
+
 function DropdownStressParam(props) {
   const options = props.options.map(val => <DropdownOption value={val} key={val}/>)
   return (
@@ -24,9 +52,7 @@ function DropdownStressParam(props) {
       <div className="columns">
         <div className="column">
           <label>{props.name}:</label>
-          <select name={props.paramName} onChange={(e) => {
-            props.params[props.paramName] = e.target.value;
-          }}>
+          <select className="stressPanelDropdown" name={props.paramName} onChange={props.updateFunc(props.params, props.paramName)}>
             {options}
           </select>
         </div>
@@ -57,7 +83,9 @@ export default function stressPanel(props) {
             <IntegerStressParam name="Pre-Stress Iterations" paramName="preStressIterations" type="text" params={props.params}/>
             <IntegerStressParam name="Stress Line Size" paramName="stressLineSize" type="text" params={props.params}/>
             <IntegerStressParam name="Stress Target Lines" paramName="stressTargetLines" type="text" params={props.params}/>
-            <DropdownStressParam name="Stress Assignment Strategy" paramName="stressAssignmentStrategy" params={props.params} options={["round-robin", "chunking"]}/>
+            <DropdownStressParam name="Stress Assignment Strategy" paramName="stressAssignmentStrategy" params={props.params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange}/>
+            <DropdownStressParam name="Memory Stress Pattern" paramName="memStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
+            <DropdownStressParam name="Pre Stress Pattern" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
           </div>
           <div className="panel-block p-2">
             <button className="button is-link is-outlined is-fullwidth " style={{ width: "200px", marginLeft: "10px" }}>
