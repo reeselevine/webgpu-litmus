@@ -1,9 +1,11 @@
+import ReactTooltip from 'react-tooltip';
+
 function IntegerStressParam(props) {
   return (
     <>
       <div className="columns">
         <div className="column">
-          <label>{props.name}:</label>
+          <label data-tip={props.description}>{props.name}:</label>
           <input name={props.paramName} className="input is-small stressPanel" type="text" defaultValue={props.params[props.paramName]} onInput={(e) => {
             props.params[props.paramName] = parseInt(e.target.value);
           }} />
@@ -50,7 +52,7 @@ function DropdownStressParam(props) {
     <>
       <div className="columns">
         <div className="column">
-          <label>{props.name}:</label>
+          <label data-tip={props.description}>{props.name}:</label>
           <select className="stressPanelDropdown" name={props.paramName} onChange={props.updateFunc(props.params, props.paramName)}>
             {options}
           </select>
@@ -64,27 +66,28 @@ export default function stressPanel(props) {
   return (
     <>
       <div className="column is-one-third mr-2">
+        <ReactTooltip backgroundColor="black"/>
         <nav className="panel">
           <p className="panel-heading">
             Stress Parameters
           </p>
           <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
-            <IntegerStressParam name="Minimum Workgroups" type="text" paramName="minWorkgroups" params={props.params}/>
-            <IntegerStressParam name="Maximum Workgroups" type="text" paramName="maxWorkgroups" params={props.params}/>
-            <IntegerStressParam name="Shuffle Percentage" type="text" paramName="shufflePct" params={props.params}/>
-            <IntegerStressParam name="Barrier Percentage" type="text" paramName="barrierPct" params={props.params}/>
-            <IntegerStressParam name="Test Memory Size" type="text" paramName="testMemorySize" params={props.params}/>
-            <IntegerStressParam name="Scratch Memory Size" type="text" paramName="scratchMemorySize" params={props.params}/>
-            <IntegerStressParam name="Memory Stride" type="text" paramName="memStride" params={props.params}/>
-            <IntegerStressParam name="Memory Stress Percentage" paramName="memStressPct" params={props.params}/>
-            <IntegerStressParam name="Memory Stress Iterations" paramName="memStressIterations" params={props.params}/>
-            <IntegerStressParam name="Pre-Stress Percentage" paramName="preStressPct" type="text" params={props.params}/>
-            <IntegerStressParam name="Pre-Stress Iterations" paramName="preStressIterations" type="text" params={props.params}/>
-            <IntegerStressParam name="Stress Line Size" paramName="stressLineSize" type="text" params={props.params}/>
-            <IntegerStressParam name="Stress Target Lines" paramName="stressTargetLines" type="text" params={props.params}/>
-            <DropdownStressParam name="Stress Assignment Strategy" paramName="stressAssignmentStrategy" params={props.params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange}/>
-            <DropdownStressParam name="Memory Stress Pattern" paramName="memStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
-            <DropdownStressParam name="Pre Stress Pattern" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
+            <IntegerStressParam name="Minimum Workgroups" description="Tyler fix me" paramName="minWorkgroups" params={props.params}/>
+            <IntegerStressParam name="Maximum Workgroups" description="Tyler fix me" paramName="maxWorkgroups" params={props.params}/>
+            <IntegerStressParam name="Shuffle Percentage" description="Tyler fix me" paramName="shufflePct" params={props.params}/>
+            <IntegerStressParam name="Barrier Percentage" description="Tyler fix me" paramName="barrierPct" params={props.params}/>
+            <IntegerStressParam name="Test Memory Size" description="Tyler fix me" paramName="testMemorySize" params={props.params}/>
+            <IntegerStressParam name="Scratch Memory Size" description="Tyler fix me" paramName="scratchMemorySize" params={props.params}/>
+            <IntegerStressParam name="Memory Stride" description="Tyler fix me" paramName="memStride" params={props.params}/>
+            <IntegerStressParam name="Memory Stress Percentage" description="Tyler fix me" paramName="memStressPct" params={props.params}/>
+            <IntegerStressParam name="Memory Stress Iterations" description="Tyler fix me" paramName="memStressIterations" params={props.params}/>
+            <IntegerStressParam name="Pre-Stress Percentage" description="Tyler fix me" paramName="preStressPct" params={props.params}/>
+            <IntegerStressParam name="Pre-Stress Iterations" description="Tyler fix me" paramName="preStressIterations" params={props.params}/>
+            <IntegerStressParam name="Stress Line Size" description="Tyler fix me" paramName="stressLineSize" params={props.params}/>
+            <IntegerStressParam name="Stress Target Lines" description="Tyler fix me" paramName="stressTargetLines" params={props.params}/>
+            <DropdownStressParam name="Stress Assignment Strategy" description="Tyler fix me" paramName="stressAssignmentStrategy" params={props.params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange}/>
+            <DropdownStressParam name="Memory Stress Pattern" description="Tyler fix me" paramName="memStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
+            <DropdownStressParam name="Pre Stress Pattern" description="Tyler fix me" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange}/>
           </div>
           <div className="panel-block p-2">
             <button className="button is-link is-outlined is-fullwidth " style={{ width: "200px", marginLeft: "10px" }}>
