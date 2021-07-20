@@ -40,7 +40,6 @@ function stressPatternOnChange(params, paramName) {
 
 function stressAssignmentStrategyOnChange(params, paramName) {
   return function onChange(e) {
-    console.log(params);
     params[paramName] = e.target.value;
   }
 }
