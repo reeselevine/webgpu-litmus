@@ -122,28 +122,7 @@ function chartData(testState) {
         ]
     }
 }
-function chartDataEmpty(){
-    return {
-        labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0"],
-        datasets: [
-            {
-                label: "Sequential Interleaving",
-                backgroundColor: 'rgba(3,35,173,0.7)',
-                data: []
-            },
-            {
-                label: "Sequential",
-                backgroundColor: ['rgba(21,161,42,0.7)', 'rgba(21,161,42,0.7)', 'rgba(3,35,173,0.7)', 'rgba(212,8,8,0.7)'],
-                data: []
-            },
-            {
-                label: "Weak Behavior",
-                backgroundColor: 'rgba(212,8,8,0.7)',
-                data: []
-            }
-        ]
-    }
-}
+
 function chartConfig(pageState) {
     return {
         plugins: {
@@ -188,11 +167,21 @@ function setVis(stateVar, str) {
 }
 let totalIteration = 0;
 
+<<<<<<< HEAD
+export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
+=======
+
 let clearChart = false;
 function resetChart(){
     clearChart= true;
 }
-export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
+export function makeTwoOutputTest(
+    testParams, 
+    testName, 
+    testDescription, 
+    shaderCode,
+    pseudoCode) {
+>>>>>>> 90320473d9daf0de9f5f58e04f4e7e944b1eee80
     const testState = getTwoOutputState();
     const pageState = getPageState();
     return (
@@ -218,32 +207,30 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
                   </div>
                 </div>
                 <div className="columns">
-                  <div className="column">
+                  <div className="column" style={{"overflow-x": "auto"}}>
                     <div className="px-2" id="tab-content">
                         <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
-                            <p>Pseudocode goes here</p>
+                          {pseudoCode.setup}
+                          <div className="columns">
+                            {pseudoCode.code}
+                          </div>
                         </div>
-                        <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")}>
-                            <p>Source code goes here</p>
+                        <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
+                          <pre className="shaderCode"><code>
+                            {shaderCode}
+                          </code></pre>
                         </div>
                     </div>
                   </div>          
                 </div>
               </div>
             </div>
-            <div className="columns is-one-fifth">
+            <div className="columns">
               <div className="column">
-                  {clearChart 
-                   ? 
-                   <Bar
-                    data={chartDataEmpty()}
-                    options={chartConfig(pageState)} 
-                   /> 
-                   :
                    <Bar
                    data={chartData(testState)}
                    options={chartConfig(pageState)}
-                 />}
+                   />
               </div>
             </div>
             <div className="columns" >
@@ -268,8 +255,6 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
             <button className="button is-primary" onClick={()=>{
                     doTwoOutputTest(pageState, testState, testParams, shaderCode);
                     setProgressBarState();
-                    resetChart();
-                    clearChart=false;
                     totalIteration = pageState.iterations.value;
                   }} disabled={pageState.iterations.value < 0}>Start Test</button>
           </div>
