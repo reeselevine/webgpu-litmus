@@ -44,3 +44,12 @@ img {
   max-height: 300px;
   font-size: 0.6rem;
 }
+
+.stressPanel {
+  width: 25%;
+  margin-left: 5px;
+}
+
+.stressPanelDropdown {
+  margin-left: 5px;
+}

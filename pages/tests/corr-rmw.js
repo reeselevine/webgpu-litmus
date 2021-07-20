@@ -88,7 +88,7 @@ const shaderCode = `
       if (stress_params.value[0] == 1u) {
         spin();
       }
-      atomicStore(&test_data.value[x], 1u);
+      let unused = atomicExchange(&test_data.value[x], 1u);
     } elseif (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 1u + 0u) {
       if (stress_params.value[4] == 1u) {
         do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
@@ -96,8 +96,8 @@ const shaderCode = `
       if (stress_params.value[0] == 1u) {
         spin();
       }
-      let r0 = atomicLoad(&test_data.value[x]);
-      let r1 = atomicLoad(&test_data.value[y]);
+      let r0 = atomicAdd(&test_data.value[x], 0u);
+      let r1 = atomicAdd(&test_data.value[y], 0u);
       atomicStore(&results.value[0], r0);
       atomicStore(&results.value[1], r1);
     } elseif (stress_params.value[1] == 1u) {
@@ -119,8 +119,8 @@ export default function CoRR() {
   }
   return makeTwoOutputTest(
     testParams, 
-    "CoRR",
-    "The CoRR litmus test checks to see if memory is coherent.",
+    "CoRR RMW",
+    "The CoRR litmus test checks to see if memory is coherent. This version makes each memory load and store an atomic read-modify-write.",
     shaderCode,
     pseudoCode);
 }

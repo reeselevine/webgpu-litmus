@@ -23,7 +23,7 @@ return(
   </div>
   <div className="panel-block ">
     <Link href='/tests/message-passing'>
-          Message-Passing
+          Message Passing
     </Link>
   </div>
   <div className="panel-block ">
@@ -31,6 +31,12 @@ return(
          CoRR 
     </Link>
   </div>
+  <div className="panel-block ">
+    <Link href='/tests/corr-rmw'>
+         CoRR RMW 
+    </Link>
+  </div>
+
 </nav>
   );
 }

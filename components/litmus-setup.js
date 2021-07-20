@@ -15,10 +15,10 @@ export const defaultTestParams = {
     memStride: 8,
     memStressPct: 100,
     memStressIterations: 100,
-    memStressPattern: 0,
+    memStressPattern: 2,
     preStressPct: 100,
     preStressIterations: 100,
-    preStressPattern: 0,
+    preStressPattern: 2,
     stressLineSize: 4,
     stressTargetLines: 4,
     stressAssignmentStrategy: "round-robin",
@@ -36,7 +36,7 @@ function getRandomInRange(min, max) {
         return min;
     } else {
         const offset = getRandomInt(max - min);
-        return min + size;
+        return min + offset;
     }
 }
 
@@ -178,7 +178,7 @@ async function setScratchLocations(scratchLocations, testParams, numWorkgroups) 
             for (let j = 0; j < workgroupsPerLocation; j++) {
                 scratchLocationsArray[i*workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
             }
-            if (i == stressParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
+            if (i == testParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
                 for (let j = 0; j < numWorkgroups % testParams.stressTargetLines; j++) {
                     scratchLocationsArray[numWorkgroups - j - 1] = region * testParams.stressLineSize + locInRegion;
                 }
