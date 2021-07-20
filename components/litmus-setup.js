@@ -24,7 +24,8 @@ export const defaultTestParams = {
     stressAssignmentStrategy: "round-robin",
     memoryAliases: {}
 }
-
+let currentIteration = 0;
+let duration = 0 ;
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
@@ -432,8 +433,18 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
+    const start = Date.now();
     for (let i = 0; i < iterations; i++) {
+        currentIteration = i;
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
         handleResult(result);
     }
+    duration = Date.now() - start;
+}
+export function getCurrentIteration(){
+    return currentIteration;
+}
+
+export function reportTime(){
+    return duration/1000;
 }
