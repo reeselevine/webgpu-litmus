@@ -167,21 +167,12 @@ function setVis(stateVar, str) {
 }
 let totalIteration = 0;
 
-<<<<<<< HEAD
-export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
-=======
-
-let clearChart = false;
-function resetChart(){
-    clearChart= true;
-}
 export function makeTwoOutputTest(
     testParams, 
     testName, 
     testDescription, 
     shaderCode,
     pseudoCode) {
->>>>>>> 90320473d9daf0de9f5f58e04f4e7e944b1eee80
     const testState = getTwoOutputState();
     const pageState = getPageState();
     return (
@@ -248,7 +239,6 @@ export function makeTwoOutputTest(
           <div className="control">
             <input className="input" type="text" placeholder="Iterations" onInput={(e) => {
                     pageState.iterations.updateFunc(e.target.value);
-                    // resetProgressBar();
             }}/>
           </div>
           <div className="buttons mt-2">
