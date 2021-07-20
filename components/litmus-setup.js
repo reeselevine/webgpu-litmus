@@ -25,7 +25,6 @@ export const defaultTestParams = {
     memoryAliases: {}
 }
 let currentIteration = 0;
-let checkDone = false;
 let duration = 0 ;
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
@@ -434,7 +433,6 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
-    checkDone = false;
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
         currentIteration = i;
@@ -442,15 +440,9 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
         handleResult(result);
     }
     duration = Date.now() - start;
-    console.log(duration);
-    checkDone = true;
 }
 export function getCurrentIteration(){
     return currentIteration;
-}
-
-export function checkFinish(){
-    return checkDone;
 }
 
 export function reportTime(){

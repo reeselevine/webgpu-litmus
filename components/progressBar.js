@@ -1,25 +1,25 @@
 import { ProgressBar } from 'react-bootstrap';
-import { useState } from 'react';
-import { getCurrentIteration, checkFinish } from '../components/litmus-setup';
+import { getCurrentIteration } from '../components/litmus-setup';
 import { getIterationNum } from './test-page-setup';
-let finish;
+let checkLast;
 let percentage = 0;
-let finalIter = 0;
-let finalPercentage = 0;
 let defaultState = true;
 export function resetProgressBar(){
-    finish = false; 
+    defaultState = true;
     percentage = 0;
 }
 export function setProgressBarState(){
     defaultState = false;
 }
+function lastIteration(){
+    if(getCurrentIteration() +1 == getIterationNum()){
+        return true;
+    }
+    else return false;
+}
 export default function progressBar(){
     percentage = Math.floor(getCurrentIteration()*100/getIterationNum());
-    finalIter = getCurrentIteration()+1;
-    finalPercentage =  Math.floor(finalIter*100/getIterationNum());
-    finish = checkFinish();
-    console.log(finish);
+    checkLast = lastIteration();
     return(
         <>
         {defaultState ? (
@@ -28,7 +28,7 @@ export default function progressBar(){
             </div>
         ) : (
           <div className="progressBar">
-            {finish ? (<ProgressBar now = {finalPercentage} label ={`Done`}/>): (<ProgressBar now={percentage} label={`${percentage}% completed`}  animated/> )}
+            {checkLast ? (<ProgressBar now = {100} label ={`Done`}/>): (<ProgressBar now={percentage} label={`${percentage}% completed`}  animated/> )}
           </div>
         )}
         </>

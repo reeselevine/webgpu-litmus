@@ -187,8 +187,8 @@ function setVis(stateVar, str) {
     }
 }
 let totalIteration = 0;
+
 let clearChart = false;
-let time =  reportTime();
 function resetChart(){
     clearChart= true;
 }
@@ -260,15 +260,15 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
           <div className="column is-one-fifth">
           <div className="control">
             <input className="input" type="text" placeholder="Iterations" onInput={(e) => {
-                    resetChart();
                     pageState.iterations.updateFunc(e.target.value);
+                    // resetProgressBar();
             }}/>
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={()=>{
                     doTwoOutputTest(pageState, testState, testParams, shaderCode);
-                    resetProgressBar();
                     setProgressBarState();
+                    resetChart();
                     clearChart=false;
                     totalIteration = pageState.iterations.value;
                   }} disabled={pageState.iterations.value < 0}>Start Test</button>
