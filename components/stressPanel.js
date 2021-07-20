@@ -69,7 +69,7 @@ export default function stressPanel(props) {
         <ReactTooltip backgroundColor="black"/>
         <nav className="panel">
           <p className="panel-heading">
-            Stress Parameters
+            Test Parameters
           </p>
           <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
             <IntegerStressParam name="Minimum Workgroups" description="Tyler fix me" paramName="minWorkgroups" params={props.params}/>
