@@ -166,7 +166,12 @@ function setVis(stateVar, str) {
     }
 }
 
-export function makeTwoOutputTest(testParams, testName, testDescription, shaderCode) {
+export function makeTwoOutputTest(
+    testParams, 
+    testName, 
+    testDescription, 
+    shaderCode,
+    pseudoCode) {
     const testState = getTwoOutputState();
     const pageState = getPageState();
     return (
@@ -192,20 +197,25 @@ export function makeTwoOutputTest(testParams, testName, testDescription, shaderC
                   </div>
                 </div>
                 <div className="columns">
-                  <div className="column">
+                  <div className="column" style={{"overflow-x": "auto"}}>
                     <div className="px-2" id="tab-content">
                         <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
-                            <p>Pseudocode goes here</p>
+                          {pseudoCode.setup}
+                          <div className="columns">
+                            {pseudoCode.code}
+                          </div>
                         </div>
-                        <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")}>
-                            <p>Source code goes here</p>
+                        <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
+                          <pre className="shaderCode"><code>
+                            {shaderCode}
+                          </code></pre>
                         </div>
                     </div>
                   </div>          
                 </div>
               </div>
             </div>
-            <div className="columns is-one-fifth">
+            <div className="columns">
               <div className="column">
                     <Bar
                       data={chartData(testState)}
