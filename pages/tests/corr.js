@@ -115,7 +115,6 @@ export default function CoRR() {
       <TestThreadPseudoCode thread="0" code="0.1: x=1;"/>
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
-
   }
   return makeTwoOutputTest(
     testParams, 

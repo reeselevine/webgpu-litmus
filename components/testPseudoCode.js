@@ -8,7 +8,6 @@ export function TestThreadPseudoCode(props) {
                 </code></pre>
             </div>
         </div>
-
     )
 }
 
@@ -20,5 +19,4 @@ export function TestSetupPseudoCode(props) {
         </div>
         </>
     )
-
 }
