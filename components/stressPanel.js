@@ -1,4 +1,9 @@
-import ReactTooltip from 'react-tooltip';
+import dynamic from "next/dynamic";
+
+//see https://github.com/wwayne/react-tooltip/issues/675
+const ReactTooltip = dynamic(() => import("react-tooltip"), {
+  ssr: false,
+});
 
 function IntegerStressParam(props) {
   return (
