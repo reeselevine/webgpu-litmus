@@ -1,7 +1,7 @@
 import React,{ useState } from 'react';
 import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
-import { runLitmusTest, reportTime } from './litmus-setup.js'
+import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { resetProgressBar, setProgressBarState } from '../components/progressBar';
@@ -258,7 +258,8 @@ export function makeTwoOutputTest(
                 </div>
                 <div className="column">
                  <p>Run time : {reportTime()} seconds</p> 
-                 <p>Rate : {Math.round(pageState.iterations.value/(reportTime()))} iterations per second</p>
+                 <p>Rate : {Math.round((getCurrentIteration()/(reportTime())))} iterations per second</p>
+                 <p>Time Remaining : {Math.floor((totalIteration-getCurrentIteration())/(Math.round(getCurrentIteration()/(reportTime()))))} seconds </p>
                 </div>
             </div>
           </div>
