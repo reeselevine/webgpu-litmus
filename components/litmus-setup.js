@@ -438,8 +438,8 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
         currentIteration = i;
         const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
         handleResult(result);
+        duration = Date.now() - start;
     }
-    duration = Date.now() - start;
 }
 export function getCurrentIteration(){
     return currentIteration;
