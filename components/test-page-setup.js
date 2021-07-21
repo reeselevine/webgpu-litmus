@@ -63,26 +63,26 @@ function buildThrottle(updateFunc) {
 
 function getPageState() {
   const [iterations, setIterations] = useState(1000);
-  const [loading, setLoading] = useState(false);
+  const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
   return {
     iterations: {
       value: iterations,
-      updateFunc: setIterations
+      update: setIterations
     },
-    loading: {
-      value: loading,
-      updateFunc: setLoading
+    running: {
+      value: running,
+      update: setRunning
     },
     pseudoActive: {
       value: pseudoActive,
-      updateFunc: setPseudoActive
+      update: setPseudoActive
     }
   }
 }
 
 function doTwoOutputTest(pageState, testState, testParams, shaderCode) {
-  pageState.loading.updateFunc(true);
+  pageState.running.update(true);
   testState.bothOne.internalState = 0;
   testState.bothOne.syncUpdate(0);
   testState.bothZero.internalState = 0;
@@ -94,7 +94,7 @@ function doTwoOutputTest(pageState, testState, testParams, shaderCode) {
   const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleTwoStateResult(testState));
   p.then(
     success => {
-      pageState.loading.updateFunc(false);
+      pageState.running.update(false);
       console.log("success!")
     },
     error => console.log(error)
@@ -210,8 +210,8 @@ export function makeTwoOutputTest(
                 <div className="column">
                   <div className="tabs is-medium is-centered">
                     <ul>
-                      <li className={setVis(pageState.pseudoActive.value, "is-active")} onClick={() => { pageState.pseudoActive.updateFunc(true); }}><a>Pseudo-Code</a></li>
-                      <li className={setVis(!pageState.pseudoActive.value, "is-active")} onClick={() => { pageState.pseudoActive.updateFunc(false); }}><a>Source Code</a></li>
+                      <li className={setVis(pageState.pseudoActive.value, "is-active")} onClick={() => { pageState.pseudoActive.update(true); }}><a>Pseudo-Code</a></li>
+                      <li className={setVis(!pageState.pseudoActive.value, "is-active")} onClick={() => { pageState.pseudoActive.update(false); }}><a>Source Code</a></li>
                     </ul>
                   </div>
                 </div>
@@ -251,28 +251,28 @@ export function makeTwoOutputTest(
             </div>
           </div>
         </div>
-        <StressPanel params={testParams}></StressPanel>
+        <StressPanel params={testParams} pageState={pageState}></StressPanel>
       </div>
       <div className="columns">
         <div className="column is-one-fifth">
           <div className="control">
             <label><b>Iterations:</b></label>
             <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
-              pageState.iterations.updateFunc(e.target.value);
-            }} />
+              pageState.iterations.update(e.target.value);
+            }} disabled={pageState.running.value}/>
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
               doTwoOutputTest(pageState, testState, testParams, shaderCode);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
-            }} disabled={pageState.iterations.value < 0}>Start Test</button>
+            }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>
           </div>
         </div>
         <div className="column">
           <div className="columns">
             <div className="column is-one-fifth">
-              {pageState.loading.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
+              {pageState.running.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
             </div>
             <div className="column">
               <p>Run time : {reportTime()} seconds</p>
