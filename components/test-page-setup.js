@@ -259,7 +259,7 @@ export function makeTwoOutputTest(
             <label><b>Iterations:</b></label>
             <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
               pageState.iterations.update(e.target.value);
-            }} />
+            }} disabled={pageState.running.value}/>
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
