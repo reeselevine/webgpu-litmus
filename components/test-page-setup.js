@@ -49,7 +49,7 @@ function handleTwoStateResult(state) {
         } else if (result[0] == 0 && result[1] == 1) {
             state.zeroOne.internalState = state.zeroOne.internalState + 1;
             state.zeroOne.throttledUpdate(state.zeroOne.internalState);
-        } else if (result[0] == 0 && result[1] == 0) {
+        } else if (result[0] == 1 && result[1] == 0) {
             state.oneZero.internalState = state.oneZero.internalState + 1;
             state.oneZero.throttledUpdate(state.oneZero.internalState);
         }
