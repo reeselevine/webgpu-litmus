@@ -8,6 +8,7 @@ module.exports = (phase, { defaultConfig }) => {
 
   return {
     assetPrefix: '/~reeselevine/webgpu/',
-    basePath: '/~reeselevine/webgpu'
+    basePath: '/~reeselevine/webgpu',
+    trailingSlash: true
   }
 }
