@@ -96,7 +96,7 @@ const shaderCode = `
       if (stress_params.value[0] == 1u) {
         spin();
       }
-      let r0 = atomicAdd(&test_data.value[x], 0u);
+      let r0 = atomicLoad(&test_data.value[x]);
       let r1 = atomicAdd(&test_data.value[y], 0u);
       atomicStore(&results.value[0], r0);
       atomicStore(&results.value[1], r1);
@@ -108,12 +108,12 @@ const shaderCode = `
 
 export default function CoRR() {
   testParams.memoryAliases[1] = 0;
-  const thread1 = `1.1: r0=x;
-1.2; r1=x;`
+  const thread1 = `1.1: r0=x
+1.2: r1=add(x, 0)`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
     code: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1;"/>
+      <TestThreadPseudoCode thread="0" code="0.1: exchange(x, 1)"/>
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   }

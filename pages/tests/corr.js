@@ -108,12 +108,12 @@ const shaderCode = `
 
 export default function CoRR() {
   testParams.memoryAliases[1] = 0;
-  const thread1 = `1.1: r0=x;
-1.2; r1=x;`
+  const thread1 = `1.1: r0=x
+1.2: r1=x`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
     code: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1;"/>
+      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   }
