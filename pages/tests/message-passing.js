@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest } from '../../components/test-page-setup.js';
+import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 
 const shaderCode = `
@@ -124,10 +124,23 @@ export default function MessagePassing() {
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   };
+  const testState = getTwoOutputState();
+
+  const behaviors = {
+    sequential: [
+      testState.bothZero,
+      testState.bothOne
+    ],
+    interleaved: testState.zeroOne,
+    weak: testState.oneZero
+  };
+
   return makeTwoOutputTest(
     defaultTestParams, 
     "Message Passing",
     "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
     shaderCode,
-    pseudoCode);
+    pseudoCode,
+    testState,
+    behaviors);
 }

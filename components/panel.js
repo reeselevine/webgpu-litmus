@@ -27,6 +27,17 @@ return(
     </Link>
   </div>
   <div className="panel-block ">
+    <Link href='/tests/load-buffer'>
+          Load Buffer 
+    </Link>
+  </div>
+  <div className="panel-block ">
+    <Link href='/tests/store-buffer'>
+          Store Buffer 
+    </Link>
+  </div>
+
+  <div className="panel-block ">
     <Link href='/tests/corr'>
          CoRR 
     </Link>

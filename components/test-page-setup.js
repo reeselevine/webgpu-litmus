@@ -6,7 +6,7 @@ import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 
-function getTwoOutputState() {
+export function getTwoOutputState() {
   const [bothOneVal, setBothOne] = useState(0);
   const [oneZeroVal, setOneZero] = useState(0);
   const [zeroOneVal, setZeroOne] = useState(0);
@@ -16,25 +16,29 @@ function getTwoOutputState() {
       visibleState: bothOneVal,
       internalState: 0,
       syncUpdate: setBothOne,
-      throttledUpdate: buildThrottle(setBothOne)
+      throttledUpdate: buildThrottle(setBothOne),
+      label: "r0=1 and r1=1"
     },
     bothZero: {
       visibleState: bothZeroVal,
       internalState: 0,
       syncUpdate: setBothZero,
-      throttledUpdate: buildThrottle(setBothZero)
+      throttledUpdate: buildThrottle(setBothZero),
+      label: "r0=0 and r1=0"
     },
     zeroOne: {
       visibleState: zeroOneVal,
       internalState: 0,
       syncUpdate: setZeroOne,
-      throttledUpdate: buildThrottle(setZeroOne)
+      throttledUpdate: buildThrottle(setZeroOne),
+      label: "r0=0 and r1=1"
     },
     oneZero: {
       visibleState: oneZeroVal,
       internalState: 0,
       syncUpdate: setOneZero,
-      throttledUpdate: buildThrottle(setOneZero)
+      throttledUpdate: buildThrottle(setOneZero),
+      label: "r0=1 and r1=0"
     }
   }
 }
@@ -101,27 +105,27 @@ function doTwoOutputTest(pageState, testState, testParams, shaderCode) {
   );
 }
 
-function chartData(testState) {
+function chartData(behaviors) {
   return {
-    labels: ["r0=1 and r1=1", "r0=0 and r1=0", "r0=0 and r1=1", "r0=1 and r1=0"],
+    labels: [behaviors.sequential[0].label, behaviors.sequential[1].label, behaviors.interleaved.label, behaviors.weak.label],
     datasets: [
       {
         label: "Sequential",
         backgroundColor: 'rgba(21,161,42,0.7)',
         grouped: false,
-        data: [testState.bothOne.visibleState, testState.bothZero.visibleState, null, null]
+        data: [behaviors.sequential[0].visibleState, behaviors.sequential[1].visibleState, null, null]
       },
       {
         label: "Sequential Interleaving",
         backgroundColor: 'rgba(3,35,173,0.7)',
         grouped: false,
-        data: [null, null, testState.zeroOne.visibleState, null]
+        data: [null, null, behaviors.interleaved.visibleState, null]
       },
       {
         label: "Weak Behavior",
         backgroundColor: 'rgba(212,8,8,0.7)',
         grouped: false,
-        data: [null, null, null, testState.oneZero.visibleState]
+        data: [null, null, null, behaviors.weak.visibleState]
       }
     ]
   }
@@ -190,8 +194,9 @@ export function makeTwoOutputTest(
   testName,
   testDescription,
   shaderCode,
-  pseudoCode) {
-  const testState = getTwoOutputState();
+  pseudoCode,
+  testState,
+  behaviors) {
   const pageState = getPageState();
   let initialIterations = pageState.iterations.value;
   return (
@@ -238,7 +243,7 @@ export function makeTwoOutputTest(
           <div className="columns">
             <div className="column">
               <Bar
-                data={chartData(testState)}
+                data={chartData(behaviors)}
                 options={chartConfig(pageState)}
               />
             </div>

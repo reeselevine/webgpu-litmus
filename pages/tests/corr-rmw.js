@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest } from '../../components/test-page-setup.js';
+import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
 import { TestThreadPseudoCode, TestSetupPseudoCode } from '../../components/testPseudoCode.js'
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
@@ -123,11 +123,25 @@ export default function CoRR() {
       <TestThreadPseudoCode thread="0" code="0.1: exchange(x, 1)" />
       <TestThreadPseudoCode thread="1" code={thread1} />
     </>)
-  }
+  };
+
+  const testState = getTwoOutputState();
+
+  const behaviors = {
+    sequential: [
+      testState.bothZero,
+      testState.bothOne
+    ],
+    interleaved: testState.zeroOne,
+    weak: testState.oneZero
+  };
+
   return makeTwoOutputTest(
     testParams,
     "CoRR RMW",
     "The CoRR litmus test checks to see if memory is coherent. This version makes each memory load and store an atomic read-modify-write.",
     shaderCode,
-    pseudoCode);
+    pseudoCode,
+    testState,
+    behaviors);
 }
