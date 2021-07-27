@@ -2,8 +2,6 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 
-const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-
 const shaderCode = `
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
@@ -96,6 +94,8 @@ let workgroupXSize = 1;
       spin();
     }
     atomicStore(ax, 1u);
+    let r0 = atomicLoad(ay);
+    atomicStore(&results.value[0], r0);
   } elseif (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 1u + 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
@@ -103,24 +103,24 @@ let workgroupXSize = 1;
     if (do_barrier == 1u) {
       spin();
     }
-    let r0 = atomicLoad(ax);
-    let r1 = atomicLoad(ay);
+    atomicStore(ay, 1u);
+    let r1 = atomicLoad(ax);
     atomicStore(&results.value[1], r1);
-    atomicStore(&results.value[0], r0);
   } elseif (stress_params.value[1] == 1u) {
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);
   }
 }
 `
 
-export default function CoRR() {
-  testParams.memoryAliases[1] = 0;
-  const thread1 = `1.1: r0=x
+export default function StoreBuffer() {
+  const thread0 = `0.1: x=1
+0.2: r0=y`
+  const thread1 = `1.1: y=1
 1.2: r1=x`
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
+    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=0 && r1=0"/>,
     code: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
+      <TestThreadPseudoCode thread="0" code={thread0}/>
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   };
@@ -129,17 +129,17 @@ export default function CoRR() {
 
   const behaviors = {
     sequential: [
-      testState.bothZero,
-      testState.bothOne
+      testState.oneZero,
+      testState.zeroOne
     ],
-    interleaved: testState.zeroOne,
-    weak: testState.oneZero
+    interleaved: testState.bothOne,
+    weak: testState.bothZero
   };
 
   return makeTwoOutputTest(
-    testParams, 
-    "CoRR",
-    "The CoRR litmus test checks to see if memory is coherent.",
+    defaultTestParams, 
+    "Store Buffer",
+    "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads.",
     shaderCode,
     pseudoCode,
     testState,

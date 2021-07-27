@@ -2,8 +2,6 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 
-const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-
 const shaderCode = `
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
@@ -86,8 +84,8 @@ let workgroupXSize = 1;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];
-  let ax = &test_data.value[mem_locations.value[0]];
-  let ay = &test_data.value[mem_locations.value[1]];
+  let ay = &test_data.value[mem_locations.value[0]];
+  let ax = &test_data.value[mem_locations.value[1]];
   if (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 0u + 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
@@ -95,7 +93,9 @@ let workgroupXSize = 1;
     if (do_barrier == 1u) {
       spin();
     }
+    let r0 = atomicLoad(ay);
     atomicStore(ax, 1u);
+    atomicStore(&results.value[0], r0);
   } elseif (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 1u + 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
@@ -103,24 +103,24 @@ let workgroupXSize = 1;
     if (do_barrier == 1u) {
       spin();
     }
-    let r0 = atomicLoad(ax);
-    let r1 = atomicLoad(ay);
+    let r1 = atomicLoad(ax);
+    atomicStore(ay, 1u);
     atomicStore(&results.value[1], r1);
-    atomicStore(&results.value[0], r0);
   } elseif (stress_params.value[1] == 1u) {
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);
   }
 }
 `
 
-export default function CoRR() {
-  testParams.memoryAliases[1] = 0;
-  const thread1 = `1.1: r0=x
-1.2: r1=x`
+export default function LoadBuffer() {
+  const thread0 = `0.1: r0=y
+0.2: x=1`
+  const thread1 = `1.1: r1=x
+1.2: y=1`
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
+    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && r1=1"/>,
     code: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
+      <TestThreadPseudoCode thread="0" code={thread0}/>
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   };
@@ -129,17 +129,17 @@ export default function CoRR() {
 
   const behaviors = {
     sequential: [
-      testState.bothZero,
-      testState.bothOne
+      testState.oneZero,
+      testState.zeroOne
     ],
-    interleaved: testState.zeroOne,
-    weak: testState.oneZero
+    interleaved: testState.bothZero,
+    weak: testState.bothOne
   };
 
   return makeTwoOutputTest(
-    testParams, 
-    "CoRR",
-    "The CoRR litmus test checks to see if memory is coherent.",
+    defaultTestParams, 
+    "Load Buffer",
+    "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads.",
     shaderCode,
     pseudoCode,
     testState,
