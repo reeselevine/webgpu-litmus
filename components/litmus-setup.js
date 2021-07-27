@@ -44,7 +44,7 @@ function getRandomInRange(min, max) {
 async function getDevice() {
     if (!navigator.gpu) {
         console.log(
-        "WebGPU is not supported. Enable chrome://flags/#enable-unsafe-webgpu flag."
+        "WebGPU is not supported. Switch to Chrome Canary and enable chrome://flags/#enable-unsafe-webgpu flag."
         );
         return;
     }
@@ -443,6 +443,10 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 
 export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
     const device = await getDevice();
+    if (device === undefined) {
+        alert("WebGPU not enabled or supported!")
+        return;
+    }
     const buffers = {
         testData: createBuffer(device, testParams.testMemorySize, true, true),
         memLocations: createBuffer(device, testParams.numMemLocations, false, true),
