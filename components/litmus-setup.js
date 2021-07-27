@@ -367,18 +367,14 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 
     // interleave waiting for buffers to map with initializing
     // buffer values. This increases test throughput by about 2x. 
-    const p0 = map_buffer(buffers.scratchpad);
     const p1 = map_buffer(buffers.testData);
     const p2 = map_buffer(buffers.results);
     const p3 = map_buffer(buffers.barrier);
     const p4 = map_buffer(buffers.shuffleIds);
     const p5 = map_buffer(buffers.memLocations);
     const p6 = map_buffer(buffers.scratchLocations);
-    const p7 = map_buffer(buffers.stressParams);
 
-    await p0;
-    clearBuffer(buffers.scratchpad, testParams.scratchMemorySize);
-    
+
     await p1;
     clearBuffer(buffers.testData, testParams.testMemorySize);
     
@@ -396,10 +392,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     
     await p6;
     setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
-    
-    await p7;
-    setStressParams(buffers.stressParams, testParams);
-  
+      
     const commandEncoder = device.createCommandEncoder();
 
 
@@ -466,6 +459,20 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const bindGroupLayout = createBindGroupLayout(device);
     const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
     const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
+
+    // Before the iterations we can initialize the scratchpad
+    // and set the stress parameters. Increases test throughput
+    // a little more
+    const p0 = map_buffer(buffers.scratchpad);
+    await p0;
+    clearBuffer(buffers.scratchpad, testParams.scratchMemorySize);
+
+    const p7 = map_buffer(buffers.stressParams);
+    await p7;
+    setStressParams(buffers.stressParams, testParams);
+
+
+    
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
         currentIteration = i;
