@@ -36,7 +36,6 @@ return(
           Store Buffer 
     </Link>
   </div>
-
   <div className="panel-block ">
     <Link href='/tests/corr'>
          CoRR 
@@ -50,6 +49,11 @@ return(
   <div className="panel-block ">
     <Link href='/tests/coww'>
          CoWW 
+    </Link>
+  </div>
+  <div className="panel-block ">
+    <Link href='/tests/cowr'>
+         CoWR
     </Link>
   </div>
   <div className="panel-block ">
