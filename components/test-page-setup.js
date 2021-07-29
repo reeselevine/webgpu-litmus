@@ -116,7 +116,7 @@ function oneOutputChartData(testState) {
         data: [testState.seq.visibleState, null]
       },
       {
-        label: "Weak",
+        label: "Weak Behavior",
         backgroundColor: 'rgba(212,8,8,0.7)',
         grouped: false,
         data: [null, testState.weak.visibleState]
