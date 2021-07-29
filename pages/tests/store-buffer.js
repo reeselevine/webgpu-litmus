@@ -1,5 +1,6 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
+import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from './store-buffer.wgsl'
 
@@ -27,12 +28,15 @@ export default function StoreBuffer() {
     weak: testState.bothZero
   };
 
-  return makeTwoOutputTest(
-    defaultTestParams, 
-    "Store Buffer",
-    "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads.",
-    storeBuffer,
-    pseudoCode,
-    testState,
-    behaviors);
+  const props = {
+      testName: "Store Buffer",
+      testDescription: "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads.",
+      shaderCode: storeBuffer,
+      chartData: twoOutputChartData(behaviors),
+      chartFilter: twoOutputTooltipFilter,
+      clearState: clearTwoOutputState(testState),
+      handleResult: handleTwoOutputResult(testState)
+  }
+
+  return makeTestPage(props, defaultTestParams, pseudoCode);
 }

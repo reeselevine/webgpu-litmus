@@ -47,7 +47,11 @@ return(
          CoRR RMW 
     </Link>
   </div>
-
+  <div className="panel-block ">
+    <Link href='/tests/coww'>
+         CoWW 
+    </Link>
+  </div>
 </nav>
   );
 }

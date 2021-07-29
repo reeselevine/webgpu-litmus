@@ -1,5 +1,6 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
+import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from './corr.wgsl';
 
@@ -28,12 +29,15 @@ export default function CoRR() {
     weak: testState.oneZero
   };
 
-  return makeTwoOutputTest(
-    testParams, 
-    "CoRR",
-    "The CoRR litmus test checks to see if memory is coherent.",
-    coRR,
-    pseudoCode,
-    testState,
-    behaviors);
+  const props = {
+      testName: "CoRR",
+      testDescription: "The CoRR litmus test checks to see if memory is coherent.",
+      shaderCode: coRR,
+      chartData: twoOutputChartData(behaviors),
+      chartFilter: twoOutputTooltipFilter,
+      clearState: clearTwoOutputState(testState),
+      handleResult: handleTwoOutputResult(testState)
+  }
+
+  return makeTestPage(props, testParams, pseudoCode);
 }

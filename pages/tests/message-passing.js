@@ -1,5 +1,6 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
+import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import messagePassing from './message-passing.wgsl'
 
@@ -26,12 +27,15 @@ export default function MessagePassing() {
     weak: testState.oneZero
   };
 
-  return makeTwoOutputTest(
-    defaultTestParams, 
-    "Message Passing",
-    "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
-    messagePassing,
-    pseudoCode,
-    testState,
-    behaviors);
+  const props = {
+      testName: "Message Passing",
+      testDescription: "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
+      shaderCode: messagePassing,
+      chartData: twoOutputChartData(behaviors),
+      chartFilter: twoOutputTooltipFilter,
+      clearState: clearTwoOutputState(testState),
+      handleResult: handleTwoOutputResult(testState)
+  }
+
+  return makeTestPage(props, defaultTestParams, pseudoCode);
 }

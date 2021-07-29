@@ -1,5 +1,6 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
+import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import loadBuffer from './load-buffer.wgsl'
 
@@ -28,12 +29,15 @@ export default function LoadBuffer() {
     weak: testState.bothOne
   };
 
-  return makeTwoOutputTest(
-    defaultTestParams, 
-    "Load Buffer",
-    "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads.",
-    loadBuffer,
-    pseudoCode,
-    testState,
-    behaviors);
+  const props = {
+      testName: "Load Buffer",
+      testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads.",
+      shaderCode: loadBuffer,
+      chartData: twoOutputChartData(behaviors),
+      chartFilter: twoOutputTooltipFilter,
+      clearState: clearTwoOutputState(testState),
+      handleResult: handleTwoOutputResult(testState)
+  }
+
+  return makeTestPage(props, defaultTestParams, pseudoCode);
 }

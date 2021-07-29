@@ -1,5 +1,3 @@
-import { getRouteRegex } from "next/dist/next-server/lib/router/utils";
-
 /** Default test parameters */
 export const defaultTestParams = {
     minWorkgroups: 2,
@@ -25,7 +23,7 @@ export const defaultTestParams = {
     memoryAliases: {}
 }
 let currentIteration = 0;
-let duration = 0 ;
+let duration = 0;
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
@@ -44,7 +42,7 @@ function getRandomInRange(min, max) {
 async function getDevice() {
     if (!navigator.gpu) {
         console.log(
-        "WebGPU is not supported. Switch to Chrome Canary and enable chrome://flags/#enable-unsafe-webgpu flag."
+            "WebGPU is not supported. Switch to Chrome Canary and enable chrome://flags/#enable-unsafe-webgpu flag."
         );
         return;
     }
@@ -65,7 +63,7 @@ function createBuffer(device, bufferSize, copySrc, copyDst) {
     if (copySrc) {
         readBuffer = device.createBuffer({
             mappedAtCreation: false,
-            size:  bufferSize * 4,
+            size: bufferSize * 4,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
         });
         extraFlags = extraFlags | GPUBufferUsage.COPY_SRC;
@@ -98,14 +96,12 @@ function map_buffer(buffer) {
 }
 
 function clearBuffer(buffer, bufferSize) {
-    //await buffer.writeBuffer.mapAsync(GPUMapMode.WRITE);
     const arrayBuffer = buffer.writeBuffer.getMappedRange();
     new Uint32Array(arrayBuffer).fill(0, 0, bufferSize);
     buffer.writeBuffer.unmap();
 }
 
-function setMemLocations(memLocations, testParams) {
-    //await memLocations.writeBuffer.mapAsync(GPUMapMode.WRITE);
+function setMemLocations(memLocations, testParams, referenceArray) {
     const memLocationsArrayBuffer = memLocations.writeBuffer.getMappedRange();
     const memLocationsArray = new Uint32Array(memLocationsArrayBuffer);
     const usedRegions = new Set();
@@ -114,24 +110,26 @@ function setMemLocations(memLocations, testParams) {
     for (let i = 0; i < testParams.numMemLocations; i++) {
         if (testParams.memoryAliases[i] !== undefined) {
             memLocationsArray[i] = locations[testParams.memoryAliases[i]];
+            referenceArray[i] = memLocationsArray[i];
         } else {
             let region = getRandomInt(numRegions);
-            while(usedRegions.has(region)) {
+            while (usedRegions.has(region)) {
                 region = getRandomInt(numRegions);
             }
             const locInRegion = getRandomInt(testParams.memStride);
-            memLocationsArray[i] = region*testParams.memStride + locInRegion;
-            locations[i] = region*testParams.memStride + locInRegion;
+            memLocationsArray[i] = region * testParams.memStride + locInRegion;
+            locations[i] = region * testParams.memStride + locInRegion;
             usedRegions.add(region);
         }
+        referenceArray[i] = memLocationsArray[i];
+
     }
     memLocations.writeBuffer.unmap();
 }
 
 function setShuffleIds(shuffleIds, testParams, numWorkgroups, workgroupSize) {
-    //await shuffleIds.writeBuffer.mapAsync(GPUMapMode.WRITE);
-  const shuffleIdsArrayBuffer = shuffleIds.writeBuffer.getMappedRange();
-  const shuffleIdsArray = new Uint32Array(shuffleIdsArrayBuffer);
+    const shuffleIdsArrayBuffer = shuffleIds.writeBuffer.getMappedRange();
+    const shuffleIdsArray = new Uint32Array(shuffleIdsArrayBuffer);
     for (let i = 0; i < testParams.maxWorkgroups * testParams.maxWorkgroupSize; i++) {
         shuffleIdsArray[i] = i;
     }
@@ -140,15 +138,15 @@ function setShuffleIds(shuffleIds, testParams, numWorkgroups, workgroupSize) {
             const x = getRandomInt(i + 1);
             if (workgroupSize > 1) {
                 for (let j = 0; j < workgroupSize; j++) {
-                    const temp = shuffleIdsArray[i*workgroupSize + j]
-                    shuffleIdsArray[i*workgroupSize + j] = shuffleIdsArray[x*workgroupSize + j];
-                    shuffleIdsArray[x*workgroupSize + j] = temp;
+                    const temp = shuffleIdsArray[i * workgroupSize + j]
+                    shuffleIdsArray[i * workgroupSize + j] = shuffleIdsArray[x * workgroupSize + j];
+                    shuffleIdsArray[x * workgroupSize + j] = temp;
                 }
                 for (let j = workgroupSize - 1; j > 0; j--) {
                     const y = getRandomInt(j + 1);
-                    const temp = shuffleIdsArray[i*workgroupSize + y];
-                    shuffleIdsArray[i*workgroupSize + y] = shuffleIdsArray[i*workgroupSize + j];
-                    shuffleIdsArray[i*workgroupSize + j] = temp;
+                    const temp = shuffleIdsArray[i * workgroupSize + y];
+                    shuffleIdsArray[i * workgroupSize + y] = shuffleIdsArray[i * workgroupSize + j];
+                    shuffleIdsArray[i * workgroupSize + j] = temp;
                 }
             } else {
                 const temp = shuffleIdsArray[i];
@@ -161,14 +159,13 @@ function setShuffleIds(shuffleIds, testParams, numWorkgroups, workgroupSize) {
 }
 
 function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
-    //await scratchLocations.writeBuffer.mapAsync(GPUMapMode.WRITE);
     const scratchLocationsArrayBuffer = scratchLocations.writeBuffer.getMappedRange();
     const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
     const scratchUsedRegions = new Set();
     const scratchNumRegions = testParams.scratchMemorySize / testParams.stressLineSize;
     for (let i = 0; i < testParams.stressTargetLines; i++) {
         let region = getRandomInt(scratchNumRegions);
-        while(scratchUsedRegions.has(region)) {
+        while (scratchUsedRegions.has(region)) {
             region = getRandomInt(scratchNumRegions);
         }
         const locInRegion = getRandomInt(testParams.stressLineSize);
@@ -178,9 +175,9 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
 
             }
         } else if (testParams.stressAssignmentStrategy == "chunking") {
-            const workgroupsPerLocation = numWorkgroups/testParams.stressTargetLines;
+            const workgroupsPerLocation = numWorkgroups / testParams.stressTargetLines;
             for (let j = 0; j < workgroupsPerLocation; j++) {
-                scratchLocationsArray[i*workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
+                scratchLocationsArray[i * workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
             }
             if (i == testParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
                 for (let j = 0; j < numWorkgroups % testParams.stressTargetLines; j++) {
@@ -189,13 +186,12 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
             }
         }
         scratchUsedRegions.add(region);
- 
+
     }
     scratchLocations.writeBuffer.unmap();
 }
 
 function setStressParams(stressParams, testParams) {
-    //await stressParams.writeBuffer.mapAsync(GPUMapMode.WRITE);
     const stressParamsArrayBuffer = stressParams.writeBuffer.getMappedRange();
     const stressParamsArray = new Uint32Array(stressParamsArrayBuffer);
     if (getRandomInt(100) < testParams.barrierPct) {
@@ -224,63 +220,64 @@ function setStressParams(stressParams, testParams) {
 function createBindGroupLayout(device) {
     const bindGroupLayout = device.createBindGroupLayout({
         entries: [
-        {
-            binding: 0,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
+            {
+                binding: 0,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 1,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 2,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 3,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 4,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 5,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 6,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
+            },
+            {
+                binding: 7,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "storage"
+                }
             }
-        },
-        {
-            binding: 1,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 2,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 3,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 4,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 5,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 6,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        },
-        {
-            binding: 7,
-            visibility: GPUShaderStage.COMPUTE,
-            buffer: {
-                type: "storage"
-            }
-        }
-    ]});
+        ]
+    });
     return bindGroupLayout;
 }
 
@@ -288,61 +285,62 @@ function createBindGroup(device, bindGroupLayout, buffers) {
     const bindGroup = device.createBindGroup({
         layout: bindGroupLayout,
         entries: [
-        {
-            binding: 0,
-            resource: {
-                buffer: buffers.testData.deviceBuffer 
+            {
+                binding: 0,
+                resource: {
+                    buffer: buffers.testData.deviceBuffer
+                }
+            },
+            {
+                binding: 1,
+                resource: {
+                    buffer: buffers.memLocations.deviceBuffer
+                }
+            },
+            {
+                binding: 2,
+                resource: {
+                    buffer: buffers.results.deviceBuffer
+                }
+            },
+            {
+                binding: 3,
+                resource: {
+                    buffer: buffers.shuffleIds.deviceBuffer
+                }
+            },
+            {
+                binding: 4,
+                resource: {
+                    buffer: buffers.barrier.deviceBuffer
+                }
+            },
+            {
+                binding: 5,
+                resource: {
+                    buffer: buffers.scratchpad.deviceBuffer
+                }
+            },
+            {
+                binding: 6,
+                resource: {
+                    buffer: buffers.scratchLocations.deviceBuffer
+                }
+            },
+            {
+                binding: 7,
+                resource: {
+                    buffer: buffers.stressParams.deviceBuffer
+                }
             }
-        },
-        {
-            binding: 1,
-            resource: {
-                buffer: buffers.memLocations.deviceBuffer
-            }
-        },
-        {
-            binding: 2,
-            resource: {
-                buffer: buffers.results.deviceBuffer
-            }
-        },
-        {
-            binding: 3,
-            resource: {
-                buffer: buffers.shuffleIds.deviceBuffer
-            }
-        },
-        {
-            binding: 4,
-            resource: {
-                buffer: buffers.barrier.deviceBuffer
-            }
-        },
-        {
-            binding: 5,
-            resource: {
-                buffer: buffers.scratchpad.deviceBuffer 
-            }
-        },
-        {
-            binding: 6,
-            resource: {
-                buffer: buffers.scratchLocations.deviceBuffer
-            }
-        },
-        {
-            binding: 7,
-            resource: {
-                buffer: buffers.stressParams.deviceBuffer 
-            }
-        }
-    ]});
+        ]
+    });
     return bindGroup;
 }
 
 function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize) {
     // Compute shader code
-    const messagePassingModule = device.createShaderModule({code: shaderCode});
+    const messagePassingModule = device.createShaderModule({ code: shaderCode });
 
     // Pipeline setup
     const computePipeline = device.createComputePipeline({
@@ -358,12 +356,14 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
         }
     });
     return computePipeline;
-} 
+}
 
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
-  // Commands submission
+    // Commands submission
     const uint32ByteSize = 4;
     const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
+    let memLocations = new Array(testParams.numMemLocations);
+
 
     // interleave waiting for buffers to map with initializing
     // buffer values. This increases test throughput by about 2x. 
@@ -377,68 +377,75 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 
     await p1;
     clearBuffer(buffers.testData, testParams.testMemorySize);
-    
+
     await p2;
     clearBuffer(buffers.results, testParams.numOutputs);
-    
+
     await p3;
     clearBuffer(buffers.barrier, 1);
-    
+
     await p4;
     setShuffleIds(buffers.shuffleIds, testParams, numWorkgroups, workgroupSize);
-    
+
     await p5;
-    setMemLocations(buffers.memLocations, testParams);
-    
+    setMemLocations(buffers.memLocations, testParams, memLocations);
+
     await p6;
     setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
-      
+
     const commandEncoder = device.createCommandEncoder();
-
-
-  commandEncoder.copyBufferToBuffer(buffers.testData.writeBuffer, 0, buffers.testData.deviceBuffer, 0, testParams.testMemorySize * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.memLocations.writeBuffer, 0, buffers.memLocations.deviceBuffer, 0, testParams.numMemLocations * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, testParams.numOutputs * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.shuffleIds.writeBuffer, 0, buffers.shuffleIds.deviceBuffer, 0, testParams.maxWorkgroups * testParams.maxWorkgroupSize * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.barrier.writeBuffer, 0, buffers.barrier.deviceBuffer, 0, 1 * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.scratchpad.writeBuffer, 0, buffers.scratchpad.deviceBuffer, 0, testParams.scratchMemorySize * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.scratchLocations.writeBuffer, 0, buffers.scratchLocations.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.testData.writeBuffer, 0, buffers.testData.deviceBuffer, 0, testParams.testMemorySize * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.memLocations.writeBuffer, 0, buffers.memLocations.deviceBuffer, 0, testParams.numMemLocations * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, testParams.numOutputs * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.shuffleIds.writeBuffer, 0, buffers.shuffleIds.deviceBuffer, 0, testParams.maxWorkgroups * testParams.maxWorkgroupSize * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.barrier.writeBuffer, 0, buffers.barrier.deviceBuffer, 0, 1 * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.scratchpad.writeBuffer, 0, buffers.scratchpad.deviceBuffer, 0, testParams.scratchMemorySize * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(buffers.scratchLocations.writeBuffer, 0, buffers.scratchLocations.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
     commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, 7 * uint32ByteSize);
 
-
-  const passEncoder = commandEncoder.beginComputePass();
-  passEncoder.setPipeline(computePipeline);
-  passEncoder.setBindGroup(0, bindGroup);
-  passEncoder.dispatch(numWorkgroups);
+    const passEncoder = commandEncoder.beginComputePass();
+    passEncoder.setPipeline(computePipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(numWorkgroups);
     passEncoder.endPass();
 
+    commandEncoder.copyBufferToBuffer(
+        buffers.results.deviceBuffer,
+        0,
+        buffers.results.readBuffer,
+        0,
+        testParams.numOutputs * uint32ByteSize
+    );
 
-  commandEncoder.copyBufferToBuffer(
-    buffers.results.deviceBuffer,
-    0,
-    buffers.results.readBuffer,
-    0,
-    testParams.numOutputs * uint32ByteSize
-  );
+    commandEncoder.copyBufferToBuffer(
+        buffers.testData.deviceBuffer,
+        0,
+        buffers.testData.readBuffer,
+        0,
+        testParams.testMemorySize * uint32ByteSize
+    );
 
-  commandEncoder.copyBufferToBuffer(
-      buffers.testData.deviceBuffer,
-      0,
-      buffers.testData.readBuffer,
-      0,
-      testParams.testMemorySize * uint32ByteSize
-  );
-
-  // Submit GPU commands.
-  const gpuCommands = commandEncoder.finish();
+    // Submit GPU commands.
+    const gpuCommands = commandEncoder.finish();
     device.queue.submit([gpuCommands]);
 
-  // Read buffer.
-  await buffers.results.readBuffer.mapAsync(GPUMapMode.READ);
-  const arrayBuffer = buffers.results.readBuffer.getMappedRange();
-  const result = new Uint32Array(arrayBuffer).slice(0);
-  buffers.results.readBuffer.unmap();
-  return result;
+    // Read buffer.
+    await buffers.results.readBuffer.mapAsync(GPUMapMode.READ);
+    await buffers.testData.readBuffer.mapAsync(GPUMapMode.READ);
+    const arrayBuffer = buffers.results.readBuffer.getMappedRange();
+    const memBuffer = buffers.testData.readBuffer.getMappedRange();
+    const memArray = new Uint32Array(memBuffer);
+    const result = new Uint32Array(arrayBuffer).slice(0);
+    const memResult = new Array(testParams.numMemLocations);
+    for (let i = 0; i < testParams.numMemLocations; i++) {
+        memResult[i] = memArray[memLocations[i]];
+    }
+    buffers.results.readBuffer.unmap();
+    buffers.testData.readBuffer.unmap();
+    return {
+        readResult: result,
+        memResult: memResult
+    };
 }
 
 export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
@@ -475,21 +482,20 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     await p7;
     setStressParams(buffers.stressParams, testParams);
 
-
-    
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
         currentIteration = i;
-	const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
+        const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
 
-        handleResult(result);
+        handleResult(result.readResult, result.memResult);
         duration = Date.now() - start;
     }
 }
-export function getCurrentIteration(){
+
+export function getCurrentIteration() {
     return currentIteration;
 }
 
-export function reportTime(){
-    return duration/1000;
+export function reportTime() {
+    return duration / 1000;
 }
