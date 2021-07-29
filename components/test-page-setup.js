@@ -25,10 +25,17 @@ function getPageState() {
   }
 }
 
-function doTest(pageState, testParams, shaderCode, clearState, handleResult) {
+function doTest(pageState, testParams, shaderCode, testState) {
+  var handler;
   pageState.running.update(true);
-  clearState();
-  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult);
+  if (testState.numOutputs == 1) {
+    clearOneOutputState(testState);
+    handler = handleOneOutputResult(testState);
+  } else if (testState.numOutputs == 2) {
+    clearTwoOutputState(testState);
+    handler = handleTwoOutputResult(testState);
+  }
+  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handler);
   p.then(
     success => {
       pageState.running.update(false);
@@ -36,10 +43,144 @@ function doTest(pageState, testParams, shaderCode, clearState, handleResult) {
     },
     error => console.log(error)
   );
-
 }
 
-function chartConfig(pageState, tooltipFilter) {
+function clearOneOutputState(state) {
+  return function () {
+    state.seq.internalState = 0;
+    state.seq.syncUpdate(0);
+    state.weak.internalState = 0;
+    state.weak.syncUpdate(0);
+  }
+}
+
+export function clearTwoOutputState(state) {
+  return function () {
+    state.seq0.internalState = 0;
+    state.seq0.syncUpdate(0);
+    state.seq1.internalState = 0;
+    state.seq1.syncUpdate(0);
+    state.interleaved.internalState = 0;
+    state.interleaved.syncUpdate(0);
+    state.weak.internalState = 0;
+    state.weak.syncUpdate(0);
+  }
+}
+
+export function handleOneOutputResult(state) {
+  return function (result, memResult) {
+    if (state.seq.resultHandler(result, memResult)) {
+      state.seq.internalState = state.seq.internalState + 1;
+      state.seq.throttledUpdate(state.seq.internalState);
+    } else if (state.weak.resultHandler(result, memResult)) {
+      state.weak.internalState = state.weak.internalState + 1;
+      state.weak.throttledUpdate(state.weak.internalState);
+    }
+  }
+}
+
+export function handleTwoOutputResult(state) {
+  return function (result, memResult) {
+    if (state.seq0.resultHandler(result, memResult)) {
+      state.seq0.internalState = state.seq0.internalState + 1;
+      state.seq0.throttledUpdate(state.seq0.internalState);
+    } else if (state.seq1.resultHandler(result, memResult)) {
+      state.seq1.internalState = state.seq1.internalState + 1;
+      state.seq1.throttledUpdate(state.seq1.internalState);
+    } else if (state.interleaved.resultHandler(result, memResult)) {
+      state.interleaved.internalState = state.interleaved.internalState + 1;
+      state.interleaved.throttledUpdate(state.interleaved.internalState);
+    } else if (state.weak.resultHandler(result, memResult)) {
+      state.weak.internalState = state.weak.internalState + 1;
+      state.weak.throttledUpdate(state.weak.internalState);
+    }
+  }
+}
+
+function chartData(testState) {
+  if (testState.numOutputs == 1) {
+    return oneOutputChartData(testState);
+  } else if (testState.numOutputs == 2) {
+    return twoOutputChartData(testState);
+  }
+}
+
+function oneOutputChartData(testState) {
+  return {
+    labels: [testState.seq.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq.visibleState, null]
+      },
+      {
+        label: "Weak",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+function twoOutputChartData(testState) {
+  return {
+    labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq0.visibleState, testState.seq1.visibleState, null, null]
+      },
+      {
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        grouped: false,
+        data: [null, null, testState.interleaved.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, null, null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+function oneOutputTooltipFilter(tooltipItem, data) {
+    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
+        return true;
+    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+function twoOutputTooltipFilter(tooltipItem, data) {
+  if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function chartConfig(pageState, testState) {
+  var tooltipFilter;
+  if (testState.numOutputs == 1) {
+    tooltipFilter = oneOutputTooltipFilter;
+  } else if (testState.numOutputs == 2) {
+    tooltipFilter = twoOutputTooltipFilter;
+  }
   return {
     plugins: {
       title: {
@@ -87,10 +228,7 @@ function setVis(stateVar, str) {
 
 let totalIteration = 0;
 
-export function makeTestPage(
-  props,
-  testParams,
-  pseudoCode) {
+export function makeTestPage(props) {
   const pageState = getPageState();
   let initialIterations = pageState.iterations.value;
   return (
@@ -119,9 +257,9 @@ export function makeTestPage(
                 <div className="column">
                   <div className="px-2" id="tab-content">
                     <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
-                      {pseudoCode.setup}
+                      {props.pseudoCode.setup}
                       <div className="columns">
-                        {pseudoCode.code}
+                        {props.pseudoCode.code}
                       </div>
                     </div>
                     <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
@@ -137,8 +275,8 @@ export function makeTestPage(
           <div className="columns">
             <div className="column">
               <Bar
-                data={props.chartData}
-                options={chartConfig(pageState, props.chartFilter)}
+                data={chartData(props.testState)}
+                options={chartConfig(pageState, props.testState)}
               />
             </div>
           </div>
@@ -150,7 +288,7 @@ export function makeTestPage(
             </div>
           </div>
         </div>
-        <StressPanel params={testParams} pageState={pageState}></StressPanel>
+        <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
       </div>
       <div className="columns">
         <div className="column is-one-fifth">
@@ -162,7 +300,7 @@ export function makeTestPage(
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTest(pageState, testParams, props.shaderCode, props.clearState, props.handleResult);
+              doTest(pageState, props.testParams, props.shaderCode, props.testState);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>

@@ -57,6 +57,12 @@ return(
          CoRW1
     </Link>
   </div>
+  <div className="panel-block ">
+    <Link href='/tests/corw2'>
+         CoRW2
+    </Link>
+  </div>
+
 </nav>
   );
 }

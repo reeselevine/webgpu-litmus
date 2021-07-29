@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import messagePassing from '../../shaders/message-passing.wgsl'
@@ -16,26 +16,34 @@ export default function MessagePassing() {
       <TestThreadPseudoCode thread="1" code={thread1}/>
     </>)
   };
-  const testState = getTwoOutputState();
 
-  const behaviors = {
-    sequential: [
-      testState.bothZero,
-      testState.bothOne
-    ],
-    interleaved: testState.zeroOne,
-    weak: testState.oneZero
-  };
+  const testState = getTwoOutputState({
+    seq0: {
+      label: "r0=0 && r1=0",
+      handler: commonHandlers.bothZero
+    },
+    seq1: {
+      label: "r0=1 && r1=1",
+      handler: commonHandlers.bothOne
+    },
+    interleaved: {
+      label: "r0=0 && r1=1",
+      handler: commonHandlers.zeroOne
+    },
+    weak: {
+      label: "r0=1 && r1=0",
+      handler: commonHandlers.oneZero
+    }
+  });
 
   const props = {
       testName: "Message Passing",
       testDescription: "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
+      testParams: defaultTestParams,
       shaderCode: messagePassing,
-      chartData: twoOutputChartData(behaviors),
-      chartFilter: twoOutputTooltipFilter,
-      clearState: clearTwoOutputState(testState),
-      handleResult: handleTwoOutputResult(testState)
+      testState: testState,
+      pseudoCode: pseudoCode
   }
 
-  return makeTestPage(props, defaultTestParams, pseudoCode);
+  return makeTestPage(props);
 }

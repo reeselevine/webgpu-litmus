@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState, oneOutputChartData, oneOutputTooltipFilter, handleOneOutputResult, clearOneOutputState } from '../../components/test-page-utils.js';
+import { getOneOutputState } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import coRW1 from '../../shaders/corw1.wgsl';
@@ -17,24 +17,29 @@ export default function CoRW1() {
     </>)
   };
 
-  const testState = getOneOutputState({first: "r0=0", second: "r0=1"})
+  const testState = getOneOutputState({
+    seq: {
+      label: "r0=0", 
+      handler: function (result, memResult) {
+        return result[0] == 0;
+      }
+    },
+    weak: {
+      label: "r0=1",
+      handler: function (result, memResult) {
+        return result[0] == 1;
+      }
+    }
+  })
 
   const props = {
-      testName: "CoRW1",
-      testDescription: "The CoRW1 litmus test checks to see if memory is coherent.",
-      shaderCode: coRW1,
-      chartData: oneOutputChartData(testState),
-      chartFilter: oneOutputTooltipFilter,
-      clearState: clearOneOutputState(testState),
-      handleResult: handleOneOutputResult(testState, {
-        first: function (result, memResult) {
-          return result[0] == 0;
-        },
-        second: function (result, memResult) {
-          return result[0] == 1;
-        }
-      })
+    testName: "CoRW1",
+    testDescription: "The CoRW1 litmus test checks to see if memory is coherent.",
+    testParams: testParams,
+    shaderCode: coRW1,
+    testState: testState,
+    pseudoCode: pseudoCode
   };
 
-  return makeTestPage(props, testParams, pseudoCode);
+  return makeTestPage(props);
 }

@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
+import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from '../../shaders/store-buffer.wgsl'
@@ -17,26 +17,33 @@ export default function StoreBuffer() {
     </>)
   };
 
-  const testState = getTwoOutputState();
-
-  const behaviors = {
-    sequential: [
-      testState.oneZero,
-      testState.zeroOne
-    ],
-    interleaved: testState.bothOne,
-    weak: testState.bothZero
-  };
+  const testState = getTwoOutputState({
+    seq0: {
+      label: "r0=1 && r1=0",
+      handler: commonHandlers.oneZero
+    },
+    seq1: {
+      label: "r0=0 && r1=1",
+      handler: commonHandlers.zeroOne
+    },
+    interleaved: {
+      label: "r0=1 && r1=1",
+      handler: commonHandlers.bothOne
+    },
+    weak: {
+      label: "r0=0 && r1=0",
+      handler: commonHandlers.bothZero
+    }
+  });
 
   const props = {
       testName: "Store Buffer",
       testDescription: "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads.",
+      testParams: defaultTestParams,
       shaderCode: storeBuffer,
-      chartData: twoOutputChartData(behaviors),
-      chartFilter: twoOutputTooltipFilter,
-      clearState: clearTwoOutputState(testState),
-      handleResult: handleTwoOutputResult(testState)
+      testState: testState,
+      pseudoCode: pseudoCode
   }
 
-  return makeTestPage(props, defaultTestParams, pseudoCode);
+  return makeTestPage(props);
 }
