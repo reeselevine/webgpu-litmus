@@ -5,10 +5,12 @@ import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 
-function getPageState() {
+function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
+  const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
+  const [activeShader, setActiveShader] = useState(props.shaderCode);
   return {
     iterations: {
       value: iterations,
@@ -21,6 +23,14 @@ function getPageState() {
     pseudoActive: {
       value: pseudoActive,
       update: setPseudoActive
+    },
+    activePseudoCode: {
+      value: activePseudoCode,
+      update: setActivePseudoCode
+    },
+    activeShader: {
+      value: activeShader,
+      update: setActiveShader
     }
   }
 }
@@ -46,25 +56,21 @@ function doTest(pageState, testParams, shaderCode, testState) {
 }
 
 function clearOneOutputState(state) {
-  return function () {
-    state.seq.internalState = 0;
-    state.seq.syncUpdate(0);
-    state.weak.internalState = 0;
-    state.weak.syncUpdate(0);
-  }
+  state.seq.internalState = 0;
+  state.seq.syncUpdate(0);
+  state.weak.internalState = 0;
+  state.weak.syncUpdate(0);
 }
 
 export function clearTwoOutputState(state) {
-  return function () {
-    state.seq0.internalState = 0;
-    state.seq0.syncUpdate(0);
-    state.seq1.internalState = 0;
-    state.seq1.syncUpdate(0);
-    state.interleaved.internalState = 0;
-    state.interleaved.syncUpdate(0);
-    state.weak.internalState = 0;
-    state.weak.syncUpdate(0);
-  }
+  state.seq0.internalState = 0;
+  state.seq0.syncUpdate(0);
+  state.seq1.internalState = 0;
+  state.seq1.syncUpdate(0);
+  state.interleaved.internalState = 0;
+  state.interleaved.syncUpdate(0);
+  state.weak.internalState = 0;
+  state.weak.syncUpdate(0);
 }
 
 export function handleOneOutputResult(state) {
@@ -226,11 +232,36 @@ function setVis(stateVar, str) {
   }
 }
 
+function DropdownOption(props) {
+  return (<option value={props.value}>{props.value}</option>)
+}
+
 let totalIteration = 0;
 
+function VariantOptions(props) {
+  const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
+  return (
+    <>
+      <label>Choose variant:</label>
+      <select name="variant" onChange={(e) => {
+        props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
+        props.pageState.activeShader.update(props.variants[e.target.value].shader);
+      }}>
+        {variantOptions}
+      </select>
+    </>)
+
+}
+
 export function makeTestPage(props) {
-  const pageState = getPageState();
+  const pageState = getPageState(props);
   let initialIterations = pageState.iterations.value;
+  let variantOptions;
+  if ('variants' in props) {
+    variantOptions = <VariantOptions variants={props.variants} pageState={pageState}/>;
+  } else {
+    variantOptions = <></>;
+  }
   return (
     <>
       <div className="columns">
@@ -256,15 +287,16 @@ export function makeTestPage(props) {
               <div className="columns">
                 <div className="column">
                   <div className="px-2" id="tab-content">
+                    {variantOptions}
                     <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
                       {props.pseudoCode.setup}
                       <div className="columns">
-                        {props.pseudoCode.code}
+                        {pageState.activePseudoCode.value}
                       </div>
                     </div>
                     <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
                       <pre className="shaderCode"><code>
-                        {props.shaderCode}
+                        {pageState.activeShader.value}
                       </code></pre>
                     </div>
                   </div>
@@ -300,7 +332,7 @@ export function makeTestPage(props) {
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTest(pageState, props.testParams, props.shaderCode, props.testState);
+              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>

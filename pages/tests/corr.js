@@ -3,19 +3,34 @@ import { getTwoOutputState, commonHandlers } from '../../components/test-page-ut
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
+import coRR_RMW from '../../shaders/corr-rmw.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
+const variants = {
+  default: {
+    pseudo: (<>
+      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
+      <TestThreadPseudoCode thread="1" code="1.1: r0=x
+1.2: r1=x"/>
+    </>),
+    shader: coRR
+  },
+  rmw: {
+    pseudo: (<>
+      <TestThreadPseudoCode thread="0" code="0.1: exchange(x, 1)" />
+      <TestThreadPseudoCode thread="1" code="1.1: r0=x
+1.2: r1=add(x, 0)"/>
+    </>),
+    shader: coRR_RMW
+  }
+}
+
 export default function CoRR() {
   testParams.memoryAliases[1] = 0;
-  const thread1 = `1.1: r0=x
-1.2: r1=x`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
-    code: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
-      <TestThreadPseudoCode thread="1" code={thread1}/>
-    </>)
+    code: variants.default.pseudo
   };
 
   const testState = getTwoOutputState({
@@ -43,7 +58,8 @@ export default function CoRR() {
       testParams: testParams,
       shaderCode: coRR,
       testState: testState,
-      pseudoCode: pseudoCode
+      pseudoCode: pseudoCode,
+      variants: variants
   }
 
   return makeTestPage(props);
