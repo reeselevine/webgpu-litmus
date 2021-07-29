@@ -96,9 +96,24 @@ export default function stressPanel(props) {
             <DropdownStressParam name="Pre Stress Pattern" description="The access pattern that testing threads access the scratch memory region before executing their litmus test" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={props.pageState}/>
           </div>
           <div className="panel-block p-2">
-            <button className="button is-link is-outlined is-fullwidth " style={{ width: "200px", marginLeft: "10px" }}>
-              Reset all Parameters
-            </button>
+            <div className="columns is-2 ">
+              <div className="column ">
+                <div className="buttons are-small">
+                <button className="button is-link is-outlined ">
+                Test 1
+                </button>
+                <button className="button is-link is-outlined ">
+                  Test 2
+                </button>
+                <button className="button is-link is-outlined ">
+                  Test 3
+                </button>
+                <button className="button is-link is-outlined ">
+                  Random
+                </button>
+                </div>
+              </div>
+            </div>
           </div>
         </nav>
       </div>

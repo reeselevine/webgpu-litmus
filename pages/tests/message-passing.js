@@ -1,7 +1,7 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
-import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
-import messagePassing from './message-passing.wgsl'
+import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js';
+import messagePassing from './message-passing.wgsl';
 
 export default function MessagePassing() {
   const thread0 = `0.1: x=1

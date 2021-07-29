@@ -211,7 +211,7 @@ export function makeTwoOutputTest(
         <div className=" column">
           <div className=" columns">
             <div className="column">
-              <div className="columns">
+              <div className="columns mr-2">
                 <div className="column">
                   <div className="tabs is-medium is-centered">
                     <ul>
@@ -221,7 +221,7 @@ export function makeTwoOutputTest(
                   </div>
                 </div>
               </div>
-              <div className="columns">
+              <div className="columns mr-2">
                 <div className="column">
                   <div className="px-2" id="tab-content">
                     <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
@@ -240,13 +240,33 @@ export function makeTwoOutputTest(
               </div>
             </div>
           </div>
-          <div className="columns">
-            <div className="column">
-              <Bar
-                data={chartData(behaviors)}
-                options={chartConfig(pageState)}
-              />
+          {/* here is the mode */}
+          <div className="section " style={{width:"700px", margin:"auto"}}>
+            <div className="columns is-6 ">
+              <div className="column is-half ">
+                <div className="button is-info ">
+                    Explorer Mode
+                </div>
+              </div>
+              <div className="column is-half pl-6">
+                <div className="button is-info ">
+                    Tuning Mode 
+                </div>
+              </div>
             </div>
+          </div>
+          <div className="columns mr-2">
+            <div className="column is-two-thirds">
+              <div className="section">
+                <div className="columns">
+                  <Bar
+                    data={chartData(behaviors)}
+                    options={chartConfig(pageState)}
+                  />
+                </div>
+              </div>
+            </div>
+            <StressPanel params={testParams} pageState={pageState}></StressPanel>
           </div>
           <div className="columns" >
             <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
@@ -256,7 +276,6 @@ export function makeTwoOutputTest(
             </div>
           </div>
         </div>
-        <StressPanel params={testParams} pageState={pageState}></StressPanel>
       </div>
       <div className="columns">
         <div className="column is-one-fifth">
