@@ -42,6 +42,27 @@ export function getTwoOutputState() {
   }
 }
 
+export function getOneOutputState(labels) {
+  const [first, setFirst] = useState(0);
+  const [second, setSecond] = useState(0);
+  return {
+    first: {
+      visibleState: first,
+      internalState: 0,
+      syncUpdate: setFirst,
+      throttledUpdate: buildThrottle(setFirst),
+      label: labels.first
+    },
+    second: {
+      visibleState: second,
+      internalState: 0,
+      syncUpdate: setSecond,
+      throttledUpdate: buildThrottle(setSecond),
+      label: labels.second
+    }
+  }
+}
+
 export function clearTwoOutputState(state) {
     return function () {
       state.bothOne.internalState = 0;
@@ -53,6 +74,15 @@ export function clearTwoOutputState(state) {
       state.oneZero.internalState = 0;
       state.oneZero.syncUpdate(0);
     }
+}
+
+export function clearOneOutputState(state) {
+  return function () {
+    state.first.internalState = 0;
+    state.first.syncUpdate(0);
+    state.second.internalState = 0;
+    state.second.syncUpdate(0);
+  }
 }
 
 export function handleTwoOutputResult(state) {
@@ -69,6 +99,18 @@ export function handleTwoOutputResult(state) {
     } else if (result[0] == 1 && result[1] == 0) {
       state.oneZero.internalState = state.oneZero.internalState + 1;
       state.oneZero.throttledUpdate(state.oneZero.internalState);
+    }
+  }
+}
+
+export function handleOneOutputResult(state, output) {
+  return function (result, memResult) {
+    if (output.first(result, memResult)) {
+      state.first.internalState = state.first.internalState + 1;
+      state.first.throttledUpdate(state.first.internalState);
+    } else if (output.second(result, memResult)) {
+      state.second.internalState = state.second.internalState + 1;
+      state.second.throttledUpdate(state.second.internalState);
     }
   }
 }
@@ -109,4 +151,34 @@ export function twoOutputTooltipFilter(tooltipItem, data) {
   } else {
     return false;
   }
+}
+
+export function oneOutputChartData(testState) {
+  return {
+    labels: [testState.first.label, testState.second.label],
+    datasets: [
+      {
+        label: "Coherent",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.first.visibleState, null]
+      },
+      {
+        label: "Not Coherent",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, testState.second.visibleState]
+      }
+    ]
+  }
+}
+
+export function oneOutputTooltipFilter(tooltipItem, data) {
+    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
+        return true;
+    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
+        return true;
+    } else {
+        return false;
+    }
 }

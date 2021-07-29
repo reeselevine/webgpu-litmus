@@ -2,7 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
-import storeBuffer from './store-buffer.wgsl'
+import storeBuffer from '../../shaders/store-buffer.wgsl'
 
 export default function StoreBuffer() {
   const thread0 = `0.1: x=1

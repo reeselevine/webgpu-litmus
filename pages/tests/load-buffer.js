@@ -2,7 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { getTwoOutputState, twoOutputChartData, twoOutputTooltipFilter, handleTwoOutputResult, clearTwoOutputState } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
-import loadBuffer from './load-buffer.wgsl'
+import loadBuffer from '../../shaders/load-buffer.wgsl'
 
 
 export default function LoadBuffer() {
