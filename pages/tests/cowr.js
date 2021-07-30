@@ -3,8 +3,28 @@ import { getTwoOutputState } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
 import coWR from '../../shaders/cowr.wgsl';
+import coWR_RMW from '../../shaders/cowr-rmw.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+
+const variants = {
+  default: {
+    pseudo: (<>
+      <TestThreadPseudoCode thread="0" code="0.1: x=1
+0.2: r0=x"/>
+      <TestThreadPseudoCode thread="1" code="1.1: x=2"/>
+    </>),
+    shader: coWR
+  },
+  rmw: {
+    pseudo: (<>
+      <TestThreadPseudoCode thread="0" code="0.1: exchange(x, 1)
+0.2: r0=add(x, 0)"/>
+      <TestThreadPseudoCode thread="1" code="1.1: exchange(x, 2)"/>
+    </>),
+    shader: coWR_RMW
+  }
+}
 
 export default function CoWR() {
   testParams.memoryAliases[1] = 0;
@@ -12,10 +32,7 @@ export default function CoWR() {
 0.2: r0=x`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=2 && x=1"/>,
-    code: (<>
-      <TestThreadPseudoCode thread="0" code={thread0}/>
-      <TestThreadPseudoCode thread="1" code="1.1: x=2"/>
-    </>)
+    code: variants.default.pseudo
   };
 
   const testState = getTwoOutputState({
@@ -51,7 +68,8 @@ export default function CoWR() {
     testParams: testParams,
     shaderCode: coWR,
     testState: testState,
-    pseudoCode: pseudoCode
+    pseudoCode: pseudoCode,
+    variants: variants
   };
 
   return makeTestPage(props);

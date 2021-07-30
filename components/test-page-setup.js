@@ -242,8 +242,8 @@ function VariantOptions(props) {
   const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
   return (
     <>
-      <label>Choose variant:</label>
-      <select name="variant" onChange={(e) => {
+      <label><b>Choose variant:</b></label>
+      <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
       }}>
