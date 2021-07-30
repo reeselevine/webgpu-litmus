@@ -1,7 +1,8 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { makeTwoOutputTest, getTwoOutputState } from '../../components/test-page-setup.js';
+import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
+import { makeTestPage } from '../../components/test-page-setup.js';
 import { TestThreadPseudoCode, TestSetupPseudoCode } from '../../components/testPseudoCode.js'
-import coRR from './corr-rmw.wgsl';
+import coRR from '../../shaders/corr-rmw.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -17,23 +18,33 @@ export default function CoRR() {
     </>)
   };
 
-  const testState = getTwoOutputState();
+  const testState = getTwoOutputState({
+    seq0: {
+      label: "r0=0 && r1=0",
+      handler: commonHandlers.bothZero
+    },
+    seq1: {
+      label: "r0=1 && r1=1",
+      handler: commonHandlers.bothOne
+    },
+    interleaved: {
+      label: "r0=0 && r1=1",
+      handler: commonHandlers.zeroOne
+    },
+    weak: {
+      label: "r0=1 && r1=0",
+      handler: commonHandlers.oneZero
+    }
+  });
 
-  const behaviors = {
-    sequential: [
-      testState.bothZero,
-      testState.bothOne
-    ],
-    interleaved: testState.zeroOne,
-    weak: testState.oneZero
-  };
+  const props = {
+      testName: "CoRR RMW",
+      testDescription: "The CoRR litmus test checks to see if memory is coherent. This version makes each memory load and store an atomic read-modify-write.",
+      testParams: testParams,
+      shaderCode: coRR,
+      testState: testState,
+      pseudoCode: pseudoCode
+  }
 
-  return makeTwoOutputTest(
-    testParams,
-    "CoRR RMW",
-    "The CoRR litmus test checks to see if memory is coherent. This version makes each memory load and store an atomic read-modify-write.",
-    coRR,
-    pseudoCode,
-    testState,
-    behaviors);
+  return makeTestPage(props);
 }

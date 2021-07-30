@@ -1,69 +1,9 @@
 import React, { useState } from 'react';
-import _ from 'lodash'
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-
-export function getTwoOutputState() {
-  const [bothOneVal, setBothOne] = useState(0);
-  const [oneZeroVal, setOneZero] = useState(0);
-  const [zeroOneVal, setZeroOne] = useState(0);
-  const [bothZeroVal, setBothZero] = useState(0);
-  return {
-    bothOne: {
-      visibleState: bothOneVal,
-      internalState: 0,
-      syncUpdate: setBothOne,
-      throttledUpdate: buildThrottle(setBothOne),
-      label: "r0=1 and r1=1"
-    },
-    bothZero: {
-      visibleState: bothZeroVal,
-      internalState: 0,
-      syncUpdate: setBothZero,
-      throttledUpdate: buildThrottle(setBothZero),
-      label: "r0=0 and r1=0"
-    },
-    zeroOne: {
-      visibleState: zeroOneVal,
-      internalState: 0,
-      syncUpdate: setZeroOne,
-      throttledUpdate: buildThrottle(setZeroOne),
-      label: "r0=0 and r1=1"
-    },
-    oneZero: {
-      visibleState: oneZeroVal,
-      internalState: 0,
-      syncUpdate: setOneZero,
-      throttledUpdate: buildThrottle(setOneZero),
-      label: "r0=1 and r1=0"
-    }
-  }
-}
-
-function handleTwoStateResult(state) {
-  return function (result) {
-    if (result[0] == 1 && result[1] == 1) {
-      state.bothOne.internalState = state.bothOne.internalState + 1;
-      state.bothOne.throttledUpdate(state.bothOne.internalState);
-    } else if (result[0] == 0 && result[1] == 0) {
-      state.bothZero.internalState = state.bothZero.internalState + 1;
-      state.bothZero.throttledUpdate(state.bothZero.internalState);
-    } else if (result[0] == 0 && result[1] == 1) {
-      state.zeroOne.internalState = state.zeroOne.internalState + 1;
-      state.zeroOne.throttledUpdate(state.zeroOne.internalState);
-    } else if (result[0] == 1 && result[1] == 0) {
-      state.oneZero.internalState = state.oneZero.internalState + 1;
-      state.oneZero.throttledUpdate(state.oneZero.internalState);
-    }
-  }
-}
-
-function buildThrottle(updateFunc) {
-  return _.throttle((newValue) => updateFunc(newValue), 50);
-}
 
 function getPageState() {
   const [iterations, setIterations] = useState(1000);
@@ -85,17 +25,17 @@ function getPageState() {
   }
 }
 
-function doTwoOutputTest(pageState, testState, testParams, shaderCode) {
+function doTest(pageState, testParams, shaderCode, testState) {
+  var handler;
   pageState.running.update(true);
-  testState.bothOne.internalState = 0;
-  testState.bothOne.syncUpdate(0);
-  testState.bothZero.internalState = 0;
-  testState.bothZero.syncUpdate(0);
-  testState.zeroOne.internalState = 0;
-  testState.zeroOne.syncUpdate(0);
-  testState.oneZero.internalState = 0;
-  testState.oneZero.syncUpdate(0);
-  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleTwoStateResult(testState));
+  if (testState.numOutputs == 1) {
+    clearOneOutputState(testState);
+    handler = handleOneOutputResult(testState);
+  } else if (testState.numOutputs == 2) {
+    clearTwoOutputState(testState);
+    handler = handleTwoOutputResult(testState);
+  }
+  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handler);
   p.then(
     success => {
       pageState.running.update(false);
@@ -105,33 +45,142 @@ function doTwoOutputTest(pageState, testState, testParams, shaderCode) {
   );
 }
 
-function chartData(behaviors) {
+function clearOneOutputState(state) {
+  return function () {
+    state.seq.internalState = 0;
+    state.seq.syncUpdate(0);
+    state.weak.internalState = 0;
+    state.weak.syncUpdate(0);
+  }
+}
+
+export function clearTwoOutputState(state) {
+  return function () {
+    state.seq0.internalState = 0;
+    state.seq0.syncUpdate(0);
+    state.seq1.internalState = 0;
+    state.seq1.syncUpdate(0);
+    state.interleaved.internalState = 0;
+    state.interleaved.syncUpdate(0);
+    state.weak.internalState = 0;
+    state.weak.syncUpdate(0);
+  }
+}
+
+export function handleOneOutputResult(state) {
+  return function (result, memResult) {
+    if (state.seq.resultHandler(result, memResult)) {
+      state.seq.internalState = state.seq.internalState + 1;
+      state.seq.throttledUpdate(state.seq.internalState);
+    } else if (state.weak.resultHandler(result, memResult)) {
+      state.weak.internalState = state.weak.internalState + 1;
+      state.weak.throttledUpdate(state.weak.internalState);
+    }
+  }
+}
+
+export function handleTwoOutputResult(state) {
+  return function (result, memResult) {
+    if (state.seq0.resultHandler(result, memResult)) {
+      state.seq0.internalState = state.seq0.internalState + 1;
+      state.seq0.throttledUpdate(state.seq0.internalState);
+    } else if (state.seq1.resultHandler(result, memResult)) {
+      state.seq1.internalState = state.seq1.internalState + 1;
+      state.seq1.throttledUpdate(state.seq1.internalState);
+    } else if (state.interleaved.resultHandler(result, memResult)) {
+      state.interleaved.internalState = state.interleaved.internalState + 1;
+      state.interleaved.throttledUpdate(state.interleaved.internalState);
+    } else if (state.weak.resultHandler(result, memResult)) {
+      state.weak.internalState = state.weak.internalState + 1;
+      state.weak.throttledUpdate(state.weak.internalState);
+    }
+  }
+}
+
+function chartData(testState) {
+  if (testState.numOutputs == 1) {
+    return oneOutputChartData(testState);
+  } else if (testState.numOutputs == 2) {
+    return twoOutputChartData(testState);
+  }
+}
+
+function oneOutputChartData(testState) {
   return {
-    labels: [behaviors.sequential[0].label, behaviors.sequential[1].label, behaviors.interleaved.label, behaviors.weak.label],
+    labels: [testState.seq.label, testState.weak.label],
     datasets: [
       {
         label: "Sequential",
         backgroundColor: 'rgba(21,161,42,0.7)',
         grouped: false,
-        data: [behaviors.sequential[0].visibleState, behaviors.sequential[1].visibleState, null, null]
-      },
-      {
-        label: "Sequential Interleaving",
-        backgroundColor: 'rgba(3,35,173,0.7)',
-        grouped: false,
-        data: [null, null, behaviors.interleaved.visibleState, null]
+        data: [testState.seq.visibleState, null]
       },
       {
         label: "Weak Behavior",
         backgroundColor: 'rgba(212,8,8,0.7)',
         grouped: false,
-        data: [null, null, null, behaviors.weak.visibleState]
+        data: [null, testState.weak.visibleState]
       }
     ]
   }
 }
 
-function chartConfig(pageState) {
+function twoOutputChartData(testState) {
+  return {
+    labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq0.visibleState, testState.seq1.visibleState, null, null]
+      },
+      {
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        grouped: false,
+        data: [null, null, testState.interleaved.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, null, null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+function oneOutputTooltipFilter(tooltipItem, data) {
+    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
+        return true;
+    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+function twoOutputTooltipFilter(tooltipItem, data) {
+  if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function chartConfig(pageState, testState) {
+  var tooltipFilter;
+  if (testState.numOutputs == 1) {
+    tooltipFilter = oneOutputTooltipFilter;
+  } else if (testState.numOutputs == 2) {
+    tooltipFilter = twoOutputTooltipFilter;
+  }
   return {
     plugins: {
       title: {
@@ -141,19 +190,8 @@ function chartConfig(pageState) {
         fontSize: 20
       },
       tooltip: {
-        filter: function (tooltipItem, data) {
-          if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
-            return true;
-          } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
-            return true;
-          } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
-            return true;
-          } else {
-            return false;
-          }
-        }
+        filter: tooltipFilter
       }
-
     },
     scales: {
       yAxis: {
@@ -187,24 +225,18 @@ function setVis(stateVar, str) {
     return ""
   }
 }
+
 let totalIteration = 0;
 
-export function makeTwoOutputTest(
-  testParams,
-  testName,
-  testDescription,
-  shaderCode,
-  pseudoCode,
-  testState,
-  behaviors) {
+export function makeTestPage(props) {
   const pageState = getPageState();
   let initialIterations = pageState.iterations.value;
   return (
     <>
       <div className="columns">
         <div className="column">
-          <h1 className="testName">{testName}</h1>
-          <h2 className="testDescription">{testDescription}</h2>
+          <h1 className="testName">{props.testName}</h1>
+          <h2 className="testDescription">{props.testDescription}</h2>
         </div>
       </div>
       <div className=" columns">
@@ -225,14 +257,14 @@ export function makeTwoOutputTest(
                 <div className="column">
                   <div className="px-2" id="tab-content">
                     <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
-                      {pseudoCode.setup}
+                      {props.pseudoCode.setup}
                       <div className="columns">
-                        {pseudoCode.code}
+                        {props.pseudoCode.code}
                       </div>
                     </div>
                     <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
                       <pre className="shaderCode"><code>
-                        {shaderCode}
+                        {props.shaderCode}
                       </code></pre>
                     </div>
                   </div>
@@ -243,8 +275,8 @@ export function makeTwoOutputTest(
           <div className="columns">
             <div className="column">
               <Bar
-                data={chartData(behaviors)}
-                options={chartConfig(pageState)}
+                data={chartData(props.testState)}
+                options={chartConfig(pageState, props.testState)}
               />
             </div>
           </div>
@@ -256,7 +288,7 @@ export function makeTwoOutputTest(
             </div>
           </div>
         </div>
-        <StressPanel params={testParams} pageState={pageState}></StressPanel>
+        <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
       </div>
       <div className="columns">
         <div className="column is-one-fifth">
@@ -268,7 +300,7 @@ export function makeTwoOutputTest(
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTwoOutputTest(pageState, testState, testParams, shaderCode);
+              doTest(pageState, props.testParams, props.shaderCode, props.testState);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>
