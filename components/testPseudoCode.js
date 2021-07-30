@@ -6,7 +6,7 @@ export function buildPseudoCode(threads) {
     return pseudoCode;
 }
 
-export function TestThreadPseudoCode(props) {
+function TestThreadPseudoCode(props) {
     return (
         <div className="column">
             <div className="box">
