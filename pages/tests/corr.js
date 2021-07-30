@@ -1,7 +1,7 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
-import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
+import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
 import coRR_RMW from '../../shaders/corr-rmw.wgsl';
 
@@ -9,19 +9,13 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1"/>
-      <TestThreadPseudoCode thread="1" code="1.1: r0=x
-1.2: r1=x"/>
-    </>),
+    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=x
+1.2: r1=x`]),
     shader: coRR
   },
   rmw: {
-    pseudo: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: exchange(x, 1)" />
-      <TestThreadPseudoCode thread="1" code="1.1: r0=x
-1.2: r1=add(x, 0)"/>
-    </>),
+    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=x
+1.2: r1=add(x, 0)`]),
     shader: coRR_RMW
   }
 }

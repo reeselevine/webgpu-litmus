@@ -1,7 +1,7 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { getOneOutputState } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
-import {TestThreadPseudoCode, TestSetupPseudoCode} from '../../components/testPseudoCode.js'
+import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coWW from '../../shaders/coww.wgsl';
 import coWW_RMW from '../../shaders/coww-rmw.wgsl';
 
@@ -9,17 +9,13 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1
-0.2: x=2"/>
-    </>),
+    pseudo: buildPseudoCode([`0.1: x=1
+0.2: x=2`]),
     shader: coWW
   },
   rmw: {
-    pseudo: (<>
-      <TestThreadPseudoCode thread="0" code="0.1: x=1
-0.2: exchange(x, 2)"/>
-    </>),
+    pseudo: buildPseudoCode([`0.1: x=1
+0.2: exchange(x, 2)`]),
     shader: coWW_RMW
   }
 }

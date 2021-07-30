@@ -1,3 +1,11 @@
+export function buildPseudoCode(threads) {
+    let pseudoCode = new Array(threads.length);
+    for (let i = 0; i < threads.length; i++) {
+        pseudoCode[i] = <TestThreadPseudoCode thread={i} code={threads[i]}/>;
+    }
+    return pseudoCode;
+}
+
 export function TestThreadPseudoCode(props) {
     return (
         <div className="column">
