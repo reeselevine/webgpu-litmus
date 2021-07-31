@@ -4,6 +4,8 @@ import { makeTestPage } from '../../components/test-page-setup.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coWW from '../../shaders/coww.wgsl';
 import coWW_RMW from '../../shaders/coww-rmw.wgsl';
+import coWW_RMW1 from '../../shaders/coww-rmw1.wgsl';
+import coWW_RMW2 from '../../shaders/coww-rmw2.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -17,6 +19,16 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: x=1
 0.2: exchange(x, 2)`]),
     shader: coWW_RMW
+  },
+  rmw1: {
+    pseudo: buildPseudoCode([`0.1: exchange(x, 1)
+0.2: x=2`]),
+    shader: coWW_RMW1
+  },
+  rmw2: {
+    pseudo: buildPseudoCode([`0.1: exchange(x, 1)
+0.2: exchange(x, 2)`]),
+    shader: coWW_RMW2
   }
 }
 

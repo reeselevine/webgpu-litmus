@@ -4,6 +4,12 @@ import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRW2 from '../../shaders/corw2.wgsl';
 import coRW2_RMW from '../../shaders/corw2-rmw.wgsl';
+import coRW2_RMW1 from '../../shaders/corw2-rmw1.wgsl';
+import coRW2_RMW2 from '../../shaders/corw2-rmw2.wgsl';
+import coRW2_RMW3 from '../../shaders/corw2-rmw3.wgsl';
+import coRW2_RMW4 from '../../shaders/corw2-rmw4.wgsl';
+import coRW2_RMW5 from '../../shaders/corw2-rmw5.wgsl';
+import coRW2_RMW6 from '../../shaders/corw2-rmw6.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -17,6 +23,36 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: r0=x
 0.2: x=1`, "1.1: exchange(x, 2)"]),
     shader: coRW2_RMW
+  },
+  rmw1: {
+    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
+0.2: x=1`, "1.1: x=2"]),
+    shader: coRW2_RMW1
+  },
+  rmw2: {
+    pseudo: buildPseudoCode([`0.1: r0=x
+0.2: exchange(x, 1)`, "1.1: x=2"]),
+    shader: coRW2_RMW2
+  },
+  rmw3: {
+    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
+0.2: exchange(x, 1)`, "1.1: x=2"]),
+    shader: coRW2_RMW3
+  },
+  rmw4: {
+    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
+0.2: x=1`, "1.1: exchange(x, 2)"]),
+    shader: coRW2_RMW4
+  },
+  rmw5: {
+    pseudo: buildPseudoCode([`0.1: r0=x
+0.2: exchange(x, 1)`, "1.1: exchange(x, 2)"]),
+    shader: coRW2_RMW5
+  },
+  rmw6: {
+    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
+0.2: exchange(x, 1)`, "1.1: exchange(x, 2)"]),
+    shader: coRW2_RMW6
   }
 }
 

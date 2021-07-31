@@ -1,7 +1,7 @@
-export function buildPseudoCode(threads) {
+export function buildPseudoCode(threads, variant) {
     let pseudoCode = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
-        pseudoCode[i] = <TestThreadPseudoCode thread={i} code={threads[i]}/>;
+        pseudoCode[i] = <TestThreadPseudoCode key={i} thread={i} code={threads[i]}/>;
     }
     return pseudoCode;
 }
