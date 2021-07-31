@@ -442,6 +442,8 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 }
 
 export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
+    console.log("here is the testParam")
+    console.log(testParams)
     const device = await getDevice();
     if (device === undefined) {
         alert("WebGPU not enabled or supported!")

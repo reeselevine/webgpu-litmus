@@ -239,9 +239,10 @@ export function makeTwoOutputTest(
                 </div>
               </div>
             </div>
+            <div className="column is-one-third"></div>
           </div>
           {/* here is the mode */}
-          <div className="section " style={{width:"700px", margin:"auto"}}>
+          <div className="section " style={{width:"700px"}}>
             <div className="columns is-6 ">
               <div className="column is-half ">
                 <div className="button is-info ">
