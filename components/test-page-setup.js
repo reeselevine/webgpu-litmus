@@ -288,6 +288,7 @@ export function makeTwoOutputTest(
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
+              console.log(testParams);
               doTwoOutputTest(pageState, testState, testParams, shaderCode);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
