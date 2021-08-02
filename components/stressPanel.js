@@ -4,13 +4,7 @@ import React, { useState, useEffect} from 'react';
 const ReactTooltip = dynamic(() => import("react-tooltip"), {
   ssr: false,
 });
-function debounce( callback, delay ) {
-  let timeout;
-  return function() {
-      clearTimeout( timeout );
-      timeout = setTimeout( callback, delay );
-  }
-}
+
 function checkValidation(val, name, min, max){
   console.log("this is the range")
   console.log(val, min, max)
@@ -18,7 +12,10 @@ function checkValidation(val, name, min, max){
     alert( name + " value is invalid. The value should be in between " + min + " and "+ max);
   }
 }
+
 let click = false;
+
+
 function IntegerStressParam(props) {
   
   const[inputVal, setInputVal] = useState(props.params[props.paramName])
@@ -30,19 +27,23 @@ function IntegerStressParam(props) {
     } 
   }
   const[val, setVal]=useState(0)
-  // myInput.addEventListener("keyup",
-  //                   debounce(checkValidation(val, props.min, props.max),1000));
+
+  function handleInput(e){
+    props.params[props.paramName] = parseInt(e.target.value);
+    setInputVal(parseInt(e.target.value))
+    setVal(parseInt(e.target.value));
+   
+  }
   return (
     <>
       <div className="columns">
         <div className="column">
           <label data-tip={props.description}>{props.name}:</label>
           <input name={props.paramName} id="myInput" className="input is-small stressPanel" type="number" min={props.min} max={props.max} 
-            value={inputVal} placeholder={props.placeholder} onInput={(e) => {
-            props.params[props.paramName] = parseInt(e.target.value); 
-            setInputVal(parseInt(e.target.value));
-            setVal(parseInt(e.target.value));
-          }}  onBlur={()=>{checkValidation(val, props.paramName, props.min, props.max)}} disabled={props.pageState.running.value}/>
+            value={inputVal} placeholder={props.placeholder} onInput={(e)=>{
+              handleInput(e);
+            }}
+            onBlur={()=>{checkValidation(val, props.paramName, props.min, props.max)}} disabled={props.pageState.running.value}/>
         </div>
       </div>
     </>
