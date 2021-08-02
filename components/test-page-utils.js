@@ -66,7 +66,7 @@ export function getTwoOutputState(config) {
       syncUpdate: setWeak,
       throttledUpdate: buildThrottle(setWeak),
       label: config.weak.label,
-      resultHandler: config.weak.resultHandler
+      resultHandler: config.weak.handler
     }
   }
 }
