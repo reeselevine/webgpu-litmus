@@ -34,13 +34,14 @@ function IntegerStressParam(props) {
     setVal(parseInt(e.target.value));
    
   }
+
   return (
     <>
       <div className="columns">
         <div className="column">
           <label data-tip={props.description}>{props.name}:</label>
           <input name={props.paramName} id="myInput" className="input is-small stressPanel" type="number" min={props.min} max={props.max} 
-            value={inputVal} placeholder={props.placeholder} onInput={(e)=>{
+            value={inputVal} placeholder={props.placeholder} onChange={(e)=>{
               handleInput(e);
             }}
             onBlur={()=>{checkValidation(val, props.paramName, props.min, props.max)}} disabled={props.pageState.running.value}/>
