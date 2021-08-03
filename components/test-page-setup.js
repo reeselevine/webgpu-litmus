@@ -36,19 +36,17 @@ function getPageState(props) {
 }
 
 function doTest(pageState, testParams, shaderCode, testState) {
-  var handler;
+  var keys;
   pageState.running.update(true);
   if (testState.numOutputs == 1) {
-    clearOneOutputState(testState);
-    handler = handleOneOutputResult(testState);
+    keys = ["seq", "weak"];
   } else if (testState.numOutputs == 2) {
-    clearTwoOutputState(testState);
-    handler = handleTwoOutputResult(testState);
+    keys = ["seq0", "seq1", "interleaved", "weak"];
   } else if (testState.numOutputs == 4) {
-    clearFourOutputState(testState);
-    handler = handleFourOutputResult(testState);
+    keys = ["seq", "interleaved", "weak"];
   }
-  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handler);
+  clearState(testState, keys);
+  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys));
   p.then(
     success => {
       pageState.running.update(false);
@@ -58,74 +56,21 @@ function doTest(pageState, testParams, shaderCode, testState) {
   );
 }
 
-function clearOneOutputState(state) {
-  state.seq.internalState = 0;
-  state.seq.syncUpdate(0);
-  state.weak.internalState = 0;
-  state.weak.syncUpdate(0);
-}
-
-function clearTwoOutputState(state) {
-  state.seq0.internalState = 0;
-  state.seq0.syncUpdate(0);
-  state.seq1.internalState = 0;
-  state.seq1.syncUpdate(0);
-  state.interleaved.internalState = 0;
-  state.interleaved.syncUpdate(0);
-  state.weak.internalState = 0;
-  state.weak.syncUpdate(0);
-}
-
-function clearFourOutputState(state) {
-  state.seq.internalState = 0;
-  state.seq.syncUpdate(0);
-  state.interleaved.internalState = 0;
-  state.interleaved.syncUpdate(0);
-  state.weak.internalState = 0;
-  state.weak.syncUpdate(0);
-}
-
-function handleOneOutputResult(state) {
-  return function (result, memResult) {
-    if (state.seq.resultHandler(result, memResult)) {
-      state.seq.internalState = state.seq.internalState + 1;
-      state.seq.throttledUpdate(state.seq.internalState);
-    } else if (state.weak.resultHandler(result, memResult)) {
-      state.weak.internalState = state.weak.internalState + 1;
-      state.weak.throttledUpdate(state.weak.internalState);
-    }
+function clearState(state, keys) {
+  for (const key of keys) {
+    state[key].internalState = 0;
+    state[key].syncUpdate(0);
   }
 }
 
-function handleTwoOutputResult(state) {
+function handleResult(state, keys) {
   return function (result, memResult) {
-    if (state.seq0.resultHandler(result, memResult)) {
-      state.seq0.internalState = state.seq0.internalState + 1;
-      state.seq0.throttledUpdate(state.seq0.internalState);
-    } else if (state.seq1.resultHandler(result, memResult)) {
-      state.seq1.internalState = state.seq1.internalState + 1;
-      state.seq1.throttledUpdate(state.seq1.internalState);
-    } else if (state.interleaved.resultHandler(result, memResult)) {
-      state.interleaved.internalState = state.interleaved.internalState + 1;
-      state.interleaved.throttledUpdate(state.interleaved.internalState);
-    } else if (state.weak.resultHandler(result, memResult)) {
-      state.weak.internalState = state.weak.internalState + 1;
-      state.weak.throttledUpdate(state.weak.internalState);
-    }
-  }
-}
-
-function handleFourOutputResult(state) {
-  return function (result, memResult) {
-    if (state.seq.resultHandler(result, memResult)) {
-      state.seq.internalState = state.seq.internalState + 1;
-      state.seq.throttledUpdate(state.seq.internalState);
-    } else if (state.interleaved.resultHandler(result, memResult)) {
-      state.interleaved.internalState  = state.interleaved.internalState + 1;
-      state.interleaved.throttledUpdate(state.interleaved.internalState);
-    } else if (state.weak.resultHandler(result, memResult)) {
-      state.weak.internalState = state.weak.internalState + 1;
-      state.weak.throttledUpdate(state.weak.internalState);
+    for (const key of keys) {
+      if (state[key].resultHandler(result, memResult)) {
+        state[key].internalState = state[key].internalState + 1;
+        state[key].throttledUpdate(state[key].internalState);
+        break;
+      }
     }
   }
 }
@@ -212,16 +157,9 @@ function fourOutputChartData(testState) {
   }
 }
 
-function oneOutputTooltipFilter(tooltipItem, data) {
-    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
-        return true;
-    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
-        return true;
-    } else {
-        return false;
-    }
+function commonTooltipFilter(tooltipItem, data) {
+  return tooltipItem.datasetIndex == tooltipItem.dataIndex;
 }
-
 
 function twoOutputTooltipFilter(tooltipItem, data) {
   if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
@@ -235,26 +173,12 @@ function twoOutputTooltipFilter(tooltipItem, data) {
   }
 }
 
-function fourOutputTooltipFilter(tooltipItem, data) {
-    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
-        return true;
-    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
-        return true;
-    } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 2) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 function chartConfig(pageState, testState) {
   var tooltipFilter;
-  if (testState.numOutputs == 1) {
-    tooltipFilter = oneOutputTooltipFilter;
-  } else if (testState.numOutputs == 2) {
+  if (testState.numOutputs == 2) {
     tooltipFilter = twoOutputTooltipFilter;
-  } else if (testState.numOutputs == 4) {
-    tooltipFilter = fourOutputTooltipFilter;
+  } else {
+    tooltipFilter = commonTooltipFilter;
   }
   return {
     plugins: {

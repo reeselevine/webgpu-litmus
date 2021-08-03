@@ -5,26 +5,27 @@ export function buildThrottle(updateFunc) {
   return _.throttle((newValue) => updateFunc(newValue), 50);
 }
 
+function buildStateValues(key, config, state, updateFunc) {
+  return {
+    visibleState: state,
+    internalState: 0,
+    syncUpdate: updateFunc,
+    throttledUpdate: buildThrottle(updateFunc),
+    label: config[key].label,
+    resultHandler: config[key].handler
+  }
+}
+
 export function getOneOutputState(config) {
   const [seq, setSeq] = useState(0);
   const [weak, setWeak] = useState(0);
   return {
     numOutputs: 1,
     seq: {
-      visibleState: seq,
-      internalState: 0,
-      syncUpdate: setSeq,
-      throttledUpdate: buildThrottle(setSeq),
-      label: config.seq.label,
-      resultHandler: config.seq.handler
+      ...buildStateValues("seq", config, seq, setSeq)
     },
     weak: {
-      visibleState: weak,
-      internalState: 0,
-      syncUpdate: setWeak,
-      throttledUpdate: buildThrottle(setWeak),
-      label: config.weak.label,
-      resultHandler: config.weak.handler
+      ...buildStateValues("weak", config, weak, setWeak)
     }
   }
 }
@@ -37,36 +38,16 @@ export function getTwoOutputState(config) {
   return {
     numOutputs: 2,
     seq0: {
-      visibleState: seq0,
-      internalState: 0,
-      syncUpdate: setSeq0,
-      throttledUpdate: buildThrottle(setSeq0),
-      label: config.seq0.label,
-      resultHandler: config.seq0.handler
+      ...buildStateValues("seq0", config, seq0, setSeq0)
     },
     seq1: {
-      visibleState: seq1,
-      internalState: 0,
-      syncUpdate: setSeq1,
-      throttledUpdate: buildThrottle(setSeq1),
-      label: config.seq1.label,
-      resultHandler: config.seq1.handler
+      ...buildStateValues("seq1", config, seq1, setSeq1)
     },
     interleaved: {
-      visibleState: interleaved,
-      internalState: 0,
-      syncUpdate: setInterleaved,
-      throttledUpdate: buildThrottle(setInterleaved),
-      label: config.interleaved.label,
-      resultHandler: config.interleaved.handler
+      ...buildStateValues("interleaved", config, interleaved, setInterleaved)
     },
     weak: {
-      visibleState: weak,
-      internalState: 0,
-      syncUpdate: setWeak,
-      throttledUpdate: buildThrottle(setWeak),
-      label: config.weak.label,
-      resultHandler: config.weak.handler
+      ...buildStateValues("weak", config, weak, setWeak)
     }
   }
 }
@@ -78,28 +59,13 @@ export function getFourOutputState(config) {
   return {
     numOutputs: 4,
     seq: {
-      visibleState: seq,
-      internalState: 0,
-      syncUpdate: setSeq,
-      throttledUpdate: buildThrottle(setSeq),
-      label: config.seq.label,
-      resultHandler: config.seq.handler
+      ...buildStateValues("seq", config, seq, setSeq)
     },
     interleaved: {
-      visibleState: interleaved,
-      internalState: 0,
-      syncUpdate: setInterleaved,
-      throttledUpdate: buildThrottle(setInterleaved),
-      label: config.interleaved.label,
-      resultHandler: config.interleaved.handler
+      ...buildStateValues("interleaved", config, interleaved, setInterleaved)
     },
     weak: {
-      visibleState: weak,
-      internalState: 0,
-      syncUpdate: setWeak,
-      throttledUpdate: buildThrottle(setWeak),
-      label: config.weak.label,
-      resultHandler: config.weak.handler
+      ...buildStateValues("weak", config, weak, setWeak)
     }
   }
 }
