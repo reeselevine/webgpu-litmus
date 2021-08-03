@@ -71,6 +71,39 @@ export function getTwoOutputState(config) {
   }
 }
 
+export function getFourOutputState(config) {
+  const [seq, setSeq] = useState(0);
+  const [interleaved, setInterleaved] = useState(0);
+  const [weak, setWeak] = useState(0);
+  return {
+    numOutputs: 4,
+    seq: {
+      visibleState: seq,
+      internalState: 0,
+      syncUpdate: setSeq,
+      throttledUpdate: buildThrottle(setSeq),
+      label: config.seq.label,
+      resultHandler: config.seq.handler
+    },
+    interleaved: {
+      visibleState: interleaved,
+      internalState: 0,
+      syncUpdate: setInterleaved,
+      throttledUpdate: buildThrottle(setInterleaved),
+      label: config.interleaved.label,
+      resultHandler: config.interleaved.handler
+    },
+    weak: {
+      visibleState: weak,
+      internalState: 0,
+      syncUpdate: setWeak,
+      throttledUpdate: buildThrottle(setWeak),
+      label: config.weak.label,
+      resultHandler: config.weak.handler
+    }
+  }
+}
+
 // Result handlers common to many litmus tests
 export const commonHandlers = {
   bothOne: function (result, memResult) {

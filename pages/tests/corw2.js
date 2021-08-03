@@ -58,8 +58,6 @@ const variants = {
 
 export default function CoRW2() {
   testParams.memoryAliases[1] = 0;
-  const thread0 = `0.1: r0=x
-0.2: x=1`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=2 && x=2"/>,
     code: variants.default.pseudo

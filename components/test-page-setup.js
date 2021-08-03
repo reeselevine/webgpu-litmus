@@ -253,7 +253,7 @@ function chartConfig(pageState, testState) {
     tooltipFilter = oneOutputTooltipFilter;
   } else if (testState.numOutputs == 2) {
     tooltipFilter = twoOutputTooltipFilter;
-  } else if (tesetState.numOutputs == 4) {
+  } else if (testState.numOutputs == 4) {
     tooltipFilter = fourOutputTooltipFilter;
   }
   return {
@@ -358,9 +358,7 @@ export function makeTestPage(props) {
                     {variantOptions}
                     <div id="pseudoCode" className={setVis(!pageState.pseudoActive.value, "is-hidden")}>
                       {props.pseudoCode.setup}
-                      <div className="columns">
-                        {pageState.activePseudoCode.value}
-                      </div>
+                      {pageState.activePseudoCode.value}
                     </div>
                     <div id="sourceCode" className={setVis(pageState.pseudoActive.value, "is-hidden")} >
                       <pre className="shaderCode"><code>
