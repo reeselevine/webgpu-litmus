@@ -44,6 +44,9 @@ function doTest(pageState, testParams, shaderCode, testState) {
   } else if (testState.numOutputs == 2) {
     clearTwoOutputState(testState);
     handler = handleTwoOutputResult(testState);
+  } else if (testState.numOutputs == 4) {
+    clearFourOutputState(testState);
+    handler = handleFourOutputResult(testState);
   }
   const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handler);
   p.then(
@@ -62,7 +65,7 @@ function clearOneOutputState(state) {
   state.weak.syncUpdate(0);
 }
 
-export function clearTwoOutputState(state) {
+function clearTwoOutputState(state) {
   state.seq0.internalState = 0;
   state.seq0.syncUpdate(0);
   state.seq1.internalState = 0;
@@ -73,7 +76,16 @@ export function clearTwoOutputState(state) {
   state.weak.syncUpdate(0);
 }
 
-export function handleOneOutputResult(state) {
+function clearFourOutputState(state) {
+  state.seq.internalState = 0;
+  state.seq.syncUpdate(0);
+  state.interleaved.internalState = 0;
+  state.interleaved.syncUpdate(0);
+  state.weak.internalState = 0;
+  state.weak.syncUpdate(0);
+}
+
+function handleOneOutputResult(state) {
   return function (result, memResult) {
     if (state.seq.resultHandler(result, memResult)) {
       state.seq.internalState = state.seq.internalState + 1;
@@ -85,7 +97,7 @@ export function handleOneOutputResult(state) {
   }
 }
 
-export function handleTwoOutputResult(state) {
+function handleTwoOutputResult(state) {
   return function (result, memResult) {
     if (state.seq0.resultHandler(result, memResult)) {
       state.seq0.internalState = state.seq0.internalState + 1;
@@ -103,11 +115,28 @@ export function handleTwoOutputResult(state) {
   }
 }
 
+function handleFourOutputResult(state) {
+  return function (result, memResult) {
+    if (state.seq.resultHandler(result, memResult)) {
+      state.seq.internalState = state.seq.internalState + 1;
+      state.seq.throttledUpdate(state.seq.internalState);
+    } else if (state.interleaved.resultHandler(result, memResult)) {
+      state.interleaved.internalState  = state.interleaved.internalState + 1;
+      state.interleaved.throttledUpdate(state.interleaved.internalState);
+    } else if (state.weak.resultHandler(result, memResult)) {
+      state.weak.internalState = state.weak.internalState + 1;
+      state.weak.throttledUpdate(state.weak.internalState);
+    }
+  }
+}
+
 function chartData(testState) {
   if (testState.numOutputs == 1) {
     return oneOutputChartData(testState);
   } else if (testState.numOutputs == 2) {
     return twoOutputChartData(testState);
+  } else if (testState.numOutputs == 4) {
+    return fourOutputChartData(testState);
   }
 }
 
@@ -157,6 +186,32 @@ function twoOutputChartData(testState) {
   }
 }
 
+function fourOutputChartData(testState) {
+  return {
+    labels: [testState.seq.label, testState.interleaved.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq.visibleState, null, null]
+      },
+      {
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        grouped: false,
+        data: [null, testState.interleaved.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
 function oneOutputTooltipFilter(tooltipItem, data) {
     if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
         return true;
@@ -180,12 +235,26 @@ function twoOutputTooltipFilter(tooltipItem, data) {
   }
 }
 
+function fourOutputTooltipFilter(tooltipItem, data) {
+    if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex == 0) {
+        return true;
+    } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 1) {
+        return true;
+    } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 2) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function chartConfig(pageState, testState) {
   var tooltipFilter;
   if (testState.numOutputs == 1) {
     tooltipFilter = oneOutputTooltipFilter;
   } else if (testState.numOutputs == 2) {
     tooltipFilter = twoOutputTooltipFilter;
+  } else if (tesetState.numOutputs == 4) {
+    tooltipFilter = fourOutputTooltipFilter;
   }
   return {
     plugins: {
@@ -246,11 +315,10 @@ function VariantOptions(props) {
       <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
-      }}>
+      }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>
     </>)
-
 }
 
 export function makeTestPage(props) {
