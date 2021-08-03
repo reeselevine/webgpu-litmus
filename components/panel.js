@@ -42,8 +42,8 @@ return(
     </Link>
   </div>
   <div className="panel-block ">
-    <Link href='/tests/corr-rmw'>
-         CoRR RMW 
+    <Link href='/tests/corr4'>
+         4-Threaded CoRR 
     </Link>
   </div>
   <div className="panel-block ">
@@ -66,7 +66,11 @@ return(
          CoRW2
     </Link>
   </div>
-
+  <div className="panel-block ">
+    <Link href='/tests/atomicity'>
+         Atomicity
+    </Link>
+  </div>
 </nav>
   );
 }

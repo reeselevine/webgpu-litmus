@@ -58,7 +58,7 @@ function DropdownStressParam(props) {
       <div className="columns">
         <div className="column">
           <label data-tip={props.description}>{props.name}:</label>
-          <select className="stressPanelDropdown" name={props.paramName} 
+          <select className="dropdown" name={props.paramName} 
             onChange={props.updateFunc(props.params, props.paramName)} disabled={props.pageState.running.value}>
             {options}
           </select>
