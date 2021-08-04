@@ -13,38 +13,50 @@ function checkValidation(val, name, min, max){
   }
 }
 
-let click = false;
+function buildIntStressParam(name, description, paramName, params, pageState, min, max) {
+  const[val, setVal]=useState(params[paramName]);
 
+  function validate(e) {
+    if (isNaN(parseInt(e.target.value)) || val < min || val > max) {
+      alert( name + " value is invalid. The value should be in between " + min + " and "+ max);
+      setVal(params[paramName]);
+    } else {
+      params[paramName] = val;
+    }
+  }
+
+  function handleInput(e) {
+    let tryParse = parseInt(e.target.value);
+    if (isNaN(tryParse)) {
+      setVal(e.target.value);
+    } else {
+      setVal(tryParse);
+    }
+  }
+
+  let jsx = <IntegerStressParam name={name} description={description} paramName={paramName} params={params} pageState={pageState}
+            val={val} handleInput={handleInput} validate={validate}/>
+  return {
+    state: {
+      value: val,
+      update: setVal
+    },
+    jsx: jsx
+  }
+}
 
 function IntegerStressParam(props) {
-  
-  const[inputVal, setInputVal] = useState(props.params[props.paramName])
-  console.log(click)
-  console.log(props.params["maxWorkgroups"])
-  if(click == true){
-    if(inputVal != props.params[props.paramName]){
-      setInputVal(props.params[props.paramName]);
-    } 
-  }
-  const[val, setVal]=useState(0)
-
-  function handleInput(e){
-    props.params[props.paramName] = parseInt(e.target.value);
-    setInputVal(parseInt(e.target.value))
-    setVal(parseInt(e.target.value));
-   
-  }
-
   return (
     <>
       <div className="columns">
         <div className="column">
           <label data-tip={props.description}>{props.name}:</label>
-          <input name={props.paramName} id="myInput" className="input is-small stressPanel" type="number" min={props.min} max={props.max} 
-            value={inputVal} placeholder={props.placeholder} onChange={(e)=>{
-              handleInput(e);
-            }}
-            onBlur={()=>{checkValidation(val, props.paramName, props.min, props.max)}} disabled={props.pageState.running.value}/>
+          <input name={props.paramName} id="myInput" className="input is-small stressPanel" type="text" 
+            value={props.val} onChange={(e)=>{
+              props.handleInput(e);
+            }} onBlur={(e)=>{
+              props.validate(e);
+            }} disabled={props.pageState.running.value}/>
         </div>
       </div>
     </>
@@ -106,6 +118,8 @@ export default function stressPanel(props) {
   let array1 = ["round-robin", "chunking"];
   let array2 = ["load-store", "store-load", "load-load", "store-store"];
 
+  const minWorkgroups = buildIntStressParam("Minimum Workgroups", "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "minWorkgroups", props.params, props.pageState, 4, 1024);
+
   return (
     <>
       <div className="column is-one-third mr-2">
@@ -115,7 +129,7 @@ export default function stressPanel(props) {
             Test Parameters
           </p>
           <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
-            <IntegerStressParam name="Minimum Workgroups" description="Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)" paramName="minWorkgroups" min ="4" max="1024"  params={props.params} pageState={props.pageState}/>
+            {minWorkgroups.jsx}
             <IntegerStressParam name="Maximum Workgroups" description="Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)" paramName="maxWorkgroups" min ="4" max="1024"  placeholder="4-1024" params={props.params} pageState={props.pageState}/>
             <IntegerStressParam name="Shuffle Percentage" description="The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)" paramName="shufflePct" placeholder="0-100" params={props.params}   min ="0" max="100" pageState={props.pageState}/>
             <IntegerStressParam name="Barrier Percentage" description="The percentage of iterations where the testing workgroups attempt to synchronize before executing their part of the litmus test (values should be between 0 and 100)" paramName="barrierPct"  min ="0" max="100" params={props.params} pageState={props.pageState}/>
@@ -138,7 +152,6 @@ export default function stressPanel(props) {
                 <div className="buttons are-small">
                 <button className="button is-link is-outlined " onClick={()=>{
                   console.log("click test1")
-                   click = true;
                    setParam({...params,minWorkgroups: 4,maxWorkgroups: 4, shufflePct: 0, barrierPct: 0, memStressPct: 0});
                    props.params.minWorkgroups = 4;
                    props.params.maxWorkgroups = 4;
@@ -152,7 +165,6 @@ export default function stressPanel(props) {
                 </button> 
                 <button className="button is-link is-outlined " onClick={()=>{
                   console.log("click test2")
-                  click=true;
                   setParam({...params,minWorkgroups: 1024, maxWorkgroups: 1024, shufflePct: 100, barrierPct: 100, memStressPct: 0});
                   props.params.minWorkgroups = 1024;
                   props.params.maxWorkgroups = 1024;
@@ -164,7 +176,6 @@ export default function stressPanel(props) {
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   console.log("click test3")
-                  click=true;
                   setParam({...params,minWorkgroups: 1024,maxWorkgroups: 1024, shufflePct: 100, barrierPct: 100, memStressPct: 100});
                   props.params.minWorkgroups = 1024;
                   props.params.maxWorkgroups = 1024;
