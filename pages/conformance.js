@@ -18,14 +18,18 @@ import atomicity from '../shaders/atomicity.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
-const iterations = 100;
 
 function getPageState() {
   const [running, setRunning] = useState(false);
+  const [iterations, setIterations] = useState(1000);
   return {
     running: {
       value: running,
       update: setRunning
+    },
+    iterations: {
+      value: iterations,
+      update: setIterations
     }
   }
 }
@@ -110,7 +114,7 @@ function buildTest(testName, pageState, testParams, shaderCode, handlers) {
   }
 }
 
-function updateStateAndHandleResult(testState) {
+function updateStateAndHandleResult(pageState, testState) {
   const fn = handleResult(testState, keys);
   return function (result, memResult) {
     let time = reportTime();
@@ -121,7 +125,7 @@ function updateStateAndHandleResult(testState) {
     } else {
       rate = Math.round(curIter / time);
     }
-    testState.progress.update(Math.floor(curIter * 100 / iterations));
+    testState.progress.update(Math.floor(curIter * 100 / pageState.iterations.value));
     testState.rate.update(rate);
     testState.time.update(time);
     fn(result, memResult);
@@ -135,7 +139,7 @@ async function doTest(pageState, testParams, shaderCode, testState) {
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runLitmusTest(shaderCode, testParams, iterations, updateStateAndHandleResult(testState));
+  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
   if (testState.weak.internalState > 0) {
     testState.result.update(false);
   } else {
@@ -169,6 +173,8 @@ export default function ConformanceTestSuite() {
 
   const tests = [coRRConfig, coRRRMWConfig, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
 
+  let initialIterations = pageState.iterations.value;
+
   return (
     <>
       <div className="columns">
@@ -179,6 +185,16 @@ export default function ConformanceTestSuite() {
           </div>
         </div>
         <StressPanel params={testParams} pageState={pageState} />
+      </div>
+      <div className="columns">
+        <div className="column is-one-fifth">
+          <div className="control">
+            <label><b>Iterations:</b></label>
+            <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+              pageState.iterations.update(e.target.value);
+            }} disabled={pageState.running.value}/>
+          </div>
+        </div>
       </div>
       <button className="button" onClick={() => {
         doAllTests(tests);
