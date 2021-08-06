@@ -6,12 +6,18 @@ import { runLitmusTest, reportTime, getCurrentIteration } from '../components/li
 import { defaultTestParams } from '../components/litmus-setup.js'
 import coRR from '../shaders/corr.wgsl';
 import coRR_RMW from '../shaders/corr-rmw.wgsl';
+import coRR_RMW1 from '../shaders/corr-rmw1.wgsl';
+import coRR_RMW2 from '../shaders/corr-rmw2.wgsl';
 import coRR4 from '../shaders/corr4.wgsl';
 import coRR4_RMW from '../shaders/corr4-rmw.wgsl';
 import coWW from '../shaders/coww.wgsl';
 import coWW_RMW from '../shaders/coww-rmw.wgsl';
 import coWR from '../shaders/cowr.wgsl';
 import coWR_RMW from '../shaders/cowr-rmw.wgsl';
+import coWR_RMW1 from '../shaders/cowr-rmw1.wgsl';
+import coWR_RMW2 from '../shaders/cowr-rmw2.wgsl';
+import coWR_RMW3 from '../shaders/cowr-rmw3.wgsl';
+import coWR_RMW4 from '../shaders/cowr-rmw4.wgsl';
 import coRW1 from '../shaders/corw1.wgsl';
 import coRW2 from '../shaders/corw2.wgsl';
 import coRW2_RMW from '../shaders/corw2-rmw.wgsl';
@@ -161,19 +167,25 @@ export default function ConformanceTestSuite() {
   testParams.numOutputs = 4;
   const pageState = getPageState();
   const coRRConfig = buildTest("CoRR", "corr", pageState, testParams, coRR, coRRHandlers);
-  const coRRRMWConfig = buildTest("CoRR (RMW)", "corr", pageState, testParams, coRR_RMW, coRRHandlers);
+  const coRRRMWConfig = buildTest("CoRR (strongest idiomatic RMW variant)", "corr", pageState, testParams, coRR_RMW, coRRHandlers);
+  const coRRRMW1Config = buildTest("CoRR (idiomatic RMW variant 1)", "corr", pageState, testParams, coRR_RMW1, coRRHandlers);
+  const coRRRMW2Config = buildTest("CoRR (idiomatic RMW variant 2)", "corr", pageState, testParams, coRR_RMW2, coRRHandlers);
   const coRR4Config = buildTest("4-threaded CoRR", "corr4", pageState, testParams, coRR4, coRR4Handlers);
-  const coRR4RMWConfig = buildTest("4-threaded CoRR (RMW)", "corr4", pageState, testParams, coRR4_RMW, coRR4Handlers);
+  const coRR4RMWConfig = buildTest("4-threaded CoRR (strongest idiomatic RMW variant)", "corr4", pageState, testParams, coRR4_RMW, coRR4Handlers);
   const coWWConfig = buildTest("CoWW", "coww", pageState, testParams, coWW, coWWHandlers);
-  const coWWRMWConfig = buildTest("CoWW (RMW)", "coww", pageState, testParams, coWW_RMW, coWWHandlers);
+  const coWWRMWConfig = buildTest("CoWW (strongest idiomatic RMW variant)", "coww", pageState, testParams, coWW_RMW, coWWHandlers);
   const coWRConfig = buildTest("CoWR", "cowr", pageState, testParams, coWR, coWRHandlers);
-  const coWRRMWConfig = buildTest("CoWR (RMW)", "cowr", pageState, testParams, coWR_RMW, coWRHandlers);
+  const coWRRMWConfig = buildTest("CoWR (strongest idiomatic RMW variant)", "cowr", pageState, testParams, coWR_RMW, coWRHandlers);
+  const coWRRMW1Config = buildTest("CoWR (idiomatic RMW variant 1)", "cowr", pageState, testParams, coWR_RMW1, coWRHandlers);
+  const coWRRMW2Config = buildTest("CoWR (idiomatic RMW variant 2)", "cowr", pageState, testParams, coWR_RMW2, coWRHandlers);
+  const coWRRMW3Config = buildTest("CoWR (idiomatic RMW variant 3)", "cowr", pageState, testParams, coWR_RMW3, coWRHandlers);
+  const coWRRMW4Config = buildTest("CoWR (idiomatic RMW variant 4)", "cowr", pageState, testParams, coWR_RMW4, coWRHandlers);
   const coRW1Config = buildTest("CoRW1", "corw1", pageState, testParams, coRW1, coRW1Handlers);
   const coRW2Config = buildTest("CoRW2", "corw2", pageState, testParams, coRW2, coRW2Handlers);
-  const coRW2RMWConfig = buildTest("CoRW2 (RMW)", "corw2", pageState, testParams, coRW2_RMW, coRW2Handlers);
+  const coRW2RMWConfig = buildTest("CoRW2 (strongest idiomatic RMW variant)", "corw2", pageState, testParams, coRW2_RMW, coRW2Handlers);
   const atomicityConfig = buildTest("Atomicity", "atomicity", pageState, testParams, atomicity, atomicityHandlers);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
+  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
 
   let initialIterations = pageState.iterations.value;
 
@@ -219,12 +231,18 @@ export default function ConformanceTestSuite() {
           <tbody>
             {coRRConfig.jsx}
             {coRRRMWConfig.jsx}
+            {coRRRMW1Config.jsx}
+            {coRRRMW2Config.jsx}
             {coRR4Config.jsx}
             {coRR4RMWConfig.jsx}
             {coWWConfig.jsx}
             {coWWRMWConfig.jsx}
             {coWRConfig.jsx}
             {coWRRMWConfig.jsx}
+            {coWRRMW1Config.jsx}
+            {coWRRMW2Config.jsx}
+            {coWRRMW3Config.jsx}
+            {coWRRMW4Config.jsx}
             {coRW1Config.jsx}
             {coRW2Config.jsx}
             {coRW2RMWConfig.jsx}
