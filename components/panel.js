@@ -21,6 +21,14 @@ return(
         </div>
     </div>
   </div>
+  <div className="panel-block">
+    <Link href="/conformance">
+      <a>Conformance Test Suite</a>
+    </Link>
+  </div>
+  <div className="panel-block">
+    <b>Explore Tests:</b>
+  </div>
   <div className="panel-block ">
     <Link href='/tests/message-passing'>
           Message Passing
