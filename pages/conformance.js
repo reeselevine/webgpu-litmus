@@ -158,6 +158,7 @@ async function doAllTests(tests) {
 
 export default function ConformanceTestSuite() {
   testParams.memoryAliases[1] = 0;
+  testParams.numOutputs = 4;
   const pageState = getPageState();
   const coRRConfig = buildTest("CoRR", "corr", pageState, testParams, coRR, coRRHandlers);
   const coRRRMWConfig = buildTest("CoRR (RMW)", "corr", pageState, testParams, coRR_RMW, coRRHandlers);
