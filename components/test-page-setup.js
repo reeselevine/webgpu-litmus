@@ -197,6 +197,7 @@ export function makeTwoOutputTest(
   pseudoCode,
   testState,
   behaviors) {
+ // const[params, setParams] = useState(testParams);
   const pageState = getPageState();
   let initialIterations = pageState.iterations.value;
   return (
@@ -267,7 +268,7 @@ export function makeTwoOutputTest(
                 </div>
               </div>
             </div>
-            <StressPanel params={testParams} pageState={pageState}></StressPanel>
+            <StressPanel params={testParams}  pageState={pageState}></StressPanel>
           </div>
           <div className="columns" >
             <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
