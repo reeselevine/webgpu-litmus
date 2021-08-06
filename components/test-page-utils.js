@@ -120,7 +120,7 @@ export const coRRHandlers = {
 };
 
 function coRR4Seq(result, memResult) {
-  return result[0] == result[1] && result[2] == result[3];
+  return (result[0] == result[1]) && (result[2] == result[3]);
 }
 
 function coRR4Weak(result, memResult) {

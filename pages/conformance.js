@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from'next/link'
 import StressPanel from '../components/stressPanel.js';
 import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
@@ -54,7 +55,7 @@ function TestStatus(props) {
   }
 }
 
-function buildTest(testName, pageState, testParams, shaderCode, handlers) {
+function buildTest(testName, testUrl, pageState, testParams, shaderCode, handlers) {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
@@ -92,11 +93,11 @@ function buildTest(testName, pageState, testParams, shaderCode, handlers) {
   const jsx = (
     <>
       <tr>
-        <th>{testName}</th>
+        <th><Link href={'/tests/' + testUrl}>{testName}</Link></th>
         <td>{progress}%</td>
         <td>{rate}</td>
         <td>{time}</td>
-        <TestStatus pass={pass}/>
+        <TestStatus pass={pass} />
         <td>{seq}</td>
         <td>{interleaved}</td>
         <td>{weak}</td>
@@ -158,18 +159,18 @@ async function doAllTests(tests) {
 export default function ConformanceTestSuite() {
   testParams.memoryAliases[1] = 0;
   const pageState = getPageState();
-  const coRRConfig = buildTest("CoRR", pageState, testParams, coRR, coRRHandlers);
-  const coRRRMWConfig = buildTest("CoRR (RMW)", pageState, testParams, coRR_RMW, coRRHandlers);
-  const coRR4Config = buildTest("4-threaded CoRR", pageState, testParams, coRR4, coRR4Handlers);
-  const coRR4RMWConfig = buildTest("4-threaded CoRR (RMW)", pageState, testParams, coRR4_RMW, coRR4Handlers);
-  const coWWConfig = buildTest("CoWW", pageState, testParams, coWW, coWWHandlers);
-  const coWWRMWConfig = buildTest("CoWW (RMW)", pageState, testParams, coWW_RMW, coWWHandlers);
-  const coWRConfig = buildTest("CoWR", pageState, testParams, coWR, coWRHandlers);
-  const coWRRMWConfig = buildTest("CoWR (RMW)", pageState, testParams, coWR_RMW, coWRHandlers);
-  const coRW1Config = buildTest("CoRW1", pageState, testParams, coRW1, coRW1Handlers);
-  const coRW2Config = buildTest("CoRW2", pageState, testParams, coRW2, coRW2Handlers);
-  const coRW2RMWConfig = buildTest("CoRW2 (RMW)", pageState, testParams, coRW2_RMW, coRW2Handlers);
-  const atomicityConfig = buildTest("Atomicity", pageState, testParams, atomicity, atomicityHandlers);
+  const coRRConfig = buildTest("CoRR", "corr", pageState, testParams, coRR, coRRHandlers);
+  const coRRRMWConfig = buildTest("CoRR (RMW)", "corr", pageState, testParams, coRR_RMW, coRRHandlers);
+  const coRR4Config = buildTest("4-threaded CoRR", "corr4", pageState, testParams, coRR4, coRR4Handlers);
+  const coRR4RMWConfig = buildTest("4-threaded CoRR (RMW)", "corr4", pageState, testParams, coRR4_RMW, coRR4Handlers);
+  const coWWConfig = buildTest("CoWW", "coww", pageState, testParams, coWW, coWWHandlers);
+  const coWWRMWConfig = buildTest("CoWW (RMW)", "coww", pageState, testParams, coWW_RMW, coWWHandlers);
+  const coWRConfig = buildTest("CoWR", "cowr", pageState, testParams, coWR, coWRHandlers);
+  const coWRRMWConfig = buildTest("CoWR (RMW)", "cowr", pageState, testParams, coWR_RMW, coWRHandlers);
+  const coRW1Config = buildTest("CoRW1", "corw1", pageState, testParams, coRW1, coRW1Handlers);
+  const coRW2Config = buildTest("CoRW2", "corw2", pageState, testParams, coRW2, coRW2Handlers);
+  const coRW2RMWConfig = buildTest("CoRW2 (RMW)", "corw2", pageState, testParams, coRW2_RMW, coRW2Handlers);
+  const atomicityConfig = buildTest("Atomicity", "atomicity", pageState, testParams, atomicity, atomicityHandlers);
 
   const tests = [coRRConfig, coRRRMWConfig, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
 
@@ -192,7 +193,7 @@ export default function ConformanceTestSuite() {
             <label><b>Iterations:</b></label>
             <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
               pageState.iterations.update(e.target.value);
-            }} disabled={pageState.running.value}/>
+            }} disabled={pageState.running.value} />
           </div>
         </div>
       </div>
