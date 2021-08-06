@@ -53,3 +53,11 @@ img {
 .dropdown {
   margin-left: 5px;
 }
+
+.testPassed {
+  color: green;
+}
+
+.testFailed {
+  color: red;
+}

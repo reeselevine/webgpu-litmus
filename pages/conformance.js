@@ -4,10 +4,16 @@ import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, c
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import coRR from '../shaders/corr.wgsl';
+import coRR_RMW from '../shaders/corr-rmw.wgsl';
+import coRR4 from '../shaders/corr4.wgsl';
+import coRR4_RMW from '../shaders/corr4-rmw.wgsl';
 import coWW from '../shaders/coww.wgsl';
+import coWW_RMW from '../shaders/coww-rmw.wgsl';
 import coWR from '../shaders/cowr.wgsl';
+import coWR_RMW from '../shaders/cowr-rmw.wgsl';
 import coRW1 from '../shaders/corw1.wgsl';
 import coRW2 from '../shaders/corw2.wgsl';
+import coRW2_RMW from '../shaders/corw2-rmw.wgsl';
 import atomicity from '../shaders/atomicity.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
@@ -34,11 +40,21 @@ function buildStateValues(key, handlers, state, updateFunc) {
   }
 }
 
+function TestStatus(props) {
+  if (props.pass == undefined) {
+    return <td></td>;
+  } else if (props.pass) {
+    return <td className="testPassed">Pass</td>;
+  } else {
+    return <td className="testFailed">Fail</td>;
+  }
+}
+
 function buildTest(testName, pageState, testParams, shaderCode, handlers) {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
-  const [pass, setPass] = useState("");
+  const [pass, setPass] = useState(undefined);
   const [progress, setProgress] = useState(0);
   const [rate, setRate] = useState(0);
   const [time, setTime] = useState(0);
@@ -76,7 +92,7 @@ function buildTest(testName, pageState, testParams, shaderCode, handlers) {
         <td>{progress}%</td>
         <td>{rate}</td>
         <td>{time}</td>
-        <td>{pass}</td>
+        <TestStatus pass={pass}/>
         <td>{seq}</td>
         <td>{interleaved}</td>
         <td>{weak}</td>
@@ -97,9 +113,17 @@ function buildTest(testName, pageState, testParams, shaderCode, handlers) {
 function updateStateAndHandleResult(testState) {
   const fn = handleResult(testState, keys);
   return function (result, memResult) {
-    testState.progress.update(Math.floor(getCurrentIteration() * 100 / iterations));
-    testState.rate.update(Math.round((getCurrentIteration() / (reportTime()))));
-    testState.time.update(reportTime());
+    let time = reportTime();
+    let curIter = getCurrentIteration();
+    var rate;
+    if (time == 0) {
+      rate == 0;
+    } else {
+      rate = Math.round(curIter / time);
+    }
+    testState.progress.update(Math.floor(curIter * 100 / iterations));
+    testState.rate.update(rate);
+    testState.time.update(time);
     fn(result, memResult);
   }
 }
@@ -110,12 +134,12 @@ async function doTest(pageState, testParams, shaderCode, testState) {
   testState.progress.update(0);
   testState.rate.update(0);
   testState.time.update(0);
-  testState.result.update("");
+  testState.result.update(undefined);
   await runLitmusTest(shaderCode, testParams, iterations, updateStateAndHandleResult(testState));
   if (testState.weak.internalState > 0) {
-    testState.result.update("Failed");
+    testState.result.update(false);
   } else {
-    testState.result.update("Pass");
+    testState.result.update(true);
   }
   testState.progress.update(100);
   pageState.running.update(false);
@@ -131,13 +155,19 @@ export default function ConformanceTestSuite() {
   testParams.memoryAliases[1] = 0;
   const pageState = getPageState();
   const coRRConfig = buildTest("CoRR", pageState, testParams, coRR, coRRHandlers);
+  const coRRRMWConfig = buildTest("CoRR (RMW)", pageState, testParams, coRR_RMW, coRRHandlers);
+  const coRR4Config = buildTest("4-threaded CoRR", pageState, testParams, coRR4, coRR4Handlers);
+  const coRR4RMWConfig = buildTest("4-threaded CoRR (RMW)", pageState, testParams, coRR4_RMW, coRR4Handlers);
   const coWWConfig = buildTest("CoWW", pageState, testParams, coWW, coWWHandlers);
+  const coWWRMWConfig = buildTest("CoWW (RMW)", pageState, testParams, coWW_RMW, coWWHandlers);
   const coWRConfig = buildTest("CoWR", pageState, testParams, coWR, coWRHandlers);
+  const coWRRMWConfig = buildTest("CoWR (RMW)", pageState, testParams, coWR_RMW, coWRHandlers);
   const coRW1Config = buildTest("CoRW1", pageState, testParams, coRW1, coRW1Handlers);
   const coRW2Config = buildTest("CoRW2", pageState, testParams, coRW2, coRW2Handlers);
+  const coRW2RMWConfig = buildTest("CoRW2 (RMW)", pageState, testParams, coRW2_RMW, coRW2Handlers);
   const atomicityConfig = buildTest("Atomicity", pageState, testParams, atomicity, atomicityHandlers);
 
-  const tests = [coRRConfig, coWWConfig, coWRConfig, coRW1Config, coRW2Config, atomicityConfig];
+  const tests = [coRRConfig, coRRRMWConfig, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
 
   return (
     <>
@@ -153,29 +183,37 @@ export default function ConformanceTestSuite() {
       <button className="button" onClick={() => {
         doAllTests(tests);
       }} disabled={pageState.running.value} >Run CTS</button>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Test Name</th>
-            <th>Progress</th>
-            <th>Iterations per second</th>
-            <th>Time (seconds)</th>
-            <th>Result</th>
-            <th>Sequential Behaviors</th>
-            <th>Interleaved Behaviors</th>
-            <th>Weak Behaviors</th>
-            <th>Run Test</th>
-          </tr>
-        </thead>
-        <tbody>
-          {coRRConfig.jsx}
-          {coWWConfig.jsx}
-          {coWRConfig.jsx}
-          {coRW1Config.jsx}
-          {coRW2Config.jsx}
-          {atomicityConfig.jsx}
-        </tbody>
-      </table>
+      <div className="table-container">
+        <table className="table is-hoverable">
+          <thead>
+            <tr>
+              <th>Test Name</th>
+              <th>Progress</th>
+              <th>Iterations per second</th>
+              <th>Time (seconds)</th>
+              <th>Result</th>
+              <th>Sequential Behaviors</th>
+              <th>Interleaved Behaviors</th>
+              <th>Weak Behaviors</th>
+              <th>Run Test</th>
+            </tr>
+          </thead>
+          <tbody>
+            {coRRConfig.jsx}
+            {coRRRMWConfig.jsx}
+            {coRR4Config.jsx}
+            {coRR4RMWConfig.jsx}
+            {coWWConfig.jsx}
+            {coWWRMWConfig.jsx}
+            {coWRConfig.jsx}
+            {coWRRMWConfig.jsx}
+            {coRW1Config.jsx}
+            {coRW2Config.jsx}
+            {coRW2RMWConfig.jsx}
+            {atomicityConfig.jsx}
+          </tbody>
+        </table>
+      </div>
     </>
-  )
+  );
 }
