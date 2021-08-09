@@ -108,7 +108,7 @@ function DropdownStressParam(props) {
   )
 }
 
-function randomGenerater(min, max){
+export function randomGenerater(min, max){
   return Math.floor(Math.random() * (max - min+1) + min);
 }
 function test1(params, paramState, update){
