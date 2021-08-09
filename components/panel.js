@@ -79,6 +79,14 @@ return(
          Atomicity
     </Link>
   </div>
+  <div className="panel-block">
+    <b>Barrier Tests:</b>
+  </div>
+  <div className="panel-block ">
+    <Link href='/tests/barrier-store-load'>
+        Barrier Store Load 
+    </Link>
+  </div>
 </nav>
   );
 }
