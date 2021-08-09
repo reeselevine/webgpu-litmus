@@ -4,11 +4,12 @@ import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.j
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-
+import TuningTable from "../components/tuningTable"
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
+  const [mode, setMode] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
   return {
@@ -31,6 +32,10 @@ function getPageState(props) {
     activeShader: {
       value: activeShader,
       update: setActiveShader
+    },
+    modeActive:{
+      value: mode,
+      update: setMode
     }
   }
 }
@@ -294,24 +299,62 @@ export function makeTestPage(props) {
               </div>
             </div>
           </div>
-          <div className="columns">
-            <div className="column">
-              <Bar
-                data={chartData(props.testState)}
-                options={chartConfig(pageState, props.testState)}
-              />
-            </div>
-          </div>
-          <div className="columns" >
-            <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
-              <div className="column " style={{ width: "200px" }}>
-                <ProgressBar></ProgressBar>
+         {/* here is the mode */}
+         <div className="section " style={{width:"700px"}}>
+            <div className="columns is-6 ">
+              <div className="column is-half ">
+                <div className="button is-info " onClick={()=>{
+                  pageState.modeActive.update(false);
+                }}>
+                    Explorer Mode
+                </div>
+              </div>
+              <div className="column is-half pl-6">
+                <div className="button is-info " onClick={()=>{
+                  pageState.modeActive.update(true);
+                }}>
+                    Tuning Mode 
+                </div>
               </div>
             </div>
           </div>
+          {pageState.modeActive.value
+          ?
+            <div className="container">
+                <button className="button is-primary" onClick={()=>{
+                  doMP(pageState, testParams, shaderCode, state);
+                }}>
+                  Start Tuning
+                </button>
+              <TuningTable></TuningTable>
+           </div>
+          : <div className="columns mr-2">
+            <div className="column is-two-thirds">
+              <div className="section">
+                <div className="columns">
+                <Bar
+                data={chartData(props.testState)}
+                options={chartConfig(pageState, props.testState)}
+              />
+                </div>
+              </div>
+              <div className="columns" >
+                <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
+                  <div className="column " style={{ width: "200px" }}>
+                    <ProgressBar></ProgressBar>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
+            </div>
+          }
         </div>
-        <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
       </div>
+      {pageState.modeActive.value
+      ?
+      <div class="section"></div>
+      :
       <div className="columns">
         <div className="column is-one-fifth">
           <div className="control">
@@ -322,7 +365,8 @@ export function makeTestPage(props) {
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState);
+              console.log(testParams);
+              doTwoOutputTest(pageState, testState, testParams, shaderCode);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>
@@ -341,7 +385,9 @@ export function makeTestPage(props) {
           </div>
         </div>
       </div>
+      }
     </>
+    
   );
 }
 
