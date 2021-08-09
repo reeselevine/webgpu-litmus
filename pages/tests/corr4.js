@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getFourOutputState, commonHandlers } from '../../components/test-page-utils.js';
+import { getFourOutputState, coRR4Handlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR4 from '../../shaders/corr4.wgsl';
@@ -24,43 +24,24 @@ const variants = {
 
 export default function CoRR4() {
   testParams.memoryAliases[1] = 0;
+  testParams.numOutputs = 4;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="(r0=1 && r1=2 && r2=2 && r3=1) || (r0=2 && r1=1 && r2=1 && r3=2)"/>,
+    setup: <TestSetupPseudoCode init="global x=0" finalState="(r0=1 && r1=2 && r2=2 && r3=1) || (r0=2 && r1=1 && r2=1 && r3=2) || (r0 != 0 && r1 == 0) || (r2 != 0 && r3 == 0)"/>,
     code: variants.default.pseudo
   };
 
   const testState = getFourOutputState({
     seq: {
       label: "Sequential Outcomes",
-      handler: function (result, memResult) {
-        let r0 = result[0];
-        let r1 = result[1];
-        let r2 = result[2];
-        let r3 = result[3];
-        return r0 == r1 && r2 == r3;
-      }
+      handler: coRR4Handlers.seq
     },
     interleaved: {
       label: "Interleaved Outcomes",
-      handler: function (result, memResult) {
-        let r0 = result[0];
-        let r1 = result[1];
-        let r2 = result[2];
-        let r3 = result[3];
-        let sequential = r0 == 1 && r2 == r3;
-        let weak = (r0 == 1 && r1 == 2 && r2 == 2 && r3 == 1) || (r0 == 2 && r1 == 1 && r2 == 1 && r3 == 2);
-        return !sequential && !weak;
-      }
+      handler: coRR4Handlers.interleaved
     },
     weak: {
       label: "Weak outcomes",
-      handler: function (result, memResult) {
-        let r0 = result[0];
-        let r1 = result[1];
-        let r2 = result[2];
-        let r3 = result[3];
-        return (r0 == 1 && r1 == 2 && r2 == 2 && r3 == 1) || (r0 == 2 && r1 == 1 && r2 == 1 && r3 == 2);
-      }
+      handler: coRR4Handlers.weak
     }
   });
 

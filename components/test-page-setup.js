@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
+import { clearState, handleResult } from './test-page-utils.js';
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
@@ -54,25 +55,6 @@ function doTest(pageState, testParams, shaderCode, testState) {
     },
     error => console.log(error)
   );
-}
-
-function clearState(state, keys) {
-  for (const key of keys) {
-    state[key].internalState = 0;
-    state[key].syncUpdate(0);
-  }
-}
-
-function handleResult(state, keys) {
-  return function (result, memResult) {
-    for (const key of keys) {
-      if (state[key].resultHandler(result, memResult)) {
-        state[key].internalState = state[key].internalState + 1;
-        state[key].throttledUpdate(state[key].internalState);
-        break;
-      }
-    }
-  }
 }
 
 function chartData(testState) {

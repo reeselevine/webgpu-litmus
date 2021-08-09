@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState } from '../../components/test-page-utils.js';
+import { getTwoOutputState, coWRHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coWR from '../../shaders/cowr.wgsl';
@@ -68,27 +68,19 @@ export default function CoWR() {
   const testState = getTwoOutputState({
     seq0: {
       label: "r0=1 && x=2",
-      handler: function (result, memResult) {
-        return result[0] == 1 && memResult[0] == 2;
-      }
+      handler: coWRHandlers.seq0
     },
     seq1: {
       label: "r0=1 && x=1",
-      handler: function (result, memResult) {
-        return result[0] == 1 && memResult[0] == 1;
-      }
+      handler: coWRHandlers.seq1
     },
     interleaved: {
       label: "r0=2 && x=2",
-      handler: function (result, memResult) {
-        return result[0] == 2 && memResult[0] == 2;
-      }
+      handler: coWRHandlers.interleaved
     },
     weak: {
       label: "r0=2 && x=1",
-      handler: function (result, memResult) {
-        return result[0] == 2 && memResult[0] == 1;
-      }
+      handler: coWRHandlers.weak
     }
   });
 

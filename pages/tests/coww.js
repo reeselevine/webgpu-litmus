@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState } from '../../components/test-page-utils.js';
+import { getOneOutputState, coWWHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coWW from '../../shaders/coww.wgsl';
@@ -44,15 +44,11 @@ export default function CoWW() {
   const testState = getOneOutputState({
     seq: {
       label: "x=2", 
-      handler: function (result, memResult) {
-        return memResult[0] == 2;
-      }
+      handler: coWWHandlers.seq
     },
     weak: {
       label: "x=1",
-      handler: function (result, memResult) {
-        return memResult[0] == 1;
-      }
+      handler: coWWHandlers.weak
     }
   })
 

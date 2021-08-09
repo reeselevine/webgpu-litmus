@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
+import { getTwoOutputState, coRRHandlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
@@ -66,19 +66,19 @@ export default function CoRR() {
   const testState = getTwoOutputState({
     seq0: {
       label: "r0=0 && r1=0",
-      handler: commonHandlers.bothZero
+      handler: coRRHandlers.seq0
     },
     seq1: {
       label: "r0=1 && r1=1",
-      handler: commonHandlers.bothOne
+      handler: coRRHandlers.seq1
     },
     interleaved: {
       label: "r0=0 && r1=1",
-      handler: commonHandlers.zeroOne
+      handler: coRRHandlers.interleaved
     },
     weak: {
       label: "r0=1 && r1=0",
-      handler: commonHandlers.oneZero
+      handler: coRRHandlers.weak
     }
   });
 

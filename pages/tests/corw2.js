@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState } from '../../components/test-page-utils.js';
+import { getTwoOutputState, coRW2Handlers } from '../../components/test-page-utils.js';
 import { makeTestPage } from '../../components/test-page-setup.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRW2 from '../../shaders/corw2.wgsl';
@@ -66,27 +66,19 @@ export default function CoRW2() {
   const testState = getTwoOutputState({
     seq0: {
       label: "r0=0 && x=2",
-      handler: function (result, memResult) {
-        return result[0] == 0 && memResult[0] == 2;
-      }
+      handler: coRW2Handlers.seq0
     },
     seq1: {
       label: "r0=2 && x=1",
-      handler: function (result, memResult) {
-        return result[0] == 2 && memResult[0] == 1;
-      }
+      handler: coRW2Handlers.seq1
     },
     interleaved: {
       label: "r0=0 && x=1",
-      handler: function (result, memResult) {
-        return result[0] == 0 && memResult[0] == 1;
-      }
+      handler: coRW2Handlers.interleaved
     },
     weak: {
       label: "r0=2 && x=2",
-      handler: function (result, memResult) {
-        return result[0] == 2 && memResult[0] == 2;
-      }
+      handler: coRW2Handlers.weak
     }
   });
 
