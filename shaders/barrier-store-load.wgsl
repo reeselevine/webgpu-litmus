@@ -75,7 +75,7 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
   }
 }
 
-let workgroupXSize = 1;
+let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];
@@ -86,25 +86,17 @@ let workgroupXSize = 1;
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
     }
-    if (l_id == 0u) {
+    if (l_id == 0u || l_id == 1u) {
       if (do_barrier == 1u) {
         spin();
       }
+    }
+    if (l_id == 0u) {
       *ax = 1u;
     }
     storageBarrier();
-  } elseif (l_id >= u32(workgroupXSize) && l_id < 2u * u32(workgroupXSize)) {
-    if (mem_stress == 1u) {
-      do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
-    }
-    if (l_id == u32(workgroupXSize)) {
-      if (do_barrier == 1u) {
-        spin();
-      }
-    }
-    storageBarrier();
-    if (l_id == u32(workgroupXSize)) {
-      let r0 = *ax;
+    if (l_id == 1u) {
+      let r0 = *ay;
       results.value[0] = r0;
     }
   } elseif (stress_params.value[1] == 1u) {

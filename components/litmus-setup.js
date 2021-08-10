@@ -364,7 +364,6 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
     let memLocations = new Array(testParams.numMemLocations);
 
-
     // interleave waiting for buffers to map with initializing
     // buffer values. This increases test throughput by about 2x. 
     const p1 = map_buffer(buffers.testData);

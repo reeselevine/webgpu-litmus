@@ -7,8 +7,11 @@ import barrierSL from '../../shaders/barrier-store-load.wgsl';
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 export default function BarrierStoreLoad() {
-  testParams.numMemLocations = 1;
+  testParams.memoryAliases[1] = 0;
+  testParams.numMemLocations = 2;
   testParams.numOutputs = 1;
+  testParams.minWorkgroupSize = 256;
+  testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=0"/>,
     code: buildPseudoCode([`0.1: x=1
