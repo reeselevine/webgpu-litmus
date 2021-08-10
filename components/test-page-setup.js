@@ -4,7 +4,7 @@ import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.j
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel,{randomGenerater}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import TuningTable from "../components/tuningTable"
+// import TuningTable from "../components/tuningTable"
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
