@@ -233,4 +233,20 @@ export const barrierStoreLoadHandlers = {
   weak: commonHandlers.zero
 }
 
+export const barrierLoadStoreHandlers = {
+  seq: commonHandlers.zero,
+  interleaved: commonHandlers.na,
+  weak: commonHandlers.one
+}
+
+export const barrierStoreStoreHandlers = {
+  seq: function(result, memResult) {
+    return memResult[0] == 2;
+  },
+  interleaved:  commonHandlers.na,
+  weak: function(result, memResult) {
+    return memResult[0] == 1;
+  }
+}
+
 

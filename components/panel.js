@@ -87,6 +87,16 @@ return(
         Barrier Store Load 
     </Link>
   </div>
+  <div className="panel-block ">
+    <Link href='/tests/barrier-load-store'>
+        Barrier Load Store 
+    </Link>
+  </div>
+  <div className="panel-block ">
+    <Link href='/tests/barrier-store-store'>
+        Barrier Store Store 
+    </Link>
+  </div>
 </nav>
   );
 }
