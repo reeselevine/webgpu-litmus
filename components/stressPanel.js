@@ -9,26 +9,18 @@ function buildIntStressParam(name, description, paramName, params, pageState, mi
   //console.log(params.minWorkgroups)
   const[val, setVal]=useState(params[paramName]);
 
-  useEffect(()=>{
-    setVal(params[paramName]);
-  },[params[paramName]]);
-
   function validate(e) {
     if (isNaN(parseInt(e.target.value)) || val < min || val > max) {
       alert( name + " value is invalid. The value should be in between " + min + " and "+ max);
       console.log(params[paramName])
       setVal(params[paramName]);
+    } else if ((paramName =="memStride" || paramName == "stressLineSize") && !powOf2(e.target.value)) {
+        alert( name + " value is invalid. The value should be power of 2");
+        setVal(params[paramName]);
     } else {
-      if(paramName =="memStride" || paramName == "stressLineSize"){
-        if(!powOf2(e.target.value)){
-          alert( name + " value is invalid. The value should be power of 2");
-          setVal(params[paramName]);
-        }else{
-          params[paramName] = val;
-        }
+      params[paramName] = val;
     }
   }
-}
 
   function handleInput(e) {
     let tryParse = parseInt(e.target.value);
