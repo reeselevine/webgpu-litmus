@@ -8,6 +8,7 @@ const ReactTooltip = dynamic(() => import("react-tooltip"), {
 function buildIntStressParam(name, description, paramName, params, pageState, min, max) {
   //console.log(params.minWorkgroups)
   const[val, setVal]=useState(params[paramName]);
+
   useEffect(()=>{
     setVal(params[paramName]);
   },[params[paramName]]);
@@ -15,11 +16,19 @@ function buildIntStressParam(name, description, paramName, params, pageState, mi
   function validate(e) {
     if (isNaN(parseInt(e.target.value)) || val < min || val > max) {
       alert( name + " value is invalid. The value should be in between " + min + " and "+ max);
-      setVal(params.paramName);
+      console.log(params[paramName])
+      setVal(params[paramName]);
     } else {
-      params.paramName = val;
+      if(paramName =="memStride" || paramName == "stressLineSize"){
+        if(!powOf2(e.target.value)){
+          alert( name + " value is invalid. The value should be power of 2");
+          setVal(params[paramName]);
+        }else{
+          params[paramName] = val;
+        }
     }
   }
+}
 
   function handleInput(e) {
     let tryParse = parseInt(e.target.value);
@@ -31,7 +40,7 @@ function buildIntStressParam(name, description, paramName, params, pageState, mi
   }
 
   let jsx = <IntegerStressParam name={name} description={description} paramName={paramName} params={params} pageState={pageState}
-            val={val} handleInput={handleInput} validate={validate}/>
+            val={val} handleInput={handleInput}  validate={validate} />
   return {
     state: {
       value: val,
@@ -53,6 +62,7 @@ function IntegerStressParam(props) {
               props.handleInput(e);
             }} onBlur={(e)=>{
               props.validate(e);
+              //props.checkPowOf2(e);
             }} disabled={props.pageState.running.value}/>
         </div>
       </div>
@@ -112,30 +122,98 @@ export function randomGenerater(min, max){
   return Math.floor(Math.random() * (max - min+1) + min);
 }
 function test1(params, paramState, update){
-  update({...paramState,minWorkgroups: 4,maxWorkgroups: 4, shufflePct: 0, barrierPct: 0, memStressPct: 0});
-            params.minWorkgroups = 4;
-            params.maxWorkgroups = 4;
-            params.shufflePct = 0;
-            params.barrierPct = 0;
-            params.memStressPct = 0;
+  update({...paramState,
+          minWorkgroups: 4,
+          maxWorkgroups: 4, 
+          shufflePct: 0,
+          barrierPct: 0, 
+          memStressPct: 0,
+          testMemorySize: 2048,
+          scratchMemorySize: 2048,
+          memStride: 64,
+          memStressIterations: 1024,
+          preStressIterations: 128,
+          stressLineSize: 64,
+          stressTargetLines: 2,
+          preStressPct: 0});
+          params.minWorkgroups = 4;
+          params.maxWorkgroups = 4;
+          params.shufflePct = 0;
+          params.barrierPct = 0;
+          params.memStressPct = 0;
+          params.testMemorySize = 2048;
+          params.scratchMemorySize = 2048;
+          params.memStride = 64;
+          params.memStressIterations = 1024;
+          params.preStressIterations =128;
+          params.stressLineSize = 64;
+          params.stressTargetLines = 2;
+          params.preStressLoops = 0;
 }
 function test2( params, paramState, update){
-  update({...paramState,minWorkgroups: 1024,maxWorkgroups: 1024, shufflePct: 100, barrierPct: 100, memStressPct: 0});
+  update({...paramState,
+          minWorkgroups: 1024,
+          maxWorkgroups: 1024, 
+          shufflePct: 100,
+          barrierPct: 100, 
+          memStressPct: 0,
+          testMemorySize: 2048,
+          scratchMemorySize: 2048,
+          memStride: 64,
+          memStressIterations: 1024,
+          preStressIterations: 128,
+          stressLineSize: 64,
+          stressTargetLines: 2,
+          preStressPct: 0});
           params.minWorkgroups = 1024;
           params.maxWorkgroups = 1024;
           params.shufflePct = 100;
           params.barrierPct = 100;
           params.memStressPct = 0;
+          params.testMemorySize = 2048;
+          params.scratchMemorySize = 2048;
+          params.memStride = 64;
+          params.memStressIterations = 1024;
+          params.preStressIterations =128;
+          params.stressLineSize = 64;
+          params.stressTargetLines = 2;
+          params.preStressLoops = 0;
 }
 function test3( params, paramState, update){
-  update({...paramState,minWorkgroups: 1024,maxWorkgroups: 1024, shufflePct: 100, barrierPct: 100, memStressPct: 100});
+  update({...paramState,
+          minWorkgroups: 1024,
+          maxWorkgroups: 1024, 
+          shufflePct: 100,
+          barrierPct: 100, 
+          memStressPct: 100,
+          testMemorySize: 2048,
+          scratchMemorySize: 2048,
+          memStride: 64,
+          memStressIterations: 1024,
+          preStressIterations: 128,
+          stressLineSize: 64,
+          stressTargetLines: 2,
+          preStressPct: 0});
           params.minWorkgroups = 1024;
           params.maxWorkgroups = 1024;
           params.shufflePct = 100;
           params.barrierPct = 100;
           params.memStressPct = 100;
+          params.shufflePct = 100;
+          params.barrierPct = 100;
+          params.memStressPct = 100;
+          params.testMemorySize = 2048;
+          params.scratchMemorySize = 2048;
+          params.memStride = 64;
+          params.memStressIterations = 1024;
+          params.preStressIterations =128;
+          params.stressLineSize = 64;
+          params.stressTargetLines = 2;
+          params.preStressLoops = 0;
 }
-
+function powOf2(n){
+  return  n && (n & (n - 1)) === 0
+}
 export default function stressPanel(props) {
   const [params, setParam] = useState(props.params);
   let array1 = ["round-robin", "chunking"];
@@ -150,10 +228,18 @@ export default function stressPanel(props) {
       minWorkgroups = randomGenerater(4,maxWorkgroups);;
     }
     let stressLineSize_ = randomGenerater(1,128);
+    while(!powOf2(stressLineSize_)){
+      stressLineSize_ = randomGenerater(1,128);
+    }
     let stressTargetLines_ =  randomGenerater(1,128);
     scratchMem = 4*stressLineSize_ * stressTargetLines_;
-    while(testMem > 4096){
+    while(!powOf2(memStride_)){
       memStride_ = randomGenerater(1,128);
+    }
+    while(testMem > 4096){
+      while(!powOf2(memStride_)){
+        memStride_ = randomGenerater(1,128);
+      }
       testMem = memStride_ * Math.pow(2,6);
     }
     setParam({minWorkgroups : minWorkgroups, 
@@ -195,13 +281,13 @@ export default function stressPanel(props) {
   const shufflePct = buildIntStressParam("Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","shufflePct", props.params, props.pageState, 0, 100);
   const barrierPct = buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","barrierPct", props.params, props.pageState, 0, 100);
   const testMemorySize = buildIntStressParam("Test Memory Size", "The size of the memory buffer that contains the global testing locations (values should be between 256 and 4096)", "testMemorySize",props.params, props.pageState, 256, 4096);
-  const memoryStride = buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 128)", "memStride", props.params, props.pageState, 1, 128 );
+  const memoryStride = buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 128)", "memStride", props.params, props.pageState, 2, 128 );
   const memStressPct = buildIntStressParam("Memory Stress Percentage", "The percentage of iterations in which all non-testing threads repeatedly access the scratch memory to cause memory stress (values should be between 0 and 100)", "memStressPct", props.params, props.pageState, 0, 100);
   const memStressLoops = buildIntStressParam("Memory Stress Loops", "How many times the non-testing threads loop on their memory stress access pattern (values should be between 0 and 1024)", "memStressIterations", props.params, props.pageState, 0, 1024 )
   const preStressPct =buildIntStressParam( "Pre-Stress Percentage",  "The percent of iterations in which the testing threads access the scratch memory region before executing their part of the litmus test (values should be between 0 and 100)","preStressPct", props.params, props.pageState, 0, 100);
   const preStressLoops = buildIntStressParam("Pre Stress Loops", "How many times the testing threads perform their accesses on the scratch memory region before performing the litmus test  (values should be between 0 and 2048)" , "preStressIterations", props.params, props.pageState, 0, 2048);
   const scratchMemorySize = buildIntStressParam("Scatch Memory Size", "The size of the memory buffer where threads stress the memory" , "scratchMemorySize", props.params, props.pageState, scratchMem, scratchMem)
-  const stressLineSize = buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many 32-bit words (values should be between 1 and 128)", "stressLineSize", props.params, props.pageState, 1, 128)
+  const stressLineSize = buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many 32-bit words (values should be between 1 and 128)", "stressLineSize", props.params, props.pageState, 2, 128)
   const stressTargetLines = buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", props.params, props.pageState, 1, 128 )  
   return (
     <>

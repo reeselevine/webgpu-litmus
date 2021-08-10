@@ -10,6 +10,7 @@ function getPageState(props) {
   const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
   const [mode, setMode] = useState(false);
+  const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
   return {
@@ -36,6 +37,10 @@ function getPageState(props) {
     modeActive:{
       value: mode,
       update: setMode
+    },
+    tuningActive:{
+      value: tuning,
+      update: setTuning
     }
   }
 }
@@ -249,7 +254,7 @@ function VariantOptions(props) {
       </select>
     </>)
 }
-function random(params){
+function random(params, updateParams){
   let array1 = ["round-robin", "chunking"];
   let array2 = ["load-store", "store-load", "load-load", "store-store"];
   let scratchMem = 4*params.stressLineSize*params.stressTargetLines;
@@ -283,22 +288,38 @@ function random(params){
   params.stressAssignmentStrategy = array1[Math.floor(Math.random() * 2)],
   params.memStressPattern = array2[Math.floor(Math.random() * 4)],
   params.preStressPattern = array2[Math.floor(Math.random() * 4)]
+  updateParams(params);
+  console.log(params);
+}
+//need to be fixed
+// var arrayObj = [];
+// function doTuning(params, updateParams ,numTuning){
+//   for(let i = 0; i<=numTuning; i++){
+//    random(params,updateParams);
+//     let obj = {
+//       id: i,
+//       value: params
+//     };
+//     arrayObj.push(obj);
+//   }
+//     console.log(arrayObj)
+//    console.log(Array.isArray(arrayObj))
+//    //console.log(arrayObj)
+//    return arrayObj;
+// }
+
+function handleTuning(params,numTuning, updateParams,updateParamArray){
+  
+  const array = doTuning(params,updateParams,numTuning);
+  console.log(array)
+  updateParamArray(array);
 }
 
-function doTuning(params, numTuning){
-  var arrayObj = [];
-  var obj = {};
-  for(let i = 0; i<=numTuning; i++){
-    random(params);
-    obj = params
-    arrayObj.push(obj);
-    console.log(params)
-   }
-   return arrayObj;
-   
-}
 export function makeTestPage(props) {
   const pageState = getPageState(props);
+  let temp = props.testParams
+  const [params, setParams] = useState(temp);
+  const [paramArray, setParamArray] = useState([]);
   let initialIterations = pageState.iterations.value;
   let variantOptions;
   if ('variants' in props) {
@@ -369,20 +390,14 @@ export function makeTestPage(props) {
           ?
             <div className="container">
                 <button className="button is-primary" onClick={()=>{
-                  doTuning(props.testParams,2)
-                //  var arrayObj = [];
-                //  var obj = {};
-                //  for(let i = 0; i<=2; i++){
-                //    random(props.testParams);
-                //    obj = props.testParams
-                //    arrayObj.push(obj.minWorkgroups);
-                //    setTimeout(console.log(props.testParams),5000)
-                //   }
-                //   console.log(arrayObj); 
+                  // console.log(params)
+                  // handleTuning(params, 3, setParams,setParamArray);
+                  // pageState.tuningActive.update(true);
                 }}>
                   Start Tuning
                 </button>
-              <TuningTable></TuningTable>
+                {/* {console.log(Array.isArray(paramArray))}
+                {pageState.tuningActive.value? <TuningTable params={paramArray}></TuningTable>:<></> } */}
            </div>
           : <div className="columns mr-2">
             <div className="column is-two-thirds">
@@ -397,7 +412,7 @@ export function makeTestPage(props) {
               <div className="columns" >
                 <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
                   <div className="column " style={{ width: "200px" }}>
-                    <ProgressBar></ProgressBar>
+                    <ProgressBar ></ProgressBar>
                   </div>
                 </div>
               </div>
