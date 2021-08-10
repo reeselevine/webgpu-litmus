@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import StressPanel,{randomGenerater}from './stressPanel.js';
+import StressPanel,{randomGenerator}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 // import TuningTable from "../components/tuningTable"
 function getPageState(props) {
@@ -259,32 +259,32 @@ function random(params, updateParams){
   let array2 = ["load-store", "store-load", "load-load", "store-store"];
   let scratchMem = 4*params.stressLineSize*params.stressTargetLines;
   let testMem = params.memStride * Math.pow(2,6);
-  let memStride_ = randomGenerater(1,128);
-  let maxWorkgroups =  randomGenerater(4,1024);
+  let memStride_ = randomGenerator(1,128);
+  let maxWorkgroups =  randomGenerator(4,1024);
   let minWorkgroups = maxWorkgroups+1;
   while(minWorkgroups > maxWorkgroups){
-    minWorkgroups = randomGenerater(4,maxWorkgroups);;
+    minWorkgroups = randomGenerator(4,maxWorkgroups);;
   }
-  let stressLineSize_ = randomGenerater(1,128);
-  let stressTargetLines_ =  randomGenerater(1,128);
+  let stressLineSize_ = randomGenerator(1,128);
+  let stressTargetLines_ =  randomGenerator(1,128);
   scratchMem = 4*stressLineSize_ * stressTargetLines_;
   while(testMem > 4096){
-    memStride_ = randomGenerater(1,128);
+    memStride_ = randomGenerator(1,128);
     testMem = memStride_ * Math.pow(2,6);
   }
   params.minWorkgroups = minWorkgroups, 
   params.maxWorkgroups = maxWorkgroups, 
   params.testMemorySize = testMem,
   params.memStride = memStride_,
-  params.memStressIterations = randomGenerater(0,1024),
-  params.preStressPct =randomGenerater(0,100),
-  params.preStressIterations =  randomGenerater(0,2048),
+  params.memStressIterations = randomGenerator(0,1024),
+  params.preStressPct =randomGenerator(0,100),
+  params.preStressIterations =  randomGenerator(0,2048),
   params.stressLineSize = stressLineSize_,
   params.stressTargetLines = stressTargetLines_,
   params.scratchMemorySize = scratchMem,
-  params.shufflePct =randomGenerater(0,100),
-  params.barrierPct = randomGenerater(0,100),
-  params.memStressPct= randomGenerater(0,100),
+  params.shufflePct =randomGenerator(0,100),
+  params.barrierPct = randomGenerator(0,100),
+  params.memStressPct= randomGenerator(0,100),
   params.stressAssignmentStrategy = array1[Math.floor(Math.random() * 2)],
   params.memStressPattern = array2[Math.floor(Math.random() * 4)],
   params.preStressPattern = array2[Math.floor(Math.random() * 4)]
