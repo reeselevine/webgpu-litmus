@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import StressPanel,{randomGenerater}from './stressPanel.js';
+import StressPanel,{randomGenerator}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import TuningTable from "../components/tuningTable"
 
@@ -266,17 +266,17 @@ function random(paramsref){
   let array2 = ["load-store", "store-load", "load-load", "store-store"];
   let scratchMem = 4*params.stressLineSize*params.stressTargetLines;
   let testMem = params.memStride * Math.pow(2,6);
-  let memStride_ = randomGenerater(1,128);
-  let maxWorkgroups =  randomGenerater(4,1024);
+  let memStride_ = randomGenerator(1,128);
+  let maxWorkgroups =  randomGenerator(4,1024);
   let minWorkgroups = maxWorkgroups+1;
   while(minWorkgroups > maxWorkgroups){
-    minWorkgroups = randomGenerater(4,maxWorkgroups);;
+    minWorkgroups = randomGenerator(4,maxWorkgroups);;
   }
-  let stressLineSize_ = randomGenerater(1,128);
-  let stressTargetLines_ =  randomGenerater(1,128);
+  let stressLineSize_ = randomGenerator(1,128);
+  let stressTargetLines_ =  randomGenerator(1,128);
   scratchMem = 4*stressLineSize_ * stressTargetLines_;
   while(testMem > 4096){
-    memStride_ = randomGenerater(1,128);
+    memStride_ = randomGenerator(1,128);
     testMem = memStride_ * Math.pow(2,6);
   }
   setRandom({
