@@ -4,7 +4,8 @@ import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.j
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel,{randomGenerater}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-// import TuningTable from "../components/tuningTable"
+import TuningTable from "../components/tuningTable"
+
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
@@ -13,6 +14,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
+  const [tuningTimes, setTuningTimes] = useState(10);
   return {
     iterations: {
       value: iterations,
@@ -41,6 +43,10 @@ function getPageState(props) {
     tuningActive:{
       value: tuning,
       update: setTuning
+    },
+    tuningTimes:{
+      value: tuningTimes,
+      update: setTuningTimes
     }
   }
 }
@@ -254,7 +260,8 @@ function VariantOptions(props) {
       </select>
     </>)
 }
-function random(params, updateParams){
+function random(paramsref){
+  const [params, setRandom] = useState(paramsref)
   let array1 = ["round-robin", "chunking"];
   let array2 = ["load-store", "store-load", "load-load", "store-store"];
   let scratchMem = 4*params.stressLineSize*params.stressTargetLines;
@@ -272,55 +279,58 @@ function random(params, updateParams){
     memStride_ = randomGenerater(1,128);
     testMem = memStride_ * Math.pow(2,6);
   }
-  params.minWorkgroups = minWorkgroups, 
-  params.maxWorkgroups = maxWorkgroups, 
-  params.testMemorySize = testMem,
-  params.memStride = memStride_,
-  params.memStressIterations = randomGenerater(0,1024),
-  params.preStressPct =randomGenerater(0,100),
-  params.preStressIterations =  randomGenerater(0,2048),
-  params.stressLineSize = stressLineSize_,
-  params.stressTargetLines = stressTargetLines_,
-  params.scratchMemorySize = scratchMem,
-  params.shufflePct =randomGenerater(0,100),
-  params.barrierPct = randomGenerater(0,100),
-  params.memStressPct= randomGenerater(0,100),
-  params.stressAssignmentStrategy = array1[Math.floor(Math.random() * 2)],
-  params.memStressPattern = array2[Math.floor(Math.random() * 4)],
-  params.preStressPattern = array2[Math.floor(Math.random() * 4)]
-  updateParams(params);
+  setRandom({
+      minWorkgroups : minWorkgroups, 
+      maxWorkgroups : maxWorkgroups, 
+      testMemorySize : testMem,
+      memStride : memStride_,
+      memStressIterations : randomGenerater(0,1024),
+      preStressPct :randomGenerater(0,100),
+      preStressIterations :  randomGenerater(0,2048),
+      stressLineSize : stressLineSize_,
+      stressTargetLines : stressTargetLines_,
+      shufflePct : randomGenerater(0,100),
+      barrierPct : randomGenerater(0,100),
+      memStressPct : randomGenerater(0,100),
+      scratchMemorySize : scratchMem,
+      stressAssignmentStrategy : array1[Math.floor(Math.random() * 2)],
+      memStressPattern : array2[Math.floor(Math.random() * 4)],
+      preStressPattern : array2[Math.floor(Math.random() * 4)]
+  })
+  
   console.log(params);
 }
 //need to be fixed
-// var arrayObj = [];
-// function doTuning(params, updateParams ,numTuning){
-//   for(let i = 0; i<=numTuning; i++){
-//    random(params,updateParams);
-//     let obj = {
-//       id: i,
-//       value: params
-//     };
-//     arrayObj.push(obj);
-//   }
-//     console.log(arrayObj)
-//    console.log(Array.isArray(arrayObj))
-//    //console.log(arrayObj)
-//    return arrayObj;
-// }
+var arrayObj = [];
+function doTuning(params ,numTuning){
+  for(let i = 0; i<=numTuning; i++){
+   random(params);
+    let obj = {
+      id: i,
+      value: params
+    };
+    arrayObj.push(obj);
+  }
+    console.log(arrayObj)
+   console.log(Array.isArray(arrayObj))
+   //console.log(arrayObj)
+   return arrayObj;
+}
 
-function handleTuning(params,numTuning, updateParams,updateParamArray){
+function handleTuning(params,numTuning,updateParamArray){
   
-  const array = doTuning(params,updateParams,numTuning);
+  const array = doTuning(params,numTuning);
   console.log(array)
   updateParamArray(array);
 }
 
 export function makeTestPage(props) {
   const pageState = getPageState(props);
-  let temp = props.testParams
-  const [params, setParams] = useState(temp);
+  // let temp = props.testParams
+  // const [params, setParams] = useState(temp);
   const [paramArray, setParamArray] = useState([]);
   let initialIterations = pageState.iterations.value;
+  let initialTuningTimes = pageState.tuningTimes.value;
   let variantOptions;
   if ('variants' in props) {
     variantOptions = <VariantOptions variants={props.variants} pageState={pageState}/>;
@@ -389,15 +399,29 @@ export function makeTestPage(props) {
           {pageState.modeActive.value
           ?
             <div className="container">
-                <button className="button is-primary" onClick={()=>{
-                  // console.log(params)
-                  // handleTuning(params, 3, setParams,setParamArray);
-                  // pageState.tuningActive.update(true);
-                }}>
-                  Start Tuning
-                </button>
-                {/* {console.log(Array.isArray(paramArray))}
-                {pageState.tuningActive.value? <TuningTable params={paramArray}></TuningTable>:<></> } */}
+                
+                <div className="columns">
+                  <div className="column is-one-fifth">
+                    <div className="control mb-4">
+                      <label><b>Tuning Times:</b></label>
+                      <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
+                        pageState.tuningTimes.update(e.target.value);
+                      }} />
+                     </div>
+                    <button className="button is-primary" onClick={()=>{
+                     // console.log(params)
+                      // handleTuning(params, pageState.tuningTimes.value,setParamArray);
+                      for(let i = 0; i < pageState.tuningTimes.value; i++ ){
+                        random(props.testParams);
+                      }
+                      pageState.tuningActive.update(true);
+                    }}>
+                      Start Tuning
+                    </button>
+                   </div>
+                </div>
+                {console.log(Array.isArray(paramArray))}
+                {pageState.tuningActive.value? <TuningTable params={paramArray} pageState={pageState}></TuningTable>:<></> }
            </div>
           : <div className="columns mr-2">
             <div className="column is-two-thirds">
