@@ -442,7 +442,6 @@ export function makeTestPage(props) {
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              console.log(props.testParams);
               doTest(pageState, props.testParams, pageState.activeShader.value, props.testState);
               setProgressBarState();
               totalIteration = pageState.iterations.value;

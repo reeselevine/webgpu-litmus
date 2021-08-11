@@ -7,7 +7,7 @@
 
 [[group(0), binding(0)]] var<storage, read_write> test_data : AtomicMemory;
 [[group(0), binding(1)]] var<storage, read_write> mem_locations : Memory;
-[[group(0), binding(2)]] var<storage, read_write> results : AtomicMemory;
+[[group(0), binding(2)]] var<storage, read_write> results : Memory;
 [[group(0), binding(3)]] var<storage, read_write> shuffled_ids : Memory;
 [[group(0), binding(4)]] var<storage, read_write> barrier : AtomicMemory;
 [[group(0), binding(5)]] var<storage, read_write> scratchpad : Memory;
@@ -90,7 +90,7 @@ let workgroupXSize = 1;
     }
     atomicStore(ax, 1u);
     let r0 = atomicAdd(ay, 0u);
-    atomicStore(&results.value[0], r0);
+    results.value[0] = r0;
   } elseif (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 1u + 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);

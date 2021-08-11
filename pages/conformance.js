@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from'next/link'
 import StressPanel from '../components/stressPanel.js';
-import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers } from '../components/test-page-utils.js';
+import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import coRR from '../shaders/corr.wgsl';
@@ -22,6 +22,9 @@ import coRW1 from '../shaders/corw1.wgsl';
 import coRW2 from '../shaders/corw2.wgsl';
 import coRW2_RMW from '../shaders/corw2-rmw.wgsl';
 import atomicity from '../shaders/atomicity.wgsl';
+import barrierLS from '../shaders/barrier-load-store.wgsl';
+import barrierSL from '../shaders/barrier-store-load.wgsl';
+import barrierSS from '../shaders/barrier-store-store.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
@@ -61,6 +64,27 @@ function TestStatus(props) {
   }
 }
 
+function TestRow(props) {
+  return (
+    <>
+      <tr>
+        <th><Link href={'/tests/' + props.testUrl}>{props.testName}</Link></th>
+        <td>{props.state.progress.value}%</td>
+        <td>{props.state.rate.value}</td>
+        <td>{props.state.time.value}</td>
+        <TestStatus pass={props.state.result.value} />
+        <td>{props.state.seq.visibleState}</td>
+        <td>{props.state.interleaved.visibleState}</td>
+        <td>{props.state.weak.visibleState}</td>
+        <td><button className="button" onClick={() => {
+          doTest(props.pageState, props.testParams, props.shaderCode, props.state);
+        }} disabled={props.pageState.running.value}>Run</button></td>
+      </tr>
+    </>
+  );
+
+}
+
 function buildTest(testName, testUrl, pageState, testParams, shaderCode, handlers) {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
@@ -96,29 +120,19 @@ function buildTest(testName, testUrl, pageState, testParams, shaderCode, handler
       update: buildThrottle(setTime)
     }
   };
-  const jsx = (
-    <>
-      <tr>
-        <th><Link href={'/tests/' + testUrl}>{testName}</Link></th>
-        <td>{progress}%</td>
-        <td>{rate}</td>
-        <td>{time}</td>
-        <TestStatus pass={pass} />
-        <td>{seq}</td>
-        <td>{interleaved}</td>
-        <td>{weak}</td>
-        <td><button className="button" onClick={() => {
-          doTest(pageState, testParams, shaderCode, state);
-        }} disabled={pageState.running.value}>Run</button></td>
-      </tr>
-    </>
-  );
   return {
     run: async function () {
       return doTest(pageState, testParams, shaderCode, state);
     },
-    jsx: jsx
+    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode}/>
   }
+}
+
+function buildBarrierTest(testName, testUrl, pageState, testParams, shaderCode, handlers) {
+  const barrierTestParams = JSON.parse(JSON.stringify(testParams));
+  barrierTestParams.minWorkgroupSize = 256;
+  barrierTestParams.maxWorkgroupSize = 256;
+  return buildTest(testName, testUrl, pageState, barrierTestParams, shaderCode, handlers);
 }
 
 function updateStateAndHandleResult(pageState, testState) {
@@ -184,8 +198,11 @@ export default function ConformanceTestSuite() {
   const coRW2Config = buildTest("CoRW2", "corw2", pageState, testParams, coRW2, coRW2Handlers);
   const coRW2RMWConfig = buildTest("CoRW2 (strongest idiomatic RMW variant)", "corw2", pageState, testParams, coRW2_RMW, coRW2Handlers);
   const atomicityConfig = buildTest("Atomicity", "atomicity", pageState, testParams, atomicity, atomicityHandlers);
+  const barrierLoadStoreConfig = buildBarrierTest("Barrier Load Store", "barrier-load-store", pageState, testParams, barrierLS, barrierLoadStoreHandlers);
+  const barrierStoreLoadConfig = buildBarrierTest("Barrier Store Load", "barrier-store-load", pageState, testParams, barrierSL, barrierStoreLoadHandlers);
+  const barrierStoreStoreConfig = buildBarrierTest("Barrier Store Store", "barrier-store-store", pageState, testParams, barrierSS, barrierStoreStoreHandlers);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig];
+  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig];
 
   let initialIterations = pageState.iterations.value;
 
@@ -229,24 +246,7 @@ export default function ConformanceTestSuite() {
             </tr>
           </thead>
           <tbody>
-            {coRRConfig.jsx}
-            {coRRRMWConfig.jsx}
-            {coRRRMW1Config.jsx}
-            {coRRRMW2Config.jsx}
-            {coRR4Config.jsx}
-            {coRR4RMWConfig.jsx}
-            {coWWConfig.jsx}
-            {coWWRMWConfig.jsx}
-            {coWRConfig.jsx}
-            {coWRRMWConfig.jsx}
-            {coWRRMW1Config.jsx}
-            {coWRRMW2Config.jsx}
-            {coWRRMW3Config.jsx}
-            {coWRRMW4Config.jsx}
-            {coRW1Config.jsx}
-            {coRW2Config.jsx}
-            {coRW2RMWConfig.jsx}
-            {atomicityConfig.jsx}
+            {tests.map(test => test.jsx)}
           </tbody>
         </table>
       </div>
