@@ -102,6 +102,15 @@ export const commonHandlers = {
   },
   oneZero: function (result, memResult) {
     return result[0] == 1 && result[1] == 0;
+  },
+  zero: function(result, memResult) {
+    return result[0] == 0;
+  },
+  one: function(result, memResult) {
+    return result[0] == 1;
+  },
+  na: function(result, memResult) {
+    return false;
   }
 };
 
@@ -109,12 +118,8 @@ export const coRRHandlers = {
   seq: function (result, memResult) {
     return commonHandlers.bothZero(result, memResult) || commonHandlers.bothOne(result, memResult);
   },
-  seq0: function (result, memResult) {
-    return commonHandlers.bothZero(result, memResult);
-  },
-  seq1: function (result, memResult) {
-    return commonHandlers.bothOne;
-  },
+  seq0: commonHandlers.bothZero,
+  seq1: commonHandlers.bothOne,
   interleaved: commonHandlers.zeroOne,
   weak: commonHandlers.oneZero
 };
@@ -146,9 +151,7 @@ export const coWWHandlers = {
   seq: function (result, memResult) {
     return memResult[0] = 2;
   },
-  interleaved: function (result, memResult) {
-    return false;
-  },
+  interleaved: commonHandlers.na,
   weak: function (result, memResult) {
     return memResult[0] == 1;
   }
@@ -177,16 +180,10 @@ export const coWRHandlers = {
 };
 
 export const coRW1Handlers = {
-  seq: function (result, memResult) {
-    return result[0] == 0;
-  },
-  interleaved: function (result, memResult) {
-    return false;
-  },
-  weak: function (result, memResult) {
-    return result[0] == 1;
-  }
-};
+  seq: commonHandlers.zero,
+  interleaved: commonHandlers.na,
+  weak: commonHandlers.one
+}
 
 function coRW2Seq0(result, memResult) {
   return result[0] == 0 && memResult[0] == 2;
@@ -224,11 +221,31 @@ export const atomicityHandlers = {
   },
   seq0: atomicitySeq0,
   seq1: atomicitySeq1,
-  interleaved: function (result, memResult) {
-    return false;
-  },
+  interleaved: commonHandlers.na,
   weak: function (result, memResult) {
     return result[0] == 0 && memResult[0] == 1;
+  }
+}
+
+export const barrierStoreLoadHandlers = {
+  seq: commonHandlers.one,
+  interleaved: commonHandlers.na,
+  weak: commonHandlers.zero
+}
+
+export const barrierLoadStoreHandlers = {
+  seq: commonHandlers.zero,
+  interleaved: commonHandlers.na,
+  weak: commonHandlers.one
+}
+
+export const barrierStoreStoreHandlers = {
+  seq: function(result, memResult) {
+    return memResult[0] == 2;
+  },
+  interleaved:  commonHandlers.na,
+  weak: function(result, memResult) {
+    return memResult[0] == 1;
   }
 }
 
