@@ -10,6 +10,8 @@ import coRR_RMW3 from '../../shaders/corr-rmw3.wgsl';
 import coRR_RMW4 from '../../shaders/corr-rmw4.wgsl';
 import coRR_RMW5 from '../../shaders/corr-rmw5.wgsl';
 import coRR_RMW6 from '../../shaders/corr-rmw6.wgsl';
+import coRR_buggy from '../../shaders/corr-buggy.wgsl';
+import coRR_RMW_buggy from '../../shaders/corr-rmw-buggy.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -53,7 +55,18 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=add(x, 0)
 1.2: r1=add(x, 0)`]),
     shader: coRR_RMW6
+  },
+  buggy: {
+    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r1=x
+1.2: r0=x`]),
+    shader: coRR_buggy
+  },
+  rmw_buggy: {
+    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r1=x
+1.2: r0=add(x, 0)`]),
+    shader: coRR_RMW_buggy
   }
+
 }
 
 export default function CoRR() {

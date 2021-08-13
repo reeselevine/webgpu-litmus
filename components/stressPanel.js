@@ -246,22 +246,22 @@ export default function stressPanel(props) {
                 <div className="buttons are-small">
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, noStressConfig);
-                }}>
+                }} disabled={props.pageState.running.value}>
                   Test 1
                 </button> 
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, someStressConfig);
-                }}>
+                }} disabled={props.pageState.running.value}>
                   Test 2
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, allStressConfig);
-                }}>
+                }} disabled={props.pageState.running.value}>
                   Test 3
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, randomConfig());
-                }}>
+                }} disabled={props.pageState.running.value}>
                   Random
                 </button>
                 </div>

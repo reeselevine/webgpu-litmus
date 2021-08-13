@@ -10,6 +10,8 @@ import coRW2_RMW3 from '../../shaders/corw2-rmw3.wgsl';
 import coRW2_RMW4 from '../../shaders/corw2-rmw4.wgsl';
 import coRW2_RMW5 from '../../shaders/corw2-rmw5.wgsl';
 import coRW2_RMW6 from '../../shaders/corw2-rmw6.wgsl';
+import coRW2_buggy from '../../shaders/corw2-buggy.wgsl';
+import coRW2_RMW_buggy from '../../shaders/corw2-rmw-buggy.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -53,8 +55,18 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
 0.2: exchange(x, 1)`, "1.1: exchange(x, 2)"]),
     shader: coRW2_RMW6
+  },
+  buggy: {
+    pseudo: buildPseudoCode([`0.1: x=1
+0.2: r0=x`, "1.1: x=2"]),
+    shader: coRW2_buggy
+  },
+  rmw_buggy: {
+    pseudo: buildPseudoCode([`0.1: r0=x
+0.2: x=1`, "1.1: exchange(x, 2)"]),
+    shader: coRW2_RMW_buggy
   }
-}
+};
 
 export default function CoRW2() {
   testParams.memoryAliases[1] = 0;
