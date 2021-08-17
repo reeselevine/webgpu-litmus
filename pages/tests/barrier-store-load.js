@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState, barrierStoreLoadHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { barrierStoreLoadHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import barrierSL from '../../shaders/barrier-store-load.wgsl';
 
@@ -19,7 +18,7 @@ export default function BarrierStoreLoad() {
 1.2: r0=x`])
   };
 
-  const testState = getOneOutputState({
+  const stateConfig = {
     seq: {
       label: "r0=1", 
       handler: barrierStoreLoadHandlers.seq
@@ -28,16 +27,16 @@ export default function BarrierStoreLoad() {
       label: "r0=0",
       handler: barrierStoreLoadHandlers.weak
     }
-  })
+  };
 
   const props = {
     testName: "Barrier Store Load",
     testDescription: "The barrier store load test checks to see if the barrier works correctly",
     testParams: testParams,
     shaderCode: barrierSL,
-    testState: testState,
+    stateConfig: stateConfig,
     pseudoCode: pseudoCode
   };
 
-  return makeTestPage(props);
+  return makeOneOutputLitmusTestPage(props);
 }

@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from '../../shaders/store-buffer.wgsl'
 
@@ -12,7 +11,7 @@ export default function StoreBuffer() {
 1.2: r1=x`]),
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
       label: "r0=1 && r1=0",
       handler: commonHandlers.oneZero
@@ -29,16 +28,16 @@ export default function StoreBuffer() {
       label: "r0=0 && r1=0",
       handler: commonHandlers.bothZero
     }
-  });
+  };
 
   const props = {
       testName: "Store Buffer",
       testDescription: "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads.",
       testParams: defaultTestParams,
       shaderCode: storeBuffer,
-      testState: testState,
+      stateConfig: stateConfig,
       pseudoCode: pseudoCode
   }
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

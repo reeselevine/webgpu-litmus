@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, coRRHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coRRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
 import coRR_RMW from '../../shaders/corr-rmw.wgsl';
@@ -63,7 +62,7 @@ export default function CoRR() {
     code: variants.default.pseudo
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
       label: "r0=0 && r1=0",
       handler: coRRHandlers.seq0
@@ -80,17 +79,17 @@ export default function CoRR() {
       label: "r0=1 && r1=0",
       handler: coRRHandlers.weak
     }
-  });
+  };
 
   const props = {
       testName: "CoRR",
       testDescription: "The CoRR litmus test checks to see if memory is coherent.",
       testParams: testParams,
       shaderCode: coRR,
-      testState: testState,
+      stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants
   }
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

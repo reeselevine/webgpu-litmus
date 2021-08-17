@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState, coRW1Handlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coRW1Handlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coRW1 from '../../shaders/corw1.wgsl';
 import coRW1_RMW1 from '../../shaders/corw1-rmw1.wgsl';
@@ -39,7 +38,7 @@ export default function CoRW1() {
     code: variants.default.pseudo
   };
 
-  const testState = getOneOutputState({
+  const stateConfig = {
     seq: {
       label: "r0=0", 
       handler: coRW1Handlers.seq
@@ -48,17 +47,17 @@ export default function CoRW1() {
       label: "r0=1",
       handler: coRW1Handlers.weak
     }
-  })
+  };
 
   const props = {
     testName: "CoRW1",
     testDescription: "The CoRW1 litmus test checks to see if memory is coherent.",
     testParams: testParams,
     shaderCode: coRW1,
-    testState: testState,
+    stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants
   };
 
-  return makeTestPage(props);
+  return makeOneOutputLitmusTestPage(props);
 }

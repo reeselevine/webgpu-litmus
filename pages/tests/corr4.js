@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getFourOutputState, coRR4Handlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coRR4Handlers, makeFourOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR4 from '../../shaders/corr4.wgsl';
 import coRR4_RMW from '../../shaders/corr4-rmw.wgsl';
@@ -30,7 +29,7 @@ export default function CoRR4() {
     code: variants.default.pseudo
   };
 
-  const testState = getFourOutputState({
+  const stateConfig = {
     seq: {
       label: "Sequential Outcomes",
       handler: coRR4Handlers.seq
@@ -43,17 +42,17 @@ export default function CoRR4() {
       label: "Weak outcomes",
       handler: coRR4Handlers.weak
     }
-  });
+  };
 
   const props = {
       testName: "4-Threaded CoRR",
       testDescription: "The 4-Threaded CoRR litmus test checks to see if memory is coherent.",
       testParams: testParams,
       shaderCode: coRR4,
-      testState: testState,
+      stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants
   }
 
-  return makeTestPage(props);
+  return makeFourOutputLitmusTestPage(props);
 }

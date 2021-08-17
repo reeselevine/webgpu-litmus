@@ -56,7 +56,7 @@ async function getDevice() {
     return device;
 }
 
-function createBuffer(device, bufferSize, copySrc, copyDst) {
+function createBuffer(device, bufferSize, copySrc, copyDst, bufferUsage=GPUBufferUsage.STORAGE) {
     var extraFlags = 0;
     var readBuffer = undefined;
     var writeBuffer = undefined;
@@ -79,7 +79,7 @@ function createBuffer(device, bufferSize, copySrc, copyDst) {
     const deviceBuffer = device.createBuffer({
         mappedAtCreation: true,
         size: bufferSize * 4,
-        usage: GPUBufferUsage.STORAGE | extraFlags
+        usage: bufferUsage | extraFlags
     });
     const deviceArrayBuffer = deviceBuffer.getMappedRange();
     new Uint32Array(deviceArrayBuffer).fill(0, 0, bufferSize);
@@ -275,7 +275,15 @@ function createBindGroupLayout(device) {
                 buffer: {
                     type: "storage"
                 }
+            },
+            {
+                binding: 8,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {
+                    type: "uniform"
+                }
             }
+
         ]
     });
     return bindGroupLayout;
@@ -294,41 +302,47 @@ function createBindGroup(device, bindGroupLayout, buffers) {
             {
                 binding: 1,
                 resource: {
-                    buffer: buffers.memLocations.deviceBuffer
+                    buffer: buffers.testData.deviceBuffer
                 }
             },
             {
                 binding: 2,
                 resource: {
-                    buffer: buffers.results.deviceBuffer
+                    buffer: buffers.memLocations.deviceBuffer
                 }
             },
             {
                 binding: 3,
                 resource: {
-                    buffer: buffers.shuffleIds.deviceBuffer
+                    buffer: buffers.results.deviceBuffer
                 }
             },
             {
                 binding: 4,
                 resource: {
-                    buffer: buffers.barrier.deviceBuffer
+                    buffer: buffers.shuffleIds.deviceBuffer
                 }
             },
             {
                 binding: 5,
                 resource: {
-                    buffer: buffers.scratchpad.deviceBuffer
+                    buffer: buffers.barrier.deviceBuffer
                 }
             },
             {
                 binding: 6,
                 resource: {
-                    buffer: buffers.scratchLocations.deviceBuffer
+                    buffer: buffers.scratchpad.deviceBuffer
                 }
             },
             {
                 binding: 7,
+                resource: {
+                    buffer: buffers.scratchLocations.deviceBuffer
+                }
+            },
+            {
+                binding: 8,
                 resource: {
                     buffer: buffers.stressParams.deviceBuffer
                 }
@@ -461,7 +475,7 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
         barrier: createBuffer(device, 1, false, true),
         scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),
         scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
-        stressParams: createBuffer(device, 7, false, true)
+        stressParams: createBuffer(device, 7*4, false, true, GPUBufferUsage.UNIFORM)
     }
 
     const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);

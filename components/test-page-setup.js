@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
-import { clearState, handleResult } from './test-page-utils.js';
 import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel,{randomGenerator}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
@@ -52,16 +51,9 @@ function getPageState(props) {
   }
 }
 
-function doTest(pageState, testParams, shaderCode, testState) {
+function doTest(pageState, testParams, shaderCode, testState, keys) {
   var keys;
   pageState.running.update(true);
-  if (testState.numOutputs == 1) {
-    keys = ["seq", "weak"];
-  } else if (testState.numOutputs == 2) {
-    keys = ["seq0", "seq1", "interleaved", "weak"];
-  } else if (testState.numOutputs == 4) {
-    keys = ["seq", "interleaved", "weak"];
-  }
   clearState(testState, keys);
   const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys));
   p.then(
@@ -73,111 +65,27 @@ function doTest(pageState, testParams, shaderCode, testState) {
   );
 }
 
-function chartData(testState) {
-  if (testState.numOutputs == 1) {
-    return oneOutputChartData(testState);
-  } else if (testState.numOutputs == 2) {
-    return twoOutputChartData(testState);
-  } else if (testState.numOutputs == 4) {
-    return fourOutputChartData(testState);
+function clearState(state, keys) {
+  for (const key of keys) {
+    state[key].internalState = 0;
+    state[key].syncUpdate(0);
   }
 }
 
-function oneOutputChartData(testState) {
-  return {
-    labels: [testState.seq.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, testState.weak.visibleState]
+function handleResult(state, keys) {
+  return function (result, memResult) {
+    console.log(memResult);
+    for (const key of keys) {
+      if (state[key].resultHandler(result, memResult)) {
+        state[key].internalState = state[key].internalState + 1;
+        state[key].throttledUpdate(state[key].internalState);
+        break;
       }
-    ]
+    }
   }
 }
 
-function twoOutputChartData(testState) {
-  return {
-    labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq0.visibleState, testState.seq1.visibleState, null, null]
-      },
-      {
-        label: "Sequential Interleaving",
-        backgroundColor: 'rgba(3,35,173,0.7)',
-        grouped: false,
-        data: [null, null, testState.interleaved.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, null, null, testState.weak.visibleState]
-      }
-    ]
-  }
-}
-
-function fourOutputChartData(testState) {
-  return {
-    labels: [testState.seq.label, testState.interleaved.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq.visibleState, null, null]
-      },
-      {
-        label: "Sequential Interleaving",
-        backgroundColor: 'rgba(3,35,173,0.7)',
-        grouped: false,
-        data: [null, testState.interleaved.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, null, testState.weak.visibleState]
-      }
-    ]
-  }
-}
-
-function commonTooltipFilter(tooltipItem, data) {
-  return tooltipItem.datasetIndex == tooltipItem.dataIndex;
-}
-
-function twoOutputTooltipFilter(tooltipItem, data) {
-  if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
-    return true;
-  } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
-    return true;
-  } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-function chartConfig(pageState, testState) {
-  var tooltipFilter;
-  if (testState.numOutputs == 2) {
-    tooltipFilter = twoOutputTooltipFilter;
-  } else {
-    tooltipFilter = commonTooltipFilter;
-  }
+function chartConfig(pageState, tooltipFilter) {
   return {
     plugins: {
       title: {
@@ -410,8 +318,8 @@ export function makeTestPage(props) {
               <div className="section">
                 <div className="columns">
                 <Bar
-                data={chartData(props.testState)}
-                options={chartConfig(pageState, props.testState)}
+                data={props.chartData}
+                options={chartConfig(pageState, props.tooltipFilter)}
               />
                 </div>
               </div>
@@ -442,7 +350,7 @@ export function makeTestPage(props) {
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState);
+              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState, props.keys);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>

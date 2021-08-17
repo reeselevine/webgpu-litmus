@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, atomicityHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { atomicityHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import atom from '../../shaders/atomicity.wgsl';
 
@@ -13,7 +12,7 @@ export default function Atomicity() {
     code: buildPseudoCode([`0.1: r0=exchange(x, 1)`, "1.1: x=2"])
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
       label: "r0=0 && x=2",
       handler: atomicityHandlers.seq0
@@ -30,16 +29,16 @@ export default function Atomicity() {
       label: "r0=0 && x=1",
       handler: atomicityHandlers.weak
     }
-  });
+  };
 
   const props = {
     testName: "Atomicity",
     testDescription: "The atomicity litmus test checks to see if a read-modify-write instruction is atomic.",
     testParams: testParams,
     shaderCode: atom,
-    testState: testState,
+    stateConfig: stateConfig,
     pseudoCode: pseudoCode,
   };
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

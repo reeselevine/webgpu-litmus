@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, commonHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import loadBuffer from '../../shaders/load-buffer.wgsl'
 
@@ -12,7 +11,7 @@ export default function LoadBuffer() {
 1.2: y=1`]),
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
       label: "r0=1 && r1=0",
       handler: commonHandlers.oneZero
@@ -29,16 +28,16 @@ export default function LoadBuffer() {
       label: "r0=1 && r1=1",
       handler: commonHandlers.bothOne
     }
-  });
+  };
 
   const props = {
       testName: "Load Buffer",
       testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads.",
       testParams: defaultTestParams,
       shaderCode: loadBuffer,
-      testState: testState,
+      stateConfig: stateConfig,
       pseudoCode: pseudoCode
   }
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

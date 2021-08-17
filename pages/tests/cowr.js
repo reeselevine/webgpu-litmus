@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, coWRHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coWRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coWR from '../../shaders/cowr.wgsl';
 import coWR_RMW from '../../shaders/cowr-rmw.wgsl';
@@ -65,7 +64,7 @@ export default function CoWR() {
     code: variants.default.pseudo
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
       label: "r0=1 && x=2",
       handler: coWRHandlers.seq0
@@ -82,17 +81,17 @@ export default function CoWR() {
       label: "r0=2 && x=1",
       handler: coWRHandlers.weak
     }
-  });
+  };
 
   const props = {
     testName: "CoWR",
     testDescription: "The CoWR litmus test checks to see if memory is coherent.",
     testParams: testParams,
     shaderCode: coWR,
-    testState: testState,
+    stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants
   };
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

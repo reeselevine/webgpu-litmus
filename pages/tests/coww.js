@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState, coWWHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coWWHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coWW from '../../shaders/coww.wgsl';
 import coWW_RMW from '../../shaders/coww-rmw.wgsl';
@@ -34,14 +33,12 @@ const variants = {
 
 export default function CoWW() {
   testParams.memoryAliases[1] = 0;
-  const thread = `0.1: x=1
-0.2: x=2`
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="x=1"/>,
     code: variants.default.pseudo
   };
 
-  const testState = getOneOutputState({
+  const stateConfig = {
     seq: {
       label: "x=2", 
       handler: coWWHandlers.seq
@@ -50,17 +47,17 @@ export default function CoWW() {
       label: "x=1",
       handler: coWWHandlers.weak
     }
-  })
+  };
 
   const props = {
     testName: "CoWW",
     testDescription: "The CoWW litmus test checks to see if memory is coherent.",
     testParams: testParams,
     shaderCode: coWW,
-    testState: testState,
+    stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants
   };
 
-  return makeTestPage(props);
+  return makeOneOutputLitmusTestPage(props);
 }
