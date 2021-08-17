@@ -240,24 +240,25 @@ export default function stressPanel(props) {
             <DropdownStressParam name="Memory Stress Pattern" description="The access pattern that non-testing threads access the scratch memory region" paramName="memStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={props.pageState}/>
             <DropdownStressParam name="Pre Stress Pattern" description="The access pattern that testing threads access the scratch memory region before executing their litmus test" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={props.pageState}/>
           </div>
-          <div className="panel-block p-2">
+            <div className="panel-block p-2">
             <div className="columns is-2 ">
-              <div className="column ">
-                <div className="buttons are-small">
+		<div className="column ">
+		    <b> Test Parameter Presets </b>
+                  <div className="buttons are-small">
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, noStressConfig);
                 }}>
-                  Test 1
+                  Basic
                 </button> 
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, someStressConfig);
                 }}>
-                  Test 2
+                  Interleave
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, allStressConfig);
                 }}>
-                  Test 3
+                  Stress
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(props.params, uiParams, randomConfig());
