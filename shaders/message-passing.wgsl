@@ -5,14 +5,19 @@
   value: array<u32>;
 };
 
-[[group(0), binding(0)]] var<storage, read_write> test_data : AtomicMemory;
-[[group(0), binding(1)]] var<storage, read_write> mem_locations : Memory;
-[[group(0), binding(2)]] var<storage, read_write> results : Memory;
-[[group(0), binding(3)]] var<storage, read_write> shuffled_ids : Memory;
-[[group(0), binding(4)]] var<storage, read_write> barrier : AtomicMemory;
-[[group(0), binding(5)]] var<storage, read_write> scratchpad : Memory;
-[[group(0), binding(6)]] var<storage, read_write> scratch_locations : Memory;
-[[group(0), binding(7)]] var<storage, read_write> stress_params : Memory;
+[[block]] struct StressParamsMemory {
+  value: [[stride(16)]] array<u32, 7>;
+};
+
+[[group(0), binding(0)]] var<storage, read_write> test_data : Memory;
+[[group(0), binding(1)]] var<storage, read_write> atomic_test_data : AtomicMemory;
+[[group(0), binding(2)]] var<storage, read_write> mem_locations : Memory;
+[[group(0), binding(3)]] var<storage, read_write> results : Memory;
+[[group(0), binding(4)]] var<storage, read_write> shuffled_ids : Memory;
+[[group(0), binding(5)]] var<storage, read_write> barrier : AtomicMemory;
+[[group(0), binding(6)]] var<storage, read_write> scratchpad : Memory;
+[[group(0), binding(7)]] var<storage, read_write> scratch_locations : Memory;
+[[group(0), binding(8)]] var<uniform> stress_params : StressParamsMemory;
 
 fn spin() {
   var i : u32 = 0u;
@@ -79,8 +84,8 @@ let workgroupXSize = 1;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];
-  let ay = &test_data.value[mem_locations.value[0]];
-  let ax = &test_data.value[mem_locations.value[1]];
+  let ay = &atomic_test_data.value[mem_locations.value[0]];
+  let ax = &atomic_test_data.value[mem_locations.value[1]];
   if (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 0u + 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);

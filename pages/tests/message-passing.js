@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
-import { makeTwoOutputLitmusTestPage } from '../../components/test-page-setup.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import messagePassing from '../../shaders/message-passing.wgsl'
 

@@ -116,7 +116,7 @@ let workgroupXSize = 1;
     if (l_id == u32(workgroupXSize)) {
       if (r0 == 1u) {
         let r1 = *ax;
-        results.value[0] = r1;
+        results.value[1] = r1;
       }
       results.value[0] = r0;
     }
