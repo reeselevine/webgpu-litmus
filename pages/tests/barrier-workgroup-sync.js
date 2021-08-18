@@ -40,7 +40,7 @@ export default function BarrierWorkgroupSynchronization() {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
     code: buildPseudoCode([`0.1: x=1
 0.2: barrier()
-0.3: store(y, 1)`, `1.1: r0 = load(y)
+0.3: store(y, 1)`, `1.1: r0=load(y)
 1.2: barrier()
 1.3: if (r0 == 1):
 1.4:   r1=x`])
