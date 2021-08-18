@@ -5,6 +5,7 @@ import * as ReactBootStrap from 'react-bootstrap';
 import StressPanel,{randomGenerator}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import TuningTable from "../components/tuningTable"
+import { clearState, handleResult } from './test-page-utils.js';
 
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
@@ -63,25 +64,6 @@ function doTest(pageState, testParams, shaderCode, testState, keys) {
     },
     error => console.log(error)
   );
-}
-
-function clearState(state, keys) {
-  for (const key of keys) {
-    state[key].internalState = 0;
-    state[key].syncUpdate(0);
-  }
-}
-
-function handleResult(state, keys) {
-  return function (result, memResult) {
-    for (const key of keys) {
-      if (state[key].resultHandler(result, memResult)) {
-        state[key].internalState = state[key].internalState + 1;
-        state[key].throttledUpdate(state[key].internalState);
-        break;
-      }
-    }
-  }
 }
 
 function chartConfig(pageState, tooltipFilter) {

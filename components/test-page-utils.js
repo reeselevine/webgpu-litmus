@@ -180,6 +180,25 @@ function twoOutputTooltipFilter(tooltipItem, data) {
   }
 }
 
+export function clearState(state, keys) {
+  for (const key of keys) {
+    state[key].internalState = 0;
+    state[key].syncUpdate(0);
+  }
+}
+
+export function handleResult(state, keys) {
+  return function (result, memResult) {
+    for (const key of keys) {
+      if (state[key].resultHandler(result, memResult)) {
+        state[key].internalState = state[key].internalState + 1;
+        state[key].throttledUpdate(state[key].internalState);
+        break;
+      }
+    }
+  }
+}
+
 // Result handlers common to many litmus tests
 export const commonHandlers = {
   bothOne: function (result, memResult) {
