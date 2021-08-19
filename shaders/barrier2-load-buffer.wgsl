@@ -96,27 +96,26 @@ let workgroupXSize = 1;
       if (do_barrier == 1u) {
         spin();
       }
-      atomicStore(ax, 1u);
+      r0 = atomicLoad(ay);
     }
-    storageBarrier();
     if (l_id == 0u) {
-      atomicStore(ay, 1u);
+      atomicStore(ax, 1u);
+      results.value[0] = r0;
     }
   } elseif (l_id >= u32(workgroupXSize) && l_id < 2u*u32(workgroupXSize)) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
     }
-    var r0: u32;
     var r1: u32;
     if (l_id == u32(workgroupXSize)) {
       if (do_barrier == 1u) {
         spin();
       }
-      r0 = atomicLoad(ay);
-    }
-    if (l_id == u32(workgroupXSize)) {
       r1 = atomicLoad(ax);
-      results.value[0] = r0;
+    }
+    storageBarrier();
+    if (l_id == u32(workgroupXSize)) {
+      atomicStore(ay, 1u);
       results.value[1] = r1;
     }
   } elseif (stress_params.value[1] == 1u) {

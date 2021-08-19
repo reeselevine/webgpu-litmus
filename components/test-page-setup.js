@@ -132,7 +132,6 @@ function VariantOptions(props) {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
         props.pageState.activeVariant.update(e.target.value);
-        console.log(props.pageState.activeVariant.value);
         if (e.target.value == "workgroup") {
           props.uiParams.testMemorySize.state.update(workgroupMemorySize);
           props.testParams['testMemorySize'] = workgroupMemorySize;

@@ -3,21 +3,49 @@ import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/te
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import loadBuffer from '../../shaders/load-buffer.wgsl'
 import barrierLoadBuffer from '../../shaders/barrier-load-buffer.wgsl';
+import barrier1LoadBuffer from '../../shaders/barrier1-load-buffer.wgsl';
+import barrier2LoadBuffer from '../../shaders/barrier2-load-buffer.wgsl';
+import barrierLoadBufferNA from '../../shaders/barrier-load-buffer-na.wgsl';
+
+const thread0B = `0.1: r0=load(y)
+0.2: barrier()
+0.3: store(x, 1)`;
+
+const thread1B = `1.1: r1=load(x)
+1.2: barrier()
+1.3: store(y, 1)`;
+
+const thread0NB = `0.1: r0=load(y)
+0.2: store(x, 1)`;
+
+const thread1NB = `1.1: r0=load(x)
+1.2: store(y, 1)`;
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: r0=y
-0.2: x=1`, `1.1: r1=x
-1.2: y=1`]),
+    pseudo: buildPseudoCode([thread0NB, thread1NB]),
     shader: loadBuffer
   },
   barrier: {
-    pseudo: buildPseudoCode([`0.1: r0=load(y)
+    pseudo: buildPseudoCode([thread0B, thread1B]),
+    shader: barrierLoadBuffer
+  },
+  barrier1: {
+    pseudo: buildPseudoCode([thread0B, thread1NB]),
+    shader: barrier1LoadBuffer
+  },
+  barrier2: {
+    pseudo: buildPseudoCode([thread0NB, thread1B]),
+    shader: barrier2LoadBuffer
+  },
+  nonatomic: {
+    pseudo: buildPseudoCode([`0.1: r0=y
 0.2: barrier()
 0.3: store(x, 1)`, `1.1: r1=load(x)
 1.2: barrier()
-1.3: store(y, 1)`]),
-    shader: barrierLoadBuffer
+1.3: if r1==1:
+1.4:   y=1`]),
+    shader: barrierLoadBufferNA
   }
 }
 

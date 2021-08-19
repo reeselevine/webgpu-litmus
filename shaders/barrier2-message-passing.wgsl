@@ -98,7 +98,6 @@ let workgroupXSize = 1;
       }
       atomicStore(ax, 1u);
     }
-    storageBarrier();
     if (l_id == 0u) {
       atomicStore(ay, 1u);
     }
@@ -114,6 +113,7 @@ let workgroupXSize = 1;
       }
       r0 = atomicLoad(ay);
     }
+    storageBarrier();
     if (l_id == u32(workgroupXSize)) {
       r1 = atomicLoad(ax);
       results.value[0] = r0;
