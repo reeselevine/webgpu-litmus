@@ -2,6 +2,8 @@ import { useState } from 'react';
 import _ from 'lodash'
 import { makeTestPage } from './test-page-setup';
 
+export const workgroupMemorySize = 2048;
+
 export function makeOneOutputLitmusTestPage(props) {
   props.testState = getOneOutputState(props.stateConfig);
   props.chartData = oneOutputChartData(props.testState);

@@ -96,16 +96,12 @@ let workgroupXSize = 256;
         spin();
       }
     }
-    var r0: u32;
     if (l_id == 0u) {
-      r0 = *ax;
-          }
+      *ax = 1u;
+    }
     storageBarrier();
     if (l_id == 1u) {
-      *ay = 1u;
-    }
-    if (l_id == 0u) {
-      results.value[0] = r0;
+      *ay = 2u;
     }
   } elseif (stress_params.value[1] == 1u) {
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);

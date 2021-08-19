@@ -55,7 +55,7 @@ function IntegerStressParam(props) {
             }} onBlur={(e)=>{
               props.validate(e);
               //props.checkPowOf2(e);
-            }} disabled={props.pageState.running.value}/>
+            }} disabled={props.pageState.running.value || (props.paramName == "testMemorySize" && props.pageState.activeVariant.value == "workgroup")}/>
         </div>
       </div>
     </>
@@ -197,24 +197,26 @@ function powOf2(n){
   return  n && (n & (n - 1)) === 0
 }
 
-export default function stressPanel(props) {
+export function getStressPanel(params, pageState) {
   const uiParams = {
-    minWorkgroups : buildIntStressParam("Minimum Workgroups", "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "minWorkgroups", props.params, props.pageState, 4, 1024),
-    maxWorkgroups : buildIntStressParam("Maximum Workgroups",  "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "maxWorkgroups", props.params, props.pageState, 4, 1024),
-    shufflePct : buildIntStressParam("Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","shufflePct", props.params, props.pageState, 0, 100),
-    barrierPct : buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","barrierPct", props.params, props.pageState, 0, 100),
-    testMemorySize : buildIntStressParam("Test Memory Size", "The size of the memory buffer that contains the global testing locations", "testMemorySize",props.params, props.pageState, 256, 523776),
-    memStride : buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 128)", "memStride", props.params, props.pageState, 2, 128 ),
-    memStressPct : buildIntStressParam("Memory Stress Percentage", "The percentage of iterations in which all non-testing threads repeatedly access the scratch memory to cause memory stress (values should be between 0 and 100)", "memStressPct", props.params, props.pageState, 0, 100),
-    memStressIterations : buildIntStressParam("Memory Stress Loops", "How many times the non-testing threads loop on their memory stress access pattern (values should be between 0 and 1024)", "memStressIterations", props.params, props.pageState, 0, 1024),
-    preStressPct : buildIntStressParam( "Pre-Stress Percentage",  "The percent of iterations in which the testing threads access the scratch memory region before executing their part of the litmus test (values should be between 0 and 100)","preStressPct", props.params, props.pageState, 0, 100),
-    preStressIterations : buildIntStressParam("Pre Stress Loops", "How many times the testing threads perform their accesses on the scratch memory region before performing the litmus test  (values should be between 0 and 2048)" , "preStressIterations", props.params, props.pageState, 0, 2048),
-    scratchMemorySize : buildIntStressParam("Scatch Memory Size", "The size of the memory buffer where threads stress the memory" , "scratchMemorySize", props.params, props.pageState, 256, 4096),
-    stressLineSize : buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many 32-bit words (values should be between 1 and 128)", "stressLineSize", props.params, props.pageState, 2, 128),
-    stressTargetLines : buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", props.params, props.pageState, 1, 128 )
+    minWorkgroups : buildIntStressParam("Minimum Workgroups", "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "minWorkgroups", params, pageState, 4, 1024),
+    maxWorkgroups : buildIntStressParam("Maximum Workgroups",  "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "maxWorkgroups", params, pageState, 4, 1024),
+    shufflePct : buildIntStressParam("Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","shufflePct", params, pageState, 0, 100),
+    barrierPct : buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","barrierPct", params, pageState, 0, 100),
+    testMemorySize : buildIntStressParam("Test Memory Size", "The size of the memory buffer that contains the global testing locations", "testMemorySize", params, pageState, 256, 523776),
+    memStride : buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 128)", "memStride", params, pageState, 2, 128 ),
+    memStressPct : buildIntStressParam("Memory Stress Percentage", "The percentage of iterations in which all non-testing threads repeatedly access the scratch memory to cause memory stress (values should be between 0 and 100)", "memStressPct", params, pageState, 0, 100),
+    memStressIterations : buildIntStressParam("Memory Stress Loops", "How many times the non-testing threads loop on their memory stress access pattern (values should be between 0 and 1024)", "memStressIterations", params, pageState, 0, 1024),
+    preStressPct : buildIntStressParam( "Pre-Stress Percentage",  "The percent of iterations in which the testing threads access the scratch memory region before executing their part of the litmus test (values should be between 0 and 100)","preStressPct", params, pageState, 0, 100),
+    preStressIterations : buildIntStressParam("Pre Stress Loops", "How many times the testing threads perform their accesses on the scratch memory region before performing the litmus test  (values should be between 0 and 2048)" , "preStressIterations", params, pageState, 0, 2048),
+    scratchMemorySize : buildIntStressParam("Scatch Memory Size", "The size of the memory buffer where threads stress the memory" , "scratchMemorySize", params, pageState, 256, 4096),
+    stressLineSize : buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many 32-bit words (values should be between 1 and 128)", "stressLineSize", params, pageState, 2, 128),
+    stressTargetLines : buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 128 )
   }; 
 
-  return (
+  return {
+    uiParams: uiParams,
+    jsx: (
     <>
       <div className="column is-one-third mr-2">
         <ReactTooltip backgroundColor="black"/>
@@ -236,9 +238,9 @@ export default function stressPanel(props) {
             {uiParams.preStressIterations.jsx}
             {uiParams.stressLineSize.jsx}
             {uiParams.stressTargetLines.jsx}
-            <DropdownStressParam name="Stress Assignment Strategy" description="How non-testing threads are assigned to scratch memory regions to access" paramName="stressAssignmentStrategy" params={props.params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange} pageState={props.pageState}/>
-            <DropdownStressParam name="Memory Stress Pattern" description="The access pattern that non-testing threads access the scratch memory region" paramName="memStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={props.pageState}/>
-            <DropdownStressParam name="Pre Stress Pattern" description="The access pattern that testing threads access the scratch memory region before executing their litmus test" paramName="preStressPattern" params={props.params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={props.pageState}/>
+            <DropdownStressParam name="Stress Assignment Strategy" description="How non-testing threads are assigned to scratch memory regions to access" paramName="stressAssignmentStrategy" params={params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange} pageState={pageState}/>
+            <DropdownStressParam name="Memory Stress Pattern" description="The access pattern that non-testing threads access the scratch memory region" paramName="memStressPattern" params={params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={pageState}/>
+            <DropdownStressParam name="Pre Stress Pattern" description="The access pattern that testing threads access the scratch memory region before executing their litmus test" paramName="preStressPattern" params={params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={pageState}/>
           </div>
             <div className="panel-block p-2">
             <div className="columns is-2 ">
@@ -246,22 +248,22 @@ export default function stressPanel(props) {
 		    <b> Test Parameter Presets </b>
                   <div className="buttons are-small">
                 <button className="button is-link is-outlined " onClick={()=>{
-                  setConfig(props.params, uiParams, noStressConfig);
+                  setConfig(params, uiParams, noStressConfig);
                 }}>
                   Basic
                 </button> 
                 <button className="button is-link is-outlined " onClick={()=>{
-                  setConfig(props.params, uiParams, someStressConfig);
+                  setConfig(params, uiParams, someStressConfig);
                 }}>
                   Interleave
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
-                  setConfig(props.params, uiParams, allStressConfig);
+                  setConfig(params, uiParams, allStressConfig);
                 }}>
                   Stress
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
-                  setConfig(props.params, uiParams, randomConfig());
+                  setConfig(params, uiParams, randomConfig());
                 }}>
                   Random
                 </button>
@@ -272,5 +274,5 @@ export default function stressPanel(props) {
         </nav>
       </div>
     </>
-  );
+  )};
 }

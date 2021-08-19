@@ -19,6 +19,8 @@
 [[group(0), binding(7)]] var<storage, read_write> scratch_locations : Memory;
 [[group(0), binding(8)]] var<uniform> stress_params : StressParamsMemory;
 
+var<workgroup> workgroup_test_data: array<u32, 2048>;
+
 fn spin() {
   var i : u32 = 0u;
   var bar_val : u32 = atomicAdd(&barrier.value[0], 1u);
@@ -84,8 +86,8 @@ let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];
-  let ax = &test_data.value[mem_locations.value[0]];
-  let ay = &test_data.value[mem_locations.value[1]];
+  let ax = &workgroup_test_data[mem_locations.value[0]];
+  let ay = &workgroup_test_data[mem_locations.value[1]];
   let l_id = shuffled_ids.value[global_invocation_id[0]];
   if (l_id < u32(workgroupXSize)) {
     if (mem_stress == 1u) {
@@ -96,15 +98,12 @@ let workgroupXSize = 256;
         spin();
       }
     }
-    var r0: u32;
     if (l_id == 0u) {
-      r0 = *ax;
-          }
+      *ax = 1u;
+    }
     storageBarrier();
     if (l_id == 1u) {
-      *ay = 1u;
-    }
-    if (l_id == 0u) {
+      let r0 = *ay;
       results.value[0] = r0;
     }
   } elseif (stress_params.value[1] == 1u) {

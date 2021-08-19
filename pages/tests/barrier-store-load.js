@@ -2,8 +2,24 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { barrierStoreLoadHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import barrierSL from '../../shaders/barrier-store-load.wgsl';
+import barrierWorkgroupSL from '../../shaders/barrier-store-load-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+
+const variants = {
+  storage: {
+    pseudo: buildPseudoCode([`0.1: x=1
+0.2: storageBarrier()`, `1.1: storageBarrier()
+1.2: r0=x`]),
+    shader: barrierSL
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: x=1
+0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
+1.2: r0=x`]),
+    shader: barrierWorkgroupSL
+  }
+}
 
 export default function BarrierStoreLoad() {
   testParams.memoryAliases[1] = 0;
@@ -13,9 +29,7 @@ export default function BarrierStoreLoad() {
   testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0" finalState="r0=0"/>,
-    code: buildPseudoCode([`0.1: x=1
-0.2: barrier()`, `1.1: barrier()
-1.2: r0=x`])
+    code: variants.storage.pseudo
   };
 
   const stateConfig = {
@@ -35,7 +49,8 @@ export default function BarrierStoreLoad() {
     testParams: testParams,
     shaderCode: barrierSL,
     stateConfig: stateConfig,
-    pseudoCode: pseudoCode
+    pseudoCode: pseudoCode,
+    variants: variants
   };
 
   return makeOneOutputLitmusTestPage(props);

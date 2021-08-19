@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import StressPanel,{randomGenerator}from './stressPanel.js';
+import { getStressPanel, randomGenerator }from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import TuningTable from "../components/tuningTable"
-import { clearState, handleResult } from './test-page-utils.js';
+import { clearState, handleResult, workgroupMemorySize } from './test-page-utils.js';
 
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
@@ -15,6 +15,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
+  const [activeVariant, setActiveVariant] = useState("default");
   const [tuningTimes, setTuningTimes] = useState(10);
   return {
     iterations: {
@@ -36,6 +37,10 @@ function getPageState(props) {
     activeShader: {
       value: activeShader,
       update: setActiveShader
+    },
+    activeVariant: {
+      value: activeVariant,
+      update: setActiveVariant
     },
     modeActive:{
       value: mode,
@@ -126,6 +131,12 @@ function VariantOptions(props) {
       <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
+        props.pageState.activeVariant.update(e.target.value);
+        console.log(props.pageState.activeVariant.value);
+        if (e.target.value == "workgroup") {
+          props.uiParams.testMemorySize.state.update(workgroupMemorySize);
+          props.testParams['testMemorySize'] = workgroupMemorySize;
+        }
       }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>
@@ -200,11 +211,12 @@ export function makeTestPage(props) {
   // let temp = props.testParams
   // const [params, setParams] = useState(temp);
   const [paramArray, setParamArray] = useState([]);
+  const stressPanel = getStressPanel(props.testParams, pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
   let variantOptions;
   if ('variants' in props) {
-    variantOptions = <VariantOptions variants={props.variants} pageState={pageState}/>;
+    variantOptions = <VariantOptions variants={props.variants} pageState={pageState} uiParams={stressPanel.uiParams} testParams={props.testParams}/>;
   } else {
     variantOptions = <></>;
   }
@@ -312,7 +324,7 @@ export function makeTestPage(props) {
                 </div>
               </div>
             </div>
-            <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
+            {stressPanel.jsx}
             </div>
           }
         </div>
