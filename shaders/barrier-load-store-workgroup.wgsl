@@ -102,7 +102,7 @@ let workgroupXSize = 256;
     if (l_id == 0u) {
       r0 = *ax;
           }
-    storageBarrier();
+    workgroupBarrier();
     if (l_id == 1u) {
       *ay = 1u;
     }

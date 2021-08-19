@@ -101,7 +101,7 @@ let workgroupXSize = 256;
     if (l_id == 0u) {
       *ax = 1u;
     }
-    storageBarrier();
+    workgroupBarrier();
     if (l_id == 1u) {
       let r0 = *ay;
       results.value[0] = r0;
