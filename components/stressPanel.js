@@ -55,7 +55,10 @@ function IntegerStressParam(props) {
             }} onBlur={(e)=>{
               props.validate(e);
               //props.checkPowOf2(e);
-            }} disabled={props.pageState.running.value || (props.paramName == "testMemorySize" && props.pageState.activeVariant.value == "workgroup")}/>
+            }} disabled={props.pageState.running.value || 
+                        (props.pageState.activeVariant != undefined && 
+                         props.paramName == "testMemorySize" && 
+                        props.pageState.activeVariant.value == "workgroup")}/>
         </div>
       </div>
     </>
