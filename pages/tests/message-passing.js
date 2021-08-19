@@ -2,17 +2,29 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import messagePassing from '../../shaders/message-passing.wgsl'
+import barrierMessagePassing from '../../shaders/barrier-message-passing.wgsl'
 
-export default function MessagePassing() {
-  const thread0 = `0.1: x=1
-0.2: y=1`
-  const thread1 = `1.1: r0=y
-1.2: r1=x`
-  const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && r1=0"/>,
-    code: buildPseudoCode([`0.1: x=1
+const variants = {
+  default: {
+    pseudo: buildPseudoCode([`0.1: x=1
 0.2: y=1`, `1.1: r0=y
 1.2: r1=x`]),
+    shader: messagePassing
+  },
+  barrier: {
+    pseudo: buildPseudoCode([`0.1: store(x, 1)
+0.2: barrier()
+0.3: store(y, 1)`, `1.1: r0=load(y)
+1.2: barrier()
+1.3: r1=load(x)`]),
+    shader: barrierMessagePassing
+  }
+}
+
+export default function MessagePassing() {
+  const pseudoCode = {
+    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && r1=0"/>,
+    code: variants.default.pseudo
   };
 
   const stateConfig = {
@@ -40,7 +52,8 @@ export default function MessagePassing() {
       testParams: defaultTestParams,
       shaderCode: messagePassing,
       stateConfig: stateConfig,
-      pseudoCode: pseudoCode
+      pseudoCode: pseudoCode,
+      variants: variants
   }
 
   return makeTwoOutputLitmusTestPage(props);

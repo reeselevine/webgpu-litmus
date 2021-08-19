@@ -2,13 +2,29 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import loadBuffer from '../../shaders/load-buffer.wgsl'
+import barrierLoadBuffer from '../../shaders/barrier-load-buffer.wgsl';
+
+const variants = {
+  default: {
+    pseudo: buildPseudoCode([`0.1: r0=y
+0.2: x=1`, `1.1: r1=x
+1.2: y=1`]),
+    shader: loadBuffer
+  },
+  barrier: {
+    pseudo: buildPseudoCode([`0.1: r0=load(y)
+0.2: barrier()
+0.3: store(x, 1)`, `1.1: r1=load(x)
+1.2: barrier()
+1.3: store(y, 1)`]),
+    shader: barrierLoadBuffer
+  }
+}
 
 export default function LoadBuffer() {
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && r1=1"/>,
-    code: buildPseudoCode([`0.1: r0=y
-0.2: x=1`, `1.1: r1=x
-1.2: y=1`]),
+    code: variants.default.pseudo
   };
 
   const stateConfig = {
@@ -36,7 +52,8 @@ export default function LoadBuffer() {
       testParams: defaultTestParams,
       shaderCode: loadBuffer,
       stateConfig: stateConfig,
-      pseudoCode: pseudoCode
+      pseudoCode: pseudoCode,
+      variants: variants
   }
 
   return makeTwoOutputLitmusTestPage(props);
