@@ -361,6 +361,7 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
     // Commands submission
     const uint32ByteSize = 4;
+   // console.log(typeof testParams.minWorkgroups)
     const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
     let memLocations = new Array(testParams.numMemLocations);
 
@@ -447,7 +448,8 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     };
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
+export async function runLitmusTest( shaderCode, testParams, iterations, handleResult) {
+    //console.log(testParams)
     const device = await getDevice();
     if (device === undefined) {
         alert("WebGPU not enabled or supported!")
@@ -480,6 +482,7 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const p7 = map_buffer(buffers.stressParams);
     await p7;
     setStressParams(buffers.stressParams, testParams);
+
 
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
