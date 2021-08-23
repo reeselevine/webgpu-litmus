@@ -14,43 +14,43 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: x=1`, "1.1: x=2"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicStore(x, 1)`, "1.1: atomicStore(x, 2)"]),
     shader: coRW2
   },
   rmw: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: x=1`, "1.1: exchange(x, 2)"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicStore(x, 1)`, "1.1: atomicExchange(x, 2)"]),
     shader: coRW2_RMW
   },
   rmw1: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: x=1`, "1.1: x=2"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicStore(x, 1)`, "1.1: atomicStore(x, 2)"]),
     shader: coRW2_RMW1
   },
   rmw2: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: exchange(x, 1)`, "1.1: x=2"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"]),
     shader: coRW2_RMW2
   },
   rmw3: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: exchange(x, 1)`, "1.1: x=2"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"]),
     shader: coRW2_RMW3
   },
   rmw4: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: x=1`, "1.1: exchange(x, 2)"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicStore(x, 1)`, "1.1: atomicExchange(x, 2)"]),
     shader: coRW2_RMW4
   },
   rmw5: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: exchange(x, 1)`, "1.1: exchange(x, 2)"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicExchange(x, 1)`, "1.1: atomicExchange(x, 2)"]),
     shader: coRW2_RMW5
   },
   rmw6: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: exchange(x, 1)`, "1.1: exchange(x, 2)"]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicExchange(x, 1)`, "1.1: atomicExchange(x, 2)"]),
     shader: coRW2_RMW6
   }
 }
@@ -58,25 +58,25 @@ const variants = {
 export default function CoRW2() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=2 && x=2"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 2 && x == 2"/>,
     code: variants.default.pseudo
   };
 
   const stateConfig = {
     seq0: {
-      label: "r0=0 && x=2",
+      label: "r0 == 0 && *x == 2",
       handler: coRW2Handlers.seq0
     },
     seq1: {
-      label: "r0=2 && x=1",
+      label: "r0 == 2 && *x == 1",
       handler: coRW2Handlers.seq1
     },
     interleaved: {
-      label: "r0=0 && x=1",
+      label: "r0 == 0 && *x == 1",
       handler: coRW2Handlers.interleaved
     },
     weak: {
-      label: "r0=2 && x=2",
+      label: "r0 == 2 && *x == 2",
       handler: coRW2Handlers.weak
     }
   };

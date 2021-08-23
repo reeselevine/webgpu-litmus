@@ -7,19 +7,19 @@ import barrier1Store from '../../shaders/barrier1-store.wgsl'
 import barrier2Store from '../../shaders/barrier2-store.wgsl'
 import barrierStoreNA from '../../shaders/barrier-store-na.wgsl';
 
-const thread0B = `0.1: store(x, 2)
-0.2: barrier()
-0.3: store(y, 1)`;
+const thread0B = `0.1: atomicStore(x, 2)
+0.2: storageBarrier()
+0.3: atomicStore(y, 1)`;
 
-const thread1B = `1.1: r0=load(y)
-1.2: barrier()
-1.3: store(x, 1)`;
+const thread1B = `1.1: let r0 = atomicLoad(y)
+1.2: storageBarrier()
+1.3: atomicStore(x, 1)`;
 
-const thread0NB = `0.1: store(x, 2)
-0.2: store(y, 1)`
+const thread0NB = `0.1: atomicStore(x, 2)
+0.2: atomicStore(y, 1)`
 
-const thread1NB = `1.1: r0=load(y)
-1.2: store(x, 1)`
+const thread1NB = `1.1: let r0 = atomicLoad(y)
+1.2: atomicStore(x, 1)`
 
 const variants = {
   default: {
@@ -39,37 +39,37 @@ const variants = {
     shader: barrier2Store
   },
   nonatomic: {
-    pseudo: buildPseudoCode([`0.1: x=2
-0.2: barrier()
-0.3: store(y, 1)`, `1.1: r0=load(y)
-1.2: barrier()
+    pseudo: buildPseudoCode([`0.1: *x = 2
+0.2: storageBarrier()
+0.3: atomicStore(y, 1)`, `1.1: let r0 = atomicLoad(y)
+1.2: storageBarrier()
 1.3: if (r0 == 1):
-1.4:   x=1`]),
+1.4:   *x = 1`]),
     shader: barrierStoreNA
   }
 }
 
 export default function Store() {
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && x=2"/>,
+    setup: <TestSetupPseudoCode init="*x = 0, *y = 0" finalState="r0 == 1 && *x == 2"/>,
     code: variants.default.pseudo
   };
 
   const stateConfig = {
     seq0: {
-      label: "r0=1 && x=1",
+      label: "r0 == 1 && *x == 1",
       handler: storeHandlers.seq0
     },
     seq1: {
-      label: "r0=0 && x=2",
+      label: "r0 == 0 && *x == 2",
       handler: storeHandlers.seq1
     },
     interleaved: {
-      label: "r0=0 && x=1",
+      label: "r0 == 0 && *x == 1",
       handler: storeHandlers.interleaved
     },
     weak: {
-      label: "r0=1 && x=2",
+      label: "r0 == 1 && *x == 2",
       handler: storeHandlers.weak
     }
   };

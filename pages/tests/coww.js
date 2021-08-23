@@ -10,23 +10,23 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: x=1
-0.2: x=2`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
+0.2: atomicStore(x, 2)`]),
     shader: coWW
   },
   rmw: {
-    pseudo: buildPseudoCode([`0.1: x=1
-0.2: exchange(x, 2)`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
+0.2: atomicExchange(x, 2)`]),
     shader: coWW_RMW
   },
   rmw1: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)
-0.2: x=2`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
+0.2: atomicStore(x, 2)`]),
     shader: coWW_RMW1
   },
   rmw2: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)
-0.2: exchange(x, 2)`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
+0.2: atomicExchange(x, 2)`]),
     shader: coWW_RMW2
   }
 }
@@ -34,17 +34,17 @@ const variants = {
 export default function CoWW() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="x=1"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="*x == 1"/>,
     code: variants.default.pseudo
   };
 
   const stateConfig = {
     seq: {
-      label: "x=2", 
+      label: "*x == 2", 
       handler: coWWHandlers.seq
     },
     weak: {
-      label: "x=1",
+      label: "*x == 1",
       handler: coWWHandlers.weak
     }
   };

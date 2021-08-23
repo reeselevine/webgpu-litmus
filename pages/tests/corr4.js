@@ -8,15 +8,15 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=x
-1.2: r1=x`, `2.1: x=2`, `3.1: r2=x
-3.2: r3=x`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`, `2.1: atomicStore(x, 2)`, `3.1: let r2 = atomicLoad(x)
+3.2: let r3 = atomicLoad(x)`]),
     shader: coRR4
   },
   rmw: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=x
-1.2: r1=add(x, 0)`, `2.1: exchange(x, 2)`, `3.1: r2=x
-3.2: r3=add(x, 0)`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicAdd(x, 0)`, `2.1: atomicExchange(x, 2)`, `3.1: let r2= atomicLoad(x)
+3.2: let r3 = atomicAdd(x, 0)`]),
     shader: coRR4_RMW
   }
 }
@@ -25,7 +25,7 @@ export default function CoRR4() {
   testParams.memoryAliases[1] = 0;
   testParams.numOutputs = 4;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="(r0=1 && r1=2 && r2=2 && r3=1) || (r0=2 && r1=1 && r2=1 && r3=2) || (r0 != 0 && r1 == 0) || (r2 != 0 && r3 == 0)"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="(r0 == 1 && r1 == 2 && r2 == 2 && r3 == 1) || (r0 == 2 && r1 == 1 && r2 == 1 && r3 == 2) || (r0 != 0 && r1 == 0) || (r2 != 0 && r3 == 0)"/>,
     code: variants.default.pseudo
   };
 

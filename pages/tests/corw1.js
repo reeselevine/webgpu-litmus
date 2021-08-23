@@ -10,23 +10,23 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: x=1`]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicStore(x, 1)`]),
     shader: coRW1
   },
   rmw1: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: x=1`]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicStore(x, 1)`]),
     shader: coRW1_RMW1 
   },
   rmw2: {
-    pseudo: buildPseudoCode([`0.1: r0=x
-0.2: exchange(x, 1)`]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
+0.2: atomicExchange(x, 1)`]),
     shader: coRW1_RMW2
   },
   rmw3: {
-    pseudo: buildPseudoCode([`0.1: r0=add(x, 0)
-0.2: exchange(x, 1)`]),
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
+0.2: atomicExchange(x, 1)`]),
     shader: coRW1_RMW3 
   }
 }
@@ -34,17 +34,17 @@ const variants = {
 export default function CoRW1() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 1"/>,
     code: variants.default.pseudo
   };
 
   const stateConfig = {
     seq: {
-      label: "r0=0", 
+      label: "r0 == 0", 
       handler: coRW1Handlers.seq
     },
     weak: {
-      label: "r0=1",
+      label: "r0 == 1",
       handler: coRW1Handlers.weak
     }
   };

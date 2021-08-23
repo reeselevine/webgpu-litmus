@@ -7,19 +7,19 @@ import barrier1MessagePassing from '../../shaders/barrier1-message-passing.wgsl'
 import barrier2MessagePassing from '../../shaders/barrier2-message-passing.wgsl'
 import barrierMessagePassingNA from '../../shaders/barrier-message-passing-na.wgsl';
 
-const thread0B = `0.1: store(x, 1)
-0.2: barrier()
-0.3: store(y, 1)`;
+const thread0B = `0.1: atomicStore(x, 1)
+0.2: storageBarrier()
+0.3: atomicStore(y, 1)`;
 
-const thread1B = `1.1: r0=load(y)
-1.2: barrier()
-1.3: r1=load(x)`;
+const thread1B = `1.1: let r0 = atomicLoad(y)
+1.2: storageBarrier()
+1.3: let r1 = atomicLoad(x)`;
 
-const thread0NB = `0.1: store(x, 1)
-0.2: store(y, 1)`
+const thread0NB = `0.1: atomicStore(x, 1)
+0.2: atomicStore(y, 1)`
 
-const thread1NB = `1.1: r0=load(y)
-1.2: r1=load(x)`
+const thread1NB = `1.1: let r0 = atomicLoad(y)
+1.2: let r1 = atomicLoad(x)`
 
 const variants = {
   default: {
@@ -39,37 +39,37 @@ const variants = {
     shader: barrier2MessagePassing
   },
   nonatomic: {
-    pseudo: buildPseudoCode([`0.1: x=1
-0.2: barrier()
-0.3: store(y, 1)`, `1.1: r0=load(y)
-1.2: barrier()
+    pseudo: buildPseudoCode([`0.1: *x = 1
+0.2: storageBarrier()
+0.3: atomicStore(y, 1)`, `1.1: let r0 = atomicLoad(y)
+1.2: storageBarrier()
 1.3: if (r0 == 1):
-1.4:   r1=x`]),
+1.4:   let r1 = *x`]),
     shader: barrierMessagePassingNA 
   }
 }
 
 export default function MessagePassing() {
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0, y=0" finalState="r0=1 && r1=0"/>,
+    setup: <TestSetupPseudoCode init="*x = 0, *y = 0" finalState="r0 == 1 && r1 == 0"/>,
     code: variants.default.pseudo
   };
 
   const stateConfig = {
     seq0: {
-      label: "r0=0 && r1=0",
+      label: "r0 == 0 && r1 == 0",
       handler: commonHandlers.bothZero
     },
     seq1: {
-      label: "r0=1 && r1=1",
+      label: "r0 == 1 && r1 == 1",
       handler: commonHandlers.bothOne
     },
     interleaved: {
-      label: "r0=0 && r1=1",
+      label: "r0 == 0 && r1 == 1",
       handler: commonHandlers.zeroOne
     },
     weak: {
-      label: "r0=1 && r1=0",
+      label: "r0 == 1 && r1 == 0",
       handler: commonHandlers.oneZero
     }
   };

@@ -8,15 +8,15 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   storage: {
-    pseudo: buildPseudoCode([`0.1: r0=x
+    pseudo: buildPseudoCode([`0.1: let r0 = *x
 0.2: storageBarrier()`, `1.1: storageBarrier()
-1.2: x=1`]),
+1.2: *x = 1`]),
     shader: barrierLS
   },
   workgroup: {
-    pseudo: buildPseudoCode([`0.1: r0=x
+    pseudo: buildPseudoCode([`0.1: let r0 = x
 0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
-1.2: x=1`]),
+1.2: *x = 1`]),
     shader: barrierWorkgroupLS
   }
 }
@@ -28,17 +28,17 @@ export default function BarrierLoadStore() {
   testParams.minWorkgroupSize = 256;
   testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=0"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0"/>,
     code: variants.storage.pseudo
   };
 
   const stateConfig = {
     seq: {
-      label: "r0=0", 
+      label: "r0 == 0", 
       handler: barrierLoadStoreHandlers.seq
     },
     weak: {
-      label: "r0=1",
+      label: "r0 == 1",
       handler: barrierLoadStoreHandlers.weak
     }
   };
