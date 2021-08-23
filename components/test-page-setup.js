@@ -10,14 +10,14 @@ import TuningTable, { BuildStaticRows } from "../components/tuningTable"
 const keys = ["seq", "interleaved", "weak"];
 
 function getPageState(props) {
-  const [iterations, setIterations] = useState(50);
+  const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
   const [mode, setMode] = useState(false);
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
-  const [tuningTimes, setTuningTimes] = useState(2);
+  const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
   //do next test if ture, stop otherwise; change by tuningTable component
@@ -293,10 +293,10 @@ function VariantOptions(props) {
     </>)
 }
 
-let arrayObj = [] ;
 let rows = [];
 let currentParam;
 let config;
+//run litmus test for each random config and store config for displaying 
 async function random(pageState, activeShader, testState,tuningTimes){
  rows.splice(0,rows.length);
  var keys;
@@ -344,9 +344,6 @@ async function random(pageState, activeShader, testState,tuningTimes){
       numOutputs: 2,
       memoryAliases: {}
     }
-  
-    arrayObj.push(obj); 
-    
     await doTest(pageState, obj, activeShader, testState);
      config ={
       progress: 100,
@@ -357,7 +354,7 @@ async function random(pageState, activeShader, testState,tuningTimes){
       interleaved: testState.interleaved.internalState,
       weak: testState.weak.internalState,
     }
-
+    //call component here with the current config 
     currentParam = obj
     let row = <BuildStaticRows pageState={pageState} key={obj.id} params={obj} config={config} rows={rows}></BuildStaticRows>
     rows.push(row);
@@ -366,23 +363,9 @@ async function random(pageState, activeShader, testState,tuningTimes){
   console.log(rows)
 }
 
-// async function doTuning(pageState, activeShader, testState){
-//  for( const obj of arrayObj){
-//   currentParam = obj;
-//   await doTest(pageState, obj, activeShader, testState);
-//   let row = <BuildStaticRows pageState={pageState} key={currentParam.id} params={currentParam}></BuildStaticRows>
-//   rows.push(row);
-// }
-// //doTestRecurse(pageState, arrayObj, activeShader, testState)
-// // pageState.rows.update(rows);
-// console.log(rows)
-//}
 
 export function makeTestPage(props) {
   const pageState = getPageState(props);
-  // let temp = props.testParams
-  // const [params, setParams] = useState(temp);
-  //console.log(props.testState)
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
   let variantOptions;
@@ -455,16 +438,15 @@ export function makeTestPage(props) {
             <div className="container">
                 
                 <div className="columns">
-                  <div className="column is-one-fifth">
+                  <div className="column  is-two-fifth">
                     <div className="control mb-2">
-                      <label><b>Tuning Times:</b></label>
+                      <label><b>Tuning Config Num:</b></label>
                       <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
                         pageState.tuningTimes.update(e.target.value);
                       }} />
                      </div>
                     <button className="button is-primary" onClick={()=>{
                       pageState.resetTable.update(false);
-                      arrayObj.splice(0,arrayObj.length);
                       pageState.rows.value.splice(0,pageState.rows.length);
                       random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value);
                       pageState.tuningActive.update(true);
@@ -472,13 +454,16 @@ export function makeTestPage(props) {
                     }}>
                       Start Tuning
                     </button>
-                    <button className="button is-info mt-2" onClick={()=>{
-                      arrayObj.splice(0,arrayObj.length)
-                      pageState.resetTable.update(true);
-                    }}>
-                      Reset Table
-                    </button>
                   </div>
+                  <div className="column is-two-fifth" >
+                    <div className="control">
+                      <label><b>Iterations:</b></label>
+                      <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+                        pageState.iterations.update(e.target.value);
+                      }} disabled={pageState.running.value}/>
+                    </div>
+                  </div>
+
                 </div>  
                 {
                 (pageState.tuningActive.value && !pageState.resetTable.value)

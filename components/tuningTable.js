@@ -1,12 +1,6 @@
-import { useEffect, useState } from 'react';
-import mpCode from '../shaders/message-passing.wgsl'
-import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
-import { getIterationNum } from './test-page-setup';
-import { render } from 'react-dom';
-import { clippingParents } from '@popperjs/core';
+import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 
 function ParamButton(props){
-    // console.log(props.params)
     return(
         <button className="button is-info is-small" onClick={()=>{
             alert(JSON.stringify(props.params,null, 4));
@@ -46,7 +40,6 @@ function DynamicRow(props){
             Curr Running 
         </td>
         <td>
-            {/* <ParamButton params={props.params} index={props.index}></ParamButton> */}
         </td>
         <td>
             <Percentage pageState ={props.pageState}></Percentage>
@@ -130,19 +123,9 @@ export function BuildStaticRows(props,key){
     return row;
 }
 
-// function buildTableBody(props){
-
-//     for (let i = 0; i< props.pageState.tuningTimes.value; i++){
-//         rows.push(<StaticRow pageState = {props.pageState} index={i} key={i} params={props.params} percentage = {props.percentage}></StaticRow>)
-//     }
-// return rows;
-// }
 
 export default function tuningTable(props){
-   
-
     let dynamicRow =  <BuildDynamicRow pageState = {props.pageState} params={props.params} testState={props.testState} ></BuildDynamicRow>
-    //console.log(props.pageState.rows.value)
     return (
     <>
      <div className="columns mr-2">
