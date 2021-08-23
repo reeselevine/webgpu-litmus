@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from'next/link'
 import { getStressPanel } from '../components/stressPanel.js';
-import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, workgroupMemorySize } from '../components/test-page-utils.js';
+import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, workgroupMemorySize, messagePassingHandlers, loadBufferHandlers, storeHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import coRR from '../shaders/corr.wgsl';
@@ -28,6 +28,12 @@ import barrierSS from '../shaders/barrier-store-store.wgsl';
 import barrierWorkgroupLS from '../shaders/barrier-load-store-workgroup.wgsl';
 import barrierWorkgroupSL from '../shaders/barrier-store-load-workgroup.wgsl';
 import barrierWorkgroupSS from '../shaders/barrier-store-store-workgroup.wgsl';
+import barrierMP from '../shaders/barrier-message-passing.wgsl';
+import barrierLB from '../shaders/barrier-load-buffer.wgsl';
+import barrierS from '../shaders/barrier-store.wgsl';
+import barrierMPNA from '../shaders/barrier-message-passing-na.wgsl';
+import barrierLBNA from '../shaders/barrier-load-buffer-na.wgsl';
+import barrierSNA from '../shaders/barrier-store-na.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
@@ -215,8 +221,18 @@ export default function ConformanceTestSuite() {
   const barrierWorkgroupLoadStoreConfig = buildBarrierTest("Barrier Load Store (workgroup memory)", "barrier-load-store", pageState, testParams, barrierWorkgroupLS, barrierLoadStoreHandlers, true);
   const barrierWorkgroupStoreLoadConfig = buildBarrierTest("Barrier Store Load (workgroup memory)", "barrier-store-load", pageState, testParams, barrierWorkgroupSL, barrierStoreLoadHandlers, true);
   const barrierWorkgroupStoreStoreConfig = buildBarrierTest("Barrier Store Store (workgroup memory)", "barrier-store-store", pageState, testParams, barrierWorkgroupSS, barrierStoreStoreHandlers, true);
+  const messagePassingBarrierConfig = buildTest("Message Passing with Barrier", "message-passing", pageState, testParams, barrierMP, messagePassingHandlers);
+  const loadBufferBarrierConfig = buildTest("Load Buffer with Barrier", "load-buffer", pageState, testParams, barrierLB, loadBufferHandlers);
+  const storeBarrierConfig = buildTest("Store with Barrier", "store", pageState, testParams, barrierS, storeHandlers);
+  const messagePassingBarrierNAConfig = buildTest("Message Passing with Barrier (non-atomic variant)", "message-passing", pageState, testParams, barrierMPNA, messagePassingHandlers);
+  const loadBufferBarrierNAConfig = buildTest("Load Buffer with Barrier (non-atomic variant)", "load-buffer", pageState, testParams, barrierLBNA, loadBufferHandlers);
+  const storeBarrierNAConfig = buildTest("Store with Barrier (non-atomic variant)", "store", pageState, testParams, barrierSNA, storeHandlers);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig, barrierWorkgroupLoadStoreConfig, barrierWorkgroupStoreLoadConfig, barrierWorkgroupStoreStoreConfig];
+  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, 
+    coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, 
+    coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig, 
+    barrierWorkgroupLoadStoreConfig, barrierWorkgroupStoreLoadConfig, barrierWorkgroupStoreStoreConfig, messagePassingBarrierConfig,
+    messagePassingBarrierNAConfig, loadBufferBarrierConfig, loadBufferBarrierNAConfig, storeBarrierConfig, storeBarrierNAConfig];
 
   let initialIterations = pageState.iterations.value;
   const stressPanel = getStressPanel(testParams, pageState);

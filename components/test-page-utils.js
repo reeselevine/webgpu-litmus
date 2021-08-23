@@ -236,6 +236,26 @@ export const coRRHandlers = {
   weak: commonHandlers.oneZero
 };
 
+export const messagePassingHandlers = {
+  seq: function (result, memResult) {
+    return commonHandlers.bothZero(result, memResult) || commonHandlers.bothOne(result, memResult);
+  },
+  seq0: commonHandlers.bothZero,
+  seq1: commonHandlers.bothOne,
+  interleaved: commonHandlers.zeroOne,
+  weak: commonHandlers.oneZero
+};
+
+export const loadBufferHandlers = {
+  seq: function(result, memResult) {
+    return commonHandlers.oneZero(result, memResult) || commonHandlers.zeroOne(result, memResult);
+  },
+  seq0: commonHandlers.oneZero,
+  seq1: commonHandlers.zeroOne,
+  interleaved: commonHandlers.bothZero,
+  weak: commonHandlers.bothOne
+};
+
 function storeSeq0(result, memResult) {
   return result[0] == 1 && memResult[0] == 1;
 }
