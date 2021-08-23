@@ -298,6 +298,7 @@ let currentParam;
 let config;
 //run litmus test for each random config and store config for displaying 
 async function random(pageState, activeShader, testState,tuningTimes){
+ pageState.rows.update([]);
  rows.splice(0,rows.length);
  var keys;
  pageState.running.update(true);
