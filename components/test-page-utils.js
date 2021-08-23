@@ -236,6 +236,28 @@ export const coRRHandlers = {
   weak: commonHandlers.oneZero
 };
 
+function storeSeq0(result, memResult) {
+  return result[0] == 1 && memResult[0] == 1;
+}
+
+function storeSeq1(result, memResult) {
+  return result[0] == 0 && memResult[0] == 2;
+}
+
+export const storeHandlers = {
+  seq: function(result, memResult) {
+    return storeSeq0(result, memResult) || storeSeq1(result, memResult);
+  },
+  seq0: storeSeq0,
+  seq1: storeSeq1,
+  interleaved: function(result, memResult) {
+    return result[0] == 0 && memResult[0] == 1;
+  },
+  weak: function (result, memResult) {
+    return result[0] == 1 && memResult[0] == 2;
+  }
+};
+
 function coRR4Seq(result, memResult) {
   return (result[0] == result[1]) && (result[2] == result[3]);
 }
