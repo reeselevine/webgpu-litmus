@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
-import { clearState, handleResult,buildThrottle } from './test-page-utils.js';
+import { clearState, handleResult } from './test-page-utils.js';
 import * as ReactBootStrap from 'react-bootstrap';
-import StressPanel,{randomGenerator}from './stressPanel.js';
+import StressPanel,{randomConfig}from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import TuningTable, { BuildStaticRows } from "../components/tuningTable"
-
-const keys = ["seq", "interleaved", "weak"];
-
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
@@ -20,7 +17,7 @@ function getPageState(props) {
   const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
-  //do next test if ture, stop otherwise; change by tuningTable component
+  //do next test if true, stop otherwise; change by tuningTable component
   const [renderTable, setRender] = useState(false);
   const [rows, setRows] = useState([]);
   return {
@@ -68,34 +65,13 @@ function getPageState(props) {
       value: renderTable,
       update: setRender
     },
-    rows:{
+    tuningRows:{
       value: rows,
       update: setRows
     }
   
   }
 }
-
-function updateStateAndHandleResult(pageState, testState,keys) {
-  const fn = handleResult(testState, keys);
-  return function (result, memResult) {
-    let time = reportTime();
-    let curIter = getCurrentIteration();
-    var rate;
-    if (time == 0) {
-      rate == 0;
-    } else {
-      rate = Math.round(curIter / time);
-    }
-    //console.log(Math.floor(curIter * 100 / pageState.iterations.value))
-    pageState.progress.update(Math.floor(getCurrentIteration() * 100 / pageState.iterations.value));
-    console.log( pageState.progress.value)
-    // testState.rate.update(rate);
-    // testState.time.update(time);
-    fn(result, memResult);
-  }
-}
-
 async function doTest(pageState, testParams, shaderCode, testState) {
   console.log("do test")
   console.log(testParams)
@@ -118,11 +94,7 @@ async function doTest(pageState, testParams, shaderCode, testState) {
     },
     error => console.log(error)
   );
-  //return 1;
 }
-
-
-
 function chartData(testState) {
   if (testState.numOutputs == 1) {
     return oneOutputChartData(testState);
@@ -132,7 +104,6 @@ function chartData(testState) {
     return fourOutputChartData(testState);
   }
 }
-
 function oneOutputChartData(testState) {
   return {
     labels: [testState.seq.label, testState.weak.label],
@@ -152,7 +123,6 @@ function oneOutputChartData(testState) {
     ]
   }
 }
-
 function twoOutputChartData(testState) {
   return {
     labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
@@ -178,7 +148,6 @@ function twoOutputChartData(testState) {
     ]
   }
 }
-
 function fourOutputChartData(testState) {
   return {
     labels: [testState.seq.label, testState.interleaved.label, testState.weak.label],
@@ -204,11 +173,9 @@ function fourOutputChartData(testState) {
     ]
   }
 }
-
 function commonTooltipFilter(tooltipItem, data) {
   return tooltipItem.datasetIndex == tooltipItem.dataIndex;
 }
-
 function twoOutputTooltipFilter(tooltipItem, data) {
   if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
     return true;
@@ -220,7 +187,6 @@ function twoOutputTooltipFilter(tooltipItem, data) {
     return false;
   }
 }
-
 function chartConfig(pageState, testState) {
   var tooltipFilter;
   if (testState.numOutputs == 2) {
@@ -264,7 +230,6 @@ function chartConfig(pageState, testState) {
     }
   }
 }
-
 function setVis(stateVar, str) {
   if (stateVar) {
     return str
@@ -272,13 +237,10 @@ function setVis(stateVar, str) {
     return ""
   }
 }
-
 function DropdownOption(props) {
   return (<option value={props.value}>{props.value}</option>)
 }
-
 let totalIteration = 0;
-
 function VariantOptions(props) {
   const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
   return (
@@ -292,13 +254,12 @@ function VariantOptions(props) {
       </select>
     </>)
 }
-
 let rows = [];
 let currentParam;
 let config;
 //run litmus test for each random config and store config for displaying 
 async function random(pageState, activeShader, testState,tuningTimes){
- pageState.rows.update([]);
+ pageState.tuningRows.update([]);
  rows.splice(0,rows.length);
  var keys;
  pageState.running.update(true);
@@ -311,40 +272,15 @@ async function random(pageState, activeShader, testState,tuningTimes){
  }
  clearState(testState, keys);
   for(let i =0; i<tuningTimes; i++){
-    let array1 = ["round-robin", "chunking"];
-    let array2 = ["load-store", "store-load", "load-load", "store-store"];
-    let maxWorkgroups =  randomGenerator(4,1024);
-    let minWorkgroups = randomGenerator(4, maxWorkgroups);
-    let stressLineSize = Math.pow(2, randomGenerator(1,10));
-    let stressTargetLines = randomGenerator(1,16);
-    let memStride = Math.pow(2, randomGenerator(1, 9));
-    let obj ={
-      id: i,
-      minWorkgroups: minWorkgroups ,
-      maxWorkgroups: maxWorkgroups,
-      minWorkgroupSize: 1,
-      maxWorkgroupSize: 1,
-      testMemorySize:  memStride * 128,
-      memStride: memStride,
-      memStressIterations: randomGenerator(0,1024),
-      preStressPct: randomGenerator(0,100),
-      preStressIterations: randomGenerator(0,2048),
-      stressLineSize : stressLineSize,
-      stressTargetLines: stressTargetLines,
-      shufflePct: randomGenerator(0,100),
-      barrierPct: randomGenerator(0,100),
-      memStressPct :randomGenerator(0,100),
-      scratchMemorySize : 32 * stressLineSize * stressTargetLines,
-      stressAssignmentStrategyName : array1[Math.floor(Math.random() * 2)],
-      memStressPatternName: array2[Math.floor(Math.random() * 4)],
-      preStressPatternName: array2[Math.floor(Math.random() * 4)],
-      stressAssignmentStrategy : Math.floor(Math.random() * 2),
-      memStressPattern: Math.floor(Math.random() * 4),
-      preStressPattern: Math.floor(Math.random() * 4),
-      numMemLocations: 2,
-      numOutputs: 2,
-      memoryAliases: {}
-    }
+    let obj = randomConfig();
+    obj={...obj, 
+        id:i,
+        minWorkgroupSize: 1,
+        maxWorkgroupSize: 1,
+        numMemLocations: 2,
+        numOutputs: 2,
+        memoryAliases: {}
+      }
     await doTest(pageState, obj, activeShader, testState);
      config ={
       progress: 100,
@@ -360,11 +296,9 @@ async function random(pageState, activeShader, testState,tuningTimes){
     let row = <BuildStaticRows pageState={pageState} key={obj.id} params={obj} config={config} rows={rows}></BuildStaticRows>
     rows.push(row);
   }
-  pageState.rows.update(rows);
+  pageState.tuningRows.update(rows);
   console.log(rows)
 }
-
-
 export function makeTestPage(props) {
   const pageState = getPageState(props);
   let initialIterations = pageState.iterations.value;
@@ -448,7 +382,7 @@ export function makeTestPage(props) {
                      </div>
                     <button className="button is-primary" onClick={()=>{
                       pageState.resetTable.update(false);
-                      pageState.rows.value.splice(0,pageState.rows.length);
+                      pageState.tuningRows.value.splice(0,pageState.tuningRows.length);
                       random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value);
                       pageState.tuningActive.update(true);
                       
@@ -464,7 +398,6 @@ export function makeTestPage(props) {
                       }} disabled={pageState.running.value}/>
                     </div>
                   </div>
-
                 </div>  
                 {
                 (pageState.tuningActive.value && !pageState.resetTable.value)
@@ -534,7 +467,6 @@ export function makeTestPage(props) {
     
   );
 }
-
 export function getIterationNum() {
   return totalIteration;
 }

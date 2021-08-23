@@ -1,9 +1,19 @@
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
-
+function PopUp(props){
+    return(
+    <div class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            {JSON.stringify(props.params,null, 4)}
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+  )
+}
 function ParamButton(props){
     return(
         <button className="button is-info is-small" onClick={()=>{
-            alert(JSON.stringify(props.params,null, 4));
+           alert (JSON.stringify(props.params,null, 4))
             }}>
             Show Param
         </button> 
@@ -18,11 +28,9 @@ function lastIteration(iteration){
     }
     else return checkLast;
 }
-
 let percentage = 0; 
 let rate = 0;
 let time = 0;
-let index = 1;
 function Percentage(props){
      percentage =Math.floor(getCurrentIteration()*100/props.pageState.iterations.value);
     return(
@@ -71,12 +79,10 @@ function DynamicRow(props){
 function BuildDynamicRow(props){
     
     let jsx = (
-        <DynamicRow pageState = {props.pageState} params={props.params} testState={props.testState} ></DynamicRow>
+        <DynamicRow pageState = {props.pageState} params={props.params}  testState={props.testState} ></DynamicRow>
     )
-
     return jsx
 }
-
  function StaticRow(props){
     
     return(
@@ -115,16 +121,12 @@ function BuildDynamicRow(props){
     )
      
 }
-
 export function BuildStaticRows(props,key){
-    // const[staticRows, setStatic] = useState([]);
     let row = <StaticRow pageState = {props.pageState}  key={key} params={props.params} config={props.config}></StaticRow>
    
     return row;
 }
-
-
-export default function tuningTable(props){
+export default function TuningTable(props){
     let dynamicRow =  <BuildDynamicRow pageState = {props.pageState} params={props.params} testState={props.testState} ></BuildDynamicRow>
     return (
     <>
@@ -152,7 +154,7 @@ export default function tuningTable(props){
              :
              <tbody>
                  {dynamicRow}
-                 {props.pageState.rows.value}
+                 {props.pageState.tuningRows.value}
              </tbody>
         }
                

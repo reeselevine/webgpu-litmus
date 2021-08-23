@@ -163,7 +163,7 @@ const allStressConfig = {
   preStressPct: 100
 };
 
-function randomConfig() {
+export function randomConfig() {
   let maxWorkgroups =  randomGenerator(4,1024);
   let minWorkgroups = randomGenerator(4, maxWorkgroups);
   let stressLineSize = Math.pow(2, randomGenerator(1,10));
