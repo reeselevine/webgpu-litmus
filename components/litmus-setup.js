@@ -447,7 +447,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     };
 }
 
-export async function runLitmusTest(shaderCode, testParams, iterations, handleResult) {
+export async function runLitmusTest( shaderCode, testParams, iterations, handleResult) {
     const device = await getDevice();
     if (device === undefined) {
         alert("WebGPU not enabled or supported!")
@@ -480,6 +480,7 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     const p7 = map_buffer(buffers.stressParams);
     await p7;
     setStressParams(buffers.stressParams, testParams);
+
 
     const start = Date.now();
     for (let i = 0; i < iterations; i++) {
