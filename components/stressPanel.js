@@ -252,22 +252,22 @@ export function getStressPanel(params, pageState) {
                   <div className="buttons are-small">
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(params, uiParams, noStressConfig);
-                }}>
+                }} disabled={pageState.running.value}>
                   Basic
                 </button> 
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(params, uiParams, someStressConfig);
-                }}>
+                }} disabled={pageState.running.value}>
                   Interleave
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(params, uiParams, allStressConfig);
-                }}>
+                }} disabled={pageState.running.value}>
                   Stress
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
                   setConfig(params, uiParams, randomConfig());
-                }}>
+                }} disabled={pageState.running.value}>
                   Random
                 </button>
                 </div>

@@ -10,13 +10,13 @@ const variants = {
   storage: {
     pseudo: buildPseudoCode([`0.1: *x = 1
 0.2: storageBarrier()`, `1.1: storageBarrier()
-1.2: let r0 = x`]),
+1.2: let r0 = x`], true),
     shader: barrierSL
   },
   workgroup: {
     pseudo: buildPseudoCode([`0.1: *x = 1
 0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
-1.2: let r0 = x`]),
+1.2: let r0 = x`], true),
     shader: barrierWorkgroupSL
   }
 }
@@ -45,7 +45,7 @@ export default function BarrierStoreLoad() {
 
   const props = {
     testName: "Barrier Store Load",
-    testDescription: "The barrier store load test checks to see if the barrier works correctly",
+    testDescription: "The barrier store load test checks to see if WebGPU's barriers correctly synchronize a store before the barrier on one thread and a load on another thread after the barrier.",
     testParams: testParams,
     shaderCode: barrierSL,
     stateConfig: stateConfig,

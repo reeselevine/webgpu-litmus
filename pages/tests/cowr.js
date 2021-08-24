@@ -85,7 +85,7 @@ export default function CoWR() {
 
   const props = {
     testName: "CoWR",
-    testDescription: "The CoWR litmus test checks to see if memory is coherent.",
+    testDescription: "The CoWR litmus test checks SC-per-location by ensuring that if a read observes a write from another thread, any prior writes to the same address are not re-ordered beyond the read. Variants using rmw instructions are included.",
     testParams: testParams,
     shaderCode: coWR,
     stateConfig: stateConfig,

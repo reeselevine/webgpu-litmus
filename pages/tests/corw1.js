@@ -51,7 +51,7 @@ export default function CoRW1() {
 
   const props = {
     testName: "CoRW1",
-    testDescription: "The CoRW1 litmus test checks to see if memory is coherent.",
+    testDescription: "The CoRW1 litmus test checks SC-per-location by ensuring a read and a write to the same address cannot be re-ordered on one thread.",
     testParams: testParams,
     shaderCode: coRW1,
     stateConfig: stateConfig,

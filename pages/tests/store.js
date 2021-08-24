@@ -76,7 +76,7 @@ export default function Store() {
 
   const props = {
       testName: "Store",
-      testDescription: "The store litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
+      testDescription: "The store litmus test checks to see if two stores in one thread can be re-ordered according to a store and a load on a second thread. Variants using the release/acquire workgroup control barrier are also included.",
       testParams: defaultTestParams,
       shaderCode: store,
       stateConfig: stateConfig,

@@ -76,7 +76,7 @@ export default function LoadBuffer() {
 
   const props = {
       testName: "Load Buffer",
-      testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads.",
+      testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads. Variants using the release/acquire workgroup control barrier are also included.",
       testParams: defaultTestParams,
       shaderCode: loadBuffer,
       stateConfig: stateConfig,
