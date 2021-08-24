@@ -35,6 +35,11 @@ return(
     </Link>
   </div>
   <div className="panel-block ">
+    <Link href='/tests/store'>
+          Store 
+    </Link>
+  </div>
+  <div className="panel-block ">
     <Link href='/tests/load-buffer'>
           Load Buffer 
     </Link>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
-import { clearState, handleResult } from './test-page-utils.js';
 import * as ReactBootStrap from 'react-bootstrap';
-import StressPanel,{randomConfig}from './stressPanel.js';
+import { getStressPanel, randomConfig }from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
+import { clearState, handleResult, workgroupMemorySize } from './test-page-utils.js';
 import TuningTable, { BuildStaticRows } from "../components/tuningTable"
+
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
   const [running, setRunning] = useState(false);
@@ -14,6 +15,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
+  const [activeVariant, setActiveVariant] = useState("default");
   const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -40,6 +42,10 @@ function getPageState(props) {
     activeShader: {
       value: activeShader,
       update: setActiveShader
+    },
+    activeVariant: {
+      value: activeVariant,
+      update: setActiveVariant
     },
     modeActive:{
       value: mode,
@@ -72,20 +78,10 @@ function getPageState(props) {
   
   }
 }
-async function doTest(pageState, testParams, shaderCode, testState) {
-  console.log("do test")
-  console.log(testParams)
-  var keys;
+
+async function doTest(pageState, testParams, shaderCode, testState, keys) {
   pageState.running.update(true);
-  if (testState.numOutputs == 1) {
-    keys = ["seq", "weak"];
-  } else if (testState.numOutputs == 2) {
-    keys = ["seq0", "seq1", "interleaved", "weak"];
-  } else if (testState.numOutputs == 4) {
-    keys = ["seq", "interleaved", "weak"];
-  }
   clearState(testState, keys);
-  console.log("start a test")
    await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
     success => {
       pageState.running.update(false);
@@ -95,105 +91,8 @@ async function doTest(pageState, testParams, shaderCode, testState) {
     error => console.log(error)
   );
 }
-function chartData(testState) {
-  if (testState.numOutputs == 1) {
-    return oneOutputChartData(testState);
-  } else if (testState.numOutputs == 2) {
-    return twoOutputChartData(testState);
-  } else if (testState.numOutputs == 4) {
-    return fourOutputChartData(testState);
-  }
-}
-function oneOutputChartData(testState) {
-  return {
-    labels: [testState.seq.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, testState.weak.visibleState]
-      }
-    ]
-  }
-}
-function twoOutputChartData(testState) {
-  return {
-    labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq0.visibleState, testState.seq1.visibleState, null, null]
-      },
-      {
-        label: "Sequential Interleaving",
-        backgroundColor: 'rgba(3,35,173,0.7)',
-        grouped: false,
-        data: [null, null, testState.interleaved.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, null, null, testState.weak.visibleState]
-      }
-    ]
-  }
-}
-function fourOutputChartData(testState) {
-  return {
-    labels: [testState.seq.label, testState.interleaved.label, testState.weak.label],
-    datasets: [
-      {
-        label: "Sequential",
-        backgroundColor: 'rgba(21,161,42,0.7)',
-        grouped: false,
-        data: [testState.seq.visibleState, null, null]
-      },
-      {
-        label: "Sequential Interleaving",
-        backgroundColor: 'rgba(3,35,173,0.7)',
-        grouped: false,
-        data: [null, testState.interleaved.visibleState, null]
-      },
-      {
-        label: "Weak Behavior",
-        backgroundColor: 'rgba(212,8,8,0.7)',
-        grouped: false,
-        data: [null, null, testState.weak.visibleState]
-      }
-    ]
-  }
-}
-function commonTooltipFilter(tooltipItem, data) {
-  return tooltipItem.datasetIndex == tooltipItem.dataIndex;
-}
-function twoOutputTooltipFilter(tooltipItem, data) {
-  if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
-    return true;
-  } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
-    return true;
-  } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function chartConfig(pageState, testState) {
-  var tooltipFilter;
-  if (testState.numOutputs == 2) {
-    tooltipFilter = twoOutputTooltipFilter;
-  } else {
-    tooltipFilter = commonTooltipFilter;
-  }
+
+function chartConfig(pageState, tooltipFilter) {
   return {
     plugins: {
       title: {
@@ -230,6 +129,7 @@ function chartConfig(pageState, testState) {
     }
   }
 }
+
 function setVis(stateVar, str) {
   if (stateVar) {
     return str
@@ -237,9 +137,11 @@ function setVis(stateVar, str) {
     return ""
   }
 }
+
 function DropdownOption(props) {
   return (<option value={props.value}>{props.value}</option>)
 }
+
 let totalIteration = 0;
 function VariantOptions(props) {
   const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
@@ -249,28 +151,25 @@ function VariantOptions(props) {
       <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
+        props.pageState.activeVariant.update(e.target.value);
+        if (e.target.value == "workgroup") {
+          props.uiParams.testMemorySize.state.update(workgroupMemorySize);
+          props.testParams['testMemorySize'] = workgroupMemorySize;
+        }
       }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>
     </>)
 }
+
 let rows = [];
 let currentParam;
 let config;
 //run litmus test for each random config and store config for displaying 
-async function random(pageState, activeShader, testState,tuningTimes){
+async function random(pageState, activeShader, testState, tuningTimes, keys){
  pageState.tuningRows.update([]);
  rows.splice(0,rows.length);
- var keys;
  pageState.running.update(true);
- if (testState.numOutputs == 1) {
-   keys = ["seq", "weak"];
- } else if (testState.numOutputs == 2) {
-   keys = ["seq0", "seq1", "interleaved", "weak"];
- } else if (testState.numOutputs == 4) {
-   keys = ["seq", "interleaved", "weak"];
- }
- clearState(testState, keys);
   for(let i =0; i<tuningTimes; i++){
     let obj = randomConfig();
     obj={...obj, 
@@ -281,7 +180,7 @@ async function random(pageState, activeShader, testState,tuningTimes){
         numOutputs: 2,
         memoryAliases: {}
       }
-    await doTest(pageState, obj, activeShader, testState);
+    await doTest(pageState, obj, activeShader, testState, keys);
      config ={
       progress: 100,
       rate: Math.round((getCurrentIteration() / (reportTime()))),
@@ -297,15 +196,16 @@ async function random(pageState, activeShader, testState,tuningTimes){
     rows.push(row);
   }
   pageState.tuningRows.update(rows);
-  console.log(rows)
 }
+
 export function makeTestPage(props) {
   const pageState = getPageState(props);
+  const stressPanel = getStressPanel(props.testParams, pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
   let variantOptions;
   if ('variants' in props) {
-    variantOptions = <VariantOptions variants={props.variants} pageState={pageState}/>;
+    variantOptions = <VariantOptions variants={props.variants} pageState={pageState} uiParams={stressPanel.uiParams} testParams={props.testParams}/>;
   } else {
     variantOptions = <></>;
   }
@@ -383,7 +283,7 @@ export function makeTestPage(props) {
                     <button className="button is-primary" onClick={()=>{
                       pageState.resetTable.update(false);
                       pageState.tuningRows.value.splice(0,pageState.tuningRows.length);
-                      random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value);
+                      random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value, props.keys);
                       pageState.tuningActive.update(true);
                       
                     }}>
@@ -410,8 +310,8 @@ export function makeTestPage(props) {
               <div className="section">
                 <div className="columns">
                 <Bar
-                data={chartData(props.testState)}
-                options={chartConfig(pageState, props.testState)}
+                data={props.chartData}
+                options={chartConfig(pageState, props.tooltipFilter)}
               />
                 </div>
               </div>
@@ -423,7 +323,7 @@ export function makeTestPage(props) {
                 </div>
               </div>
             </div>
-            <StressPanel params={props.testParams} pageState={pageState}></StressPanel>
+            {stressPanel.jsx}
             </div>
           }
         </div>
@@ -442,7 +342,7 @@ export function makeTestPage(props) {
           </div>
           <div className="buttons mt-2">
             <button className="button is-primary" onClick={() => {
-              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState);
+              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState, props.keys);
               setProgressBarState();
               totalIteration = pageState.iterations.value;
             }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>

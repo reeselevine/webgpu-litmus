@@ -1,18 +1,45 @@
 import { useState } from 'react';
 import _ from 'lodash'
+import { makeTestPage } from './test-page-setup';
+
+export const workgroupMemorySize = 2048;
+
+export function makeOneOutputLitmusTestPage(props) {
+  props.testState = getOneOutputState(props.stateConfig);
+  props.chartData = oneOutputChartData(props.testState);
+  props.keys = ["seq", "weak"];
+  props.tooltipFilter = commonTooltipFilter;
+  return makeTestPage(props);
+}
+
+export function makeTwoOutputLitmusTestPage(props) {
+  props.testState = getTwoOutputState(props.stateConfig);
+  props.chartData = twoOutputChartData(props.testState);
+  props.keys = ["seq0", "seq1", "interleaved", "weak"];
+  props.tooltipFilter = twoOutputTooltipFilter;
+  return makeTestPage(props);
+}
+
+export function makeFourOutputLitmusTestPage(props) {
+  props.testState = getFourOutputState(props.stateConfig);
+  props.chartData = fourOutputChartData(props.testState);
+  props.keys = ["seq", "interleaved", "weak"];
+  props.tooltipFilter = commonTooltipFilter;
+  return makeTestPage(props);
+}
 
 export function buildThrottle(updateFunc) {
   return _.throttle((newValue) => updateFunc(newValue), 50);
 }
 
-function buildStateValues(key, config, state, updateFunc) {
+export function buildStateValues(config, state, updateFunc) {
   return {
     visibleState: state,
     internalState: 0,
     syncUpdate: updateFunc,
     throttledUpdate: buildThrottle(updateFunc),
-    label: config[key].label,
-    resultHandler: config[key].handler
+    label: config.label,
+    resultHandler: config.handler
   }
 }
 
@@ -20,12 +47,11 @@ export function getOneOutputState(config) {
   const [seq, setSeq] = useState(0);
   const [weak, setWeak] = useState(0);
   return {
-    numOutputs: 1,
     seq: {
-      ...buildStateValues("seq", config, seq, setSeq)
+      ...buildStateValues(config["seq"], seq, setSeq)
     },
     weak: {
-      ...buildStateValues("weak", config, weak, setWeak)
+      ...buildStateValues(config["weak"], weak, setWeak)
     }
   }
 }
@@ -36,18 +62,17 @@ export function getTwoOutputState(config) {
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
   return {
-    numOutputs: 2,
     seq0: {
-      ...buildStateValues("seq0", config, seq0, setSeq0)
+      ...buildStateValues(config["seq0"], seq0, setSeq0)
     },
     seq1: {
-      ...buildStateValues("seq1", config, seq1, setSeq1)
+      ...buildStateValues(config["seq1"], seq1, setSeq1)
     },
     interleaved: {
-      ...buildStateValues("interleaved", config, interleaved, setInterleaved)
+      ...buildStateValues(config["interleaved"], interleaved, setInterleaved)
     },
     weak: {
-      ...buildStateValues("weak", config, weak, setWeak)
+      ...buildStateValues(config["weak"], weak, setWeak)
     }
   }
 }
@@ -57,16 +82,103 @@ export function getFourOutputState(config) {
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
   return {
-    numOutputs: 4,
     seq: {
-      ...buildStateValues("seq", config, seq, setSeq)
+      ...buildStateValues(config["seq"], seq, setSeq)
     },
     interleaved: {
-      ...buildStateValues("interleaved", config, interleaved, setInterleaved)
+      ...buildStateValues(config["interleaved"], interleaved, setInterleaved)
     },
     weak: {
-      ...buildStateValues("weak", config, weak, setWeak)
+      ...buildStateValues(config["weak"], weak, setWeak)
     }
+  }
+}
+
+function oneOutputChartData(testState) {
+  return {
+    labels: [testState.seq.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+function twoOutputChartData(testState) {
+  return {
+    labels: [testState.seq0.label, testState.seq1.label, testState.interleaved.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq0.visibleState, testState.seq1.visibleState, null, null]
+      },
+      {
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        grouped: false,
+        data: [null, null, testState.interleaved.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, null, null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+function fourOutputChartData(testState) {
+  return {
+    labels: [testState.seq.label, testState.interleaved.label, testState.weak.label],
+    datasets: [
+      {
+        label: "Sequential",
+        backgroundColor: 'rgba(21,161,42,0.7)',
+        grouped: false,
+        data: [testState.seq.visibleState, null, null]
+      },
+      {
+        label: "Sequential Interleaving",
+        backgroundColor: 'rgba(3,35,173,0.7)',
+        grouped: false,
+        data: [null, testState.interleaved.visibleState, null]
+      },
+      {
+        label: "Weak Behavior",
+        backgroundColor: 'rgba(212,8,8,0.7)',
+        grouped: false,
+        data: [null, null, testState.weak.visibleState]
+      }
+    ]
+  }
+}
+
+export function commonTooltipFilter(tooltipItem, data) {
+  return tooltipItem.datasetIndex == tooltipItem.dataIndex;
+}
+
+function twoOutputTooltipFilter(tooltipItem, data) {
+  if (tooltipItem.datasetIndex == 0 && tooltipItem.dataIndex < 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 1 && tooltipItem.dataIndex == 2) {
+    return true;
+  } else if (tooltipItem.datasetIndex == 2 && tooltipItem.dataIndex == 3) {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -122,6 +234,48 @@ export const coRRHandlers = {
   seq1: commonHandlers.bothOne,
   interleaved: commonHandlers.zeroOne,
   weak: commonHandlers.oneZero
+};
+
+export const messagePassingHandlers = {
+  seq: function (result, memResult) {
+    return commonHandlers.bothZero(result, memResult) || commonHandlers.bothOne(result, memResult);
+  },
+  seq0: commonHandlers.bothZero,
+  seq1: commonHandlers.bothOne,
+  interleaved: commonHandlers.zeroOne,
+  weak: commonHandlers.oneZero
+};
+
+export const loadBufferHandlers = {
+  seq: function(result, memResult) {
+    return commonHandlers.oneZero(result, memResult) || commonHandlers.zeroOne(result, memResult);
+  },
+  seq0: commonHandlers.oneZero,
+  seq1: commonHandlers.zeroOne,
+  interleaved: commonHandlers.bothZero,
+  weak: commonHandlers.bothOne
+};
+
+function storeSeq0(result, memResult) {
+  return result[0] == 1 && memResult[0] == 1;
+}
+
+function storeSeq1(result, memResult) {
+  return result[0] == 0 && memResult[0] == 2;
+}
+
+export const storeHandlers = {
+  seq: function(result, memResult) {
+    return storeSeq0(result, memResult) || storeSeq1(result, memResult);
+  },
+  seq0: storeSeq0,
+  seq1: storeSeq1,
+  interleaved: function(result, memResult) {
+    return result[0] == 0 && memResult[0] == 1;
+  },
+  weak: function (result, memResult) {
+    return result[0] == 1 && memResult[0] == 2;
+  }
 };
 
 function coRR4Seq(result, memResult) {
@@ -249,4 +403,8 @@ export const barrierStoreStoreHandlers = {
   }
 }
 
-
+export const barrierWorkgroupSync = {
+  nosync: commonHandlers.bothZero,
+  sync: commonHandlers.bothOne,
+  weak: commonHandlers.oneZero
+}

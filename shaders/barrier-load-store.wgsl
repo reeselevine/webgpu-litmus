@@ -5,14 +5,19 @@
   value: array<u32>;
 };
 
+[[block]] struct StressParamsMemory {
+  value: [[stride(16)]] array<u32, 7>;
+};
+
 [[group(0), binding(0)]] var<storage, read_write> test_data : Memory;
-[[group(0), binding(1)]] var<storage, read_write> mem_locations : Memory;
-[[group(0), binding(2)]] var<storage, read_write> results : Memory;
-[[group(0), binding(3)]] var<storage, read_write> shuffled_ids : Memory;
-[[group(0), binding(4)]] var<storage, read_write> barrier : AtomicMemory;
-[[group(0), binding(5)]] var<storage, read_write> scratchpad : Memory;
-[[group(0), binding(6)]] var<storage, read_write> scratch_locations : Memory;
-[[group(0), binding(7)]] var<storage, read_write> stress_params : Memory;
+[[group(0), binding(1)]] var<storage, read_write> atomic_test_data : AtomicMemory;
+[[group(0), binding(2)]] var<storage, read_write> mem_locations : Memory;
+[[group(0), binding(3)]] var<storage, read_write> results : Memory;
+[[group(0), binding(4)]] var<storage, read_write> shuffled_ids : Memory;
+[[group(0), binding(5)]] var<storage, read_write> barrier : AtomicMemory;
+[[group(0), binding(6)]] var<storage, read_write> scratchpad : Memory;
+[[group(0), binding(7)]] var<storage, read_write> scratch_locations : Memory;
+[[group(0), binding(8)]] var<uniform> stress_params : StressParamsMemory;
 
 fn spin() {
   var i : u32 = 0u;
@@ -91,13 +96,16 @@ let workgroupXSize = 256;
         spin();
       }
     }
+    var r0: u32;
     if (l_id == 0u) {
-      let r0 = *ax;
-      results.value[0] = r0;
-    }
+      r0 = *ax;
+          }
     storageBarrier();
     if (l_id == 1u) {
       *ay = 1u;
+    }
+    if (l_id == 0u) {
+      results.value[0] = r0;
     }
   } elseif (stress_params.value[1] == 1u) {
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);

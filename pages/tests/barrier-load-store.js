@@ -1,10 +1,25 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getOneOutputState, barrierLoadStoreHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { barrierLoadStoreHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import barrierLS from '../../shaders/barrier-load-store.wgsl';
+import barrierWorkgroupLS from '../../shaders/barrier-load-store-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+
+const variants = {
+  storage: {
+    pseudo: buildPseudoCode([`0.1: let r0 = *x
+0.2: storageBarrier()`, `1.1: storageBarrier()
+1.2: *x = 1`]),
+    shader: barrierLS
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: let r0 = x
+0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
+1.2: *x = 1`]),
+    shader: barrierWorkgroupLS
+  }
+}
 
 export default function BarrierLoadStore() {
   testParams.memoryAliases[1] = 0;
@@ -13,31 +28,30 @@ export default function BarrierLoadStore() {
   testParams.minWorkgroupSize = 256;
   testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=0"/>,
-    code: buildPseudoCode([`0.1: r0=x
-0.2: barrier()`, `1.1: barrier()
-1.2: x=1`])
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0"/>,
+    code: variants.storage.pseudo
   };
 
-  const testState = getOneOutputState({
+  const stateConfig = {
     seq: {
-      label: "r0=0", 
+      label: "r0 == 0", 
       handler: barrierLoadStoreHandlers.seq
     },
     weak: {
-      label: "r0=1",
+      label: "r0 == 1",
       handler: barrierLoadStoreHandlers.weak
     }
-  })
+  };
 
   const props = {
     testName: "Barrier Load Store",
     testDescription: "The barrier load store test checks to see if the barrier works correctly",
     testParams: testParams,
     shaderCode: barrierLS,
-    testState: testState,
-    pseudoCode: pseudoCode
+    stateConfig: stateConfig,
+    pseudoCode: pseudoCode,
+    variants: variants
   };
 
-  return makeTestPage(props);
+  return makeOneOutputLitmusTestPage(props);
 }

@@ -1,6 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { getTwoOutputState, coRRHandlers } from '../../components/test-page-utils.js';
-import { makeTestPage } from '../../components/test-page-setup.js';
+import { coRRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
 import coRR_RMW from '../../shaders/corr-rmw.wgsl';
@@ -15,43 +14,43 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=x
-1.2: r1=x`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`]),
     shader: coRR
   },
   rmw: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=x
-1.2: r1=add(x, 0)`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW
   },
   rmw1: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=x
-1.2: r1=x`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`]),
     shader: coRR_RMW1
   },
   rmw2: {
-    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=x
-1.2: r1=add(x, 0)`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW2
   },
   rmw3: {
-    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=add(x, 0)
-1.2: r1=x`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
+1.2: let r1 = atomicLoad(x)`]),
     shader: coRR_RMW3
   },
   rmw4: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=add(x, 0)
-1.2: r1=x`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
+1.2: let r1 = atomicLoad(x)`]),
     shader: coRR_RMW4
   },
   rmw5: {
-    pseudo: buildPseudoCode([`0.1: x=1`, `1.1: r0=add(x, 0)
-1.2: r1=add(x, 0)`]),
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
+1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW5
   },
   rmw6: {
-    pseudo: buildPseudoCode([`0.1: exchange(x, 1)`, `1.1: r0=add(x, 0)
-1.2: r1=add(x, 0)`]),
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
+1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW6
   }
 }
@@ -59,38 +58,38 @@ const variants = {
 export default function CoRR() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="global x=0" finalState="r0=1 && r1=0"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 1 && r1 == 0"/>,
     code: variants.default.pseudo
   };
 
-  const testState = getTwoOutputState({
+  const stateConfig = {
     seq0: {
-      label: "r0=0 && r1=0",
+      label: "r0 == 0 && r1 == 0",
       handler: coRRHandlers.seq0
     },
     seq1: {
-      label: "r0=1 && r1=1",
+      label: "r0 == 1 && r1 == 1",
       handler: coRRHandlers.seq1
     },
     interleaved: {
-      label: "r0=0 && r1=1",
+      label: "r0 == 0 && r1 == 1",
       handler: coRRHandlers.interleaved
     },
     weak: {
-      label: "r0=1 && r1=0",
+      label: "r0 == 1 && r1 == 0",
       handler: coRRHandlers.weak
     }
-  });
+  };
 
   const props = {
       testName: "CoRR",
       testDescription: "The CoRR litmus test checks to see if memory is coherent.",
       testParams: testParams,
       shaderCode: coRR,
-      testState: testState,
+      stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants
   }
 
-  return makeTestPage(props);
+  return makeTwoOutputLitmusTestPage(props);
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from'next/link'
-import StressPanel from '../components/stressPanel.js';
-import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers } from '../components/test-page-utils.js';
+import { getStressPanel } from '../components/stressPanel.js';
+import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, workgroupMemorySize, messagePassingHandlers, loadBufferHandlers, storeHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import coRR from '../shaders/corr.wgsl';
@@ -25,6 +25,15 @@ import atomicity from '../shaders/atomicity.wgsl';
 import barrierLS from '../shaders/barrier-load-store.wgsl';
 import barrierSL from '../shaders/barrier-store-load.wgsl';
 import barrierSS from '../shaders/barrier-store-store.wgsl';
+import barrierWorkgroupLS from '../shaders/barrier-load-store-workgroup.wgsl';
+import barrierWorkgroupSL from '../shaders/barrier-store-load-workgroup.wgsl';
+import barrierWorkgroupSS from '../shaders/barrier-store-store-workgroup.wgsl';
+import barrierMP from '../shaders/barrier-message-passing.wgsl';
+import barrierLB from '../shaders/barrier-load-buffer.wgsl';
+import barrierS from '../shaders/barrier-store.wgsl';
+import barrierMPNA from '../shaders/barrier-message-passing-na.wgsl';
+import barrierLBNA from '../shaders/barrier-load-buffer-na.wgsl';
+import barrierSNA from '../shaders/barrier-store-na.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
@@ -77,7 +86,7 @@ function TestRow(props) {
         <td>{props.state.interleaved.visibleState}</td>
         <td>{props.state.weak.visibleState}</td>
         <td><button className="button" onClick={() => {
-          doTest(props.pageState, props.testParams, props.shaderCode, props.state);
+          doTest(props.pageState, props.testParams, props.shaderCode, props.state, props.fixedMemorySize);
         }} disabled={props.pageState.running.value}>Run</button></td>
       </tr>
     </>
@@ -85,7 +94,7 @@ function TestRow(props) {
 
 }
 
-function buildTest(testName, testUrl, pageState, testParams, shaderCode, handlers) {
+function buildTest(testName, testUrl, pageState, testParams, shaderCode, handlers, fixedMemorySize = false) {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
@@ -122,17 +131,17 @@ function buildTest(testName, testUrl, pageState, testParams, shaderCode, handler
   };
   return {
     run: async function () {
-      return doTest(pageState, testParams, shaderCode, state);
+      return doTest(pageState, testParams, shaderCode, state, fixedMemorySize);
     },
-    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode}/>
+    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode} fixedMemorySize={fixedMemorySize}/>
   }
 }
 
-function buildBarrierTest(testName, testUrl, pageState, testParams, shaderCode, handlers) {
+function buildBarrierTest(testName, testUrl, pageState, testParams, shaderCode, handlers, fixedMemorySize = false) {
   const barrierTestParams = JSON.parse(JSON.stringify(testParams));
   barrierTestParams.minWorkgroupSize = 256;
   barrierTestParams.maxWorkgroupSize = 256;
-  return buildTest(testName, testUrl, pageState, barrierTestParams, shaderCode, handlers);
+  return buildTest(testName, testUrl, pageState, barrierTestParams, shaderCode, handlers, fixedMemorySize);
 }
 
 function updateStateAndHandleResult(pageState, testState) {
@@ -153,14 +162,22 @@ function updateStateAndHandleResult(pageState, testState) {
   }
 }
 
-async function doTest(pageState, testParams, shaderCode, testState) {
+async function doTest(pageState, testParams, shaderCode, testState, useWorkgroupMemorySize) {
+  let newParams;
+  if (useWorkgroupMemorySize) {
+    newParams = JSON.parse(JSON.stringify(testParams));
+    console.log("here");
+    newParams.testMemorySize = workgroupMemorySize;
+  } else {
+    newParams = testParams;
+  }
   pageState.running.update(true);
   clearState(testState, keys);
   testState.progress.update(0);
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
+  await runLitmusTest(shaderCode, newParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
   if (testState.weak.internalState > 0) {
     testState.result.update(false);
   } else {
@@ -201,11 +218,24 @@ export default function ConformanceTestSuite() {
   const barrierLoadStoreConfig = buildBarrierTest("Barrier Load Store", "barrier-load-store", pageState, testParams, barrierLS, barrierLoadStoreHandlers);
   const barrierStoreLoadConfig = buildBarrierTest("Barrier Store Load", "barrier-store-load", pageState, testParams, barrierSL, barrierStoreLoadHandlers);
   const barrierStoreStoreConfig = buildBarrierTest("Barrier Store Store", "barrier-store-store", pageState, testParams, barrierSS, barrierStoreStoreHandlers);
+  const barrierWorkgroupLoadStoreConfig = buildBarrierTest("Barrier Load Store (workgroup memory)", "barrier-load-store", pageState, testParams, barrierWorkgroupLS, barrierLoadStoreHandlers, true);
+  const barrierWorkgroupStoreLoadConfig = buildBarrierTest("Barrier Store Load (workgroup memory)", "barrier-store-load", pageState, testParams, barrierWorkgroupSL, barrierStoreLoadHandlers, true);
+  const barrierWorkgroupStoreStoreConfig = buildBarrierTest("Barrier Store Store (workgroup memory)", "barrier-store-store", pageState, testParams, barrierWorkgroupSS, barrierStoreStoreHandlers, true);
+  const messagePassingBarrierConfig = buildTest("Message Passing with Barrier", "message-passing", pageState, testParams, barrierMP, messagePassingHandlers);
+  const loadBufferBarrierConfig = buildTest("Load Buffer with Barrier", "load-buffer", pageState, testParams, barrierLB, loadBufferHandlers);
+  const storeBarrierConfig = buildTest("Store with Barrier", "store", pageState, testParams, barrierS, storeHandlers);
+  const messagePassingBarrierNAConfig = buildTest("Message Passing with Barrier (non-atomic variant)", "message-passing", pageState, testParams, barrierMPNA, messagePassingHandlers);
+  const loadBufferBarrierNAConfig = buildTest("Load Buffer with Barrier (non-atomic variant)", "load-buffer", pageState, testParams, barrierLBNA, loadBufferHandlers);
+  const storeBarrierNAConfig = buildTest("Store with Barrier (non-atomic variant)", "store", pageState, testParams, barrierSNA, storeHandlers);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig];
+  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, 
+    coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, 
+    coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig, 
+    barrierWorkgroupLoadStoreConfig, barrierWorkgroupStoreLoadConfig, barrierWorkgroupStoreStoreConfig, messagePassingBarrierConfig,
+    messagePassingBarrierNAConfig, loadBufferBarrierConfig, loadBufferBarrierNAConfig, storeBarrierConfig, storeBarrierNAConfig];
 
   let initialIterations = pageState.iterations.value;
-
+  const stressPanel = getStressPanel(testParams, pageState);
   return (
     <>
       <div className="columns">
@@ -215,7 +245,7 @@ export default function ConformanceTestSuite() {
             <h2 className="testDescription">Run all the tests.</h2>
           </div>
         </div>
-        <StressPanel params={testParams} pageState={pageState} />
+        {stressPanel.jsx}
       </div>
       <div className="columns">
         <div className="column is-one-fifth">
