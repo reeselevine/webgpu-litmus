@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import { getStressPanel, randomGenerator }from './stressPanel.js';
+import { getStressPanel, randomConfig }from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import TuningTable from "../components/tuningTable"
 import { clearState, handleResult, workgroupMemorySize } from './test-page-utils.js';
+import TuningTable, { BuildStaticRows } from "../components/tuningTable"
 
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
@@ -17,6 +17,11 @@ function getPageState(props) {
   const [activeShader, setActiveShader] = useState(props.shaderCode);
   const [activeVariant, setActiveVariant] = useState("default");
   const [tuningTimes, setTuningTimes] = useState(10);
+  const [resetTable, setResetTable] = useState(false);
+  const [progress, setProgress] = useState(0);
+  //do next test if true, stop otherwise; change by tuningTable component
+  const [renderTable, setRender] = useState(false);
+  const [rows, setRows] = useState([]);
   return {
     iterations: {
       value: iterations,
@@ -53,19 +58,35 @@ function getPageState(props) {
     tuningTimes:{
       value: tuningTimes,
       update: setTuningTimes
+    },
+    resetTable:{
+      value: resetTable,
+      update: setResetTable
+    },
+    progress:{
+      value: progress,
+      update: setProgress
+    },
+    renderTable:{
+      value: renderTable,
+      update: setRender
+    },
+    tuningRows:{
+      value: rows,
+      update: setRows
     }
+  
   }
 }
 
-function doTest(pageState, testParams, shaderCode, testState, keys) {
-  var keys;
+async function doTest(pageState, testParams, shaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
-  const p = runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys));
-  p.then(
+   await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")
+     
     },
     error => console.log(error)
   );
@@ -122,7 +143,6 @@ function DropdownOption(props) {
 }
 
 let totalIteration = 0;
-
 function VariantOptions(props) {
   const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
   return (
@@ -141,75 +161,45 @@ function VariantOptions(props) {
       </select>
     </>)
 }
-function random(paramsref){
-  const [params, setRandom] = useState(paramsref)
-  let array1 = ["round-robin", "chunking"];
-  let array2 = ["load-store", "store-load", "load-load", "store-store"];
-  let scratchMem = 4*params.stressLineSize*params.stressTargetLines;
-  let testMem = params.memStride * Math.pow(2,6);
-  let memStride_ = randomGenerator(1,128);
-  let maxWorkgroups =  randomGenerator(4,1024);
-  let minWorkgroups = maxWorkgroups+1;
-  while(minWorkgroups > maxWorkgroups){
-    minWorkgroups = randomGenerator(4,maxWorkgroups);;
-  }
-  let stressLineSize_ = randomGenerator(1,128);
-  let stressTargetLines_ =  randomGenerator(1,128);
-  scratchMem = 4*stressLineSize_ * stressTargetLines_;
-  while(testMem > 4096){
-    memStride_ = randomGenerator(1,128);
-    testMem = memStride_ * Math.pow(2,6);
-  }
-  setRandom({
-      minWorkgroups : minWorkgroups, 
-      maxWorkgroups : maxWorkgroups, 
-      testMemorySize : testMem,
-      memStride : memStride_,
-      memStressIterations : randomGenerater(0,1024),
-      preStressPct :randomGenerater(0,100),
-      preStressIterations :  randomGenerater(0,2048),
-      stressLineSize : stressLineSize_,
-      stressTargetLines : stressTargetLines_,
-      shufflePct : randomGenerater(0,100),
-      barrierPct : randomGenerater(0,100),
-      memStressPct : randomGenerater(0,100),
-      scratchMemorySize : scratchMem,
-      stressAssignmentStrategy : array1[Math.floor(Math.random() * 2)],
-      memStressPattern : array2[Math.floor(Math.random() * 4)],
-      preStressPattern : array2[Math.floor(Math.random() * 4)]
-  })
-  
-  console.log(params);
-}
-//need to be fixed
-var arrayObj = [];
-function doTuning(params ,numTuning){
-  for(let i = 0; i<=numTuning; i++){
-   random(params);
-    let obj = {
-      id: i,
-      value: params
-    };
-    arrayObj.push(obj);
-  }
-    console.log(arrayObj)
-   console.log(Array.isArray(arrayObj))
-   //console.log(arrayObj)
-   return arrayObj;
-}
 
-function handleTuning(params,numTuning,updateParamArray){
-  
-  const array = doTuning(params,numTuning);
-  console.log(array)
-  updateParamArray(array);
+let rows = [];
+let currentParam;
+let config;
+//run litmus test for each random config and store config for displaying 
+async function random(pageState, activeShader, testState, tuningTimes, keys){
+ pageState.tuningRows.update([]);
+ rows.splice(0,rows.length);
+ pageState.running.update(true);
+  for(let i =0; i<tuningTimes; i++){
+    let obj = randomConfig();
+    obj={...obj, 
+        id:i,
+        minWorkgroupSize: 1,
+        maxWorkgroupSize: 1,
+        numMemLocations: 2,
+        numOutputs: 2,
+        memoryAliases: {}
+      }
+    await doTest(pageState, obj, activeShader, testState, keys);
+     config ={
+      progress: 100,
+      rate: Math.round((getCurrentIteration() / (reportTime()))),
+      time: reportTime(),
+      seq0: testState.seq0.internalState,
+      seq1: testState.seq1.internalState,
+      interleaved: testState.interleaved.internalState,
+      weak: testState.weak.internalState,
+    }
+    //call component here with the current config 
+    currentParam = obj
+    let row = <BuildStaticRows pageState={pageState} key={obj.id} params={obj} config={config} rows={rows}></BuildStaticRows>
+    rows.push(row);
+  }
+  pageState.tuningRows.update(rows);
 }
 
 export function makeTestPage(props) {
   const pageState = getPageState(props);
-  // let temp = props.testParams
-  // const [params, setParams] = useState(temp);
-  const [paramArray, setParamArray] = useState([]);
   const stressPanel = getStressPanel(props.testParams, pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
@@ -283,27 +273,37 @@ export function makeTestPage(props) {
             <div className="container">
                 
                 <div className="columns">
-                  <div className="column is-one-fifth">
-                    <div className="control mb-4">
-                      <label><b>Tuning Times:</b></label>
+                  <div className="column  is-two-fifth">
+                    <div className="control mb-2">
+                      <label><b>Tuning Config Num:</b></label>
                       <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
                         pageState.tuningTimes.update(e.target.value);
                       }} />
                      </div>
                     <button className="button is-primary" onClick={()=>{
-                     // console.log(params)
-                      // handleTuning(params, pageState.tuningTimes.value,setParamArray);
-                      for(let i = 0; i < pageState.tuningTimes.value; i++ ){
-                        random(props.testParams);
-                      }
+                      pageState.resetTable.update(false);
+                      pageState.tuningRows.value.splice(0,pageState.tuningRows.length);
+                      random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value, props.keys);
                       pageState.tuningActive.update(true);
+                      
                     }}>
                       Start Tuning
                     </button>
-                   </div>
-                </div>
-                {console.log(Array.isArray(paramArray))}
-                {pageState.tuningActive.value? <TuningTable params={paramArray} pageState={pageState}></TuningTable>:<></> }
+                  </div>
+                  <div className="column is-two-fifth" >
+                    <div className="control">
+                      <label><b>Iterations:</b></label>
+                      <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+                        pageState.iterations.update(e.target.value);
+                      }} disabled={pageState.running.value}/>
+                    </div>
+                  </div>
+                </div>  
+                {
+                (pageState.tuningActive.value && !pageState.resetTable.value)
+                  ? <TuningTable params={currentParam} pageState={pageState} testState={props.testState} ></TuningTable>
+                  :<></>
+                }
            </div>
           : <div className="columns mr-2">
             <div className="column is-two-thirds">
@@ -366,7 +366,6 @@ export function makeTestPage(props) {
     
   );
 }
-
 export function getIterationNum() {
   return totalIteration;
 }
