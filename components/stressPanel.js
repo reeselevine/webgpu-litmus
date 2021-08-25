@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import React, { useState, useEffect} from 'react';
+import { randomConfig } from "./test-page-utils";
 //see https://github.com/wwayne/react-tooltip/issues/675
 const ReactTooltip = dynamic(() => import("react-tooltip"), {
   ssr: false,
@@ -66,56 +67,43 @@ function IntegerStressParam(props) {
 }
 
 function DropdownOption(props) {
-  return (<option value={props.value}>{props.value}</option>)
+  return (<option value={props.value}>{props.name}</option>)
 }
 
-function stressPatternOnChange(params, paramName) {
+function dropdownOnChange(params, paramName, setVal) {
   return function onChange(e) {
-    switch(e.target.value) {
-      case "store-store":
-        params[paramName] = 0;
-        break;
-      case "store-load":
-        params[paramName] = 1;
-        break;
-      case "load-store":
-        params[paramName] = 2;
-        break;
-      case "load-load":
-        params[paramName] = 3;
-        break;
-      default:
-        console.log("Unexpected value");
-    }
+    setVal(e.target.value);
+    params[paramName] = parseInt(e.target.value);
   }
 }
 
-function stressAssignmentStrategyOnChange(params, paramName) {
-  return function onChange(e) {
-    params[paramName] = e.target.value;
-  }
+function buildDropdownStressParam(name, description, paramName, params, pageState, options) {
+  const[val, setVal]=useState(params[paramName]);
+  let jsx = <DropdownStressParam name={name} description={description} paramName={paramName} initialValue={val} options={options} updateFunc={dropdownOnChange(params, paramName, setVal)} pageState={pageState}/>
+  return {
+    state: {
+      value: val,
+      update: setVal
+    },
+    jsx: jsx
+  };
 }
 
 function DropdownStressParam(props) {
-  const options = props.options.map(val => <DropdownOption value={val} key={val}/>)
+  const options = props.options.map((val, index) => <DropdownOption value={index} name={val} key={val}/>)
   return (
     <>
       <div className="columns">
         <div className="column">
           <label data-tip={props.description}>{props.name}:</label>
-          <select className="stressPanelDropdown" name={props.paramName} 
-            onChange={props.updateFunc(props.params, props.paramName)} disabled={props.pageState.running.value}>
+          <select className="stressPanelDropdown" name={props.paramName} value={props.initialValue}
+            onChange={props.updateFunc} disabled={props.pageState.running.value}>
             {options}
           </select>
         </div>
       </div>
     </>
   )
-}
-
-// Generates a random number between min and max (inclusive)
-export function randomGenerator(min, max){
-  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 const noStressConfig = {
@@ -131,7 +119,10 @@ const noStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  preStressPct: 0
+  preStressPct: 0,
+  stressAssignmentStrategy: 0,
+  memStressPattern: 2,
+  preStressPattern: 2
 };
 
 const someStressConfig = {
@@ -147,7 +138,10 @@ const someStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  preStressPct: 0
+  preStressPct: 0,
+  stressAssignmentStrategy: 0,
+  memStressPattern: 2,
+  preStressPattern: 2
 };
 
 const allStressConfig = {
@@ -163,31 +157,11 @@ const allStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  preStressPct: 100
+  preStressPct: 100,
+  stressAssignmentStrategy: 0,
+  memStressPattern: 2,
+  preStressPattern: 2
 };
-
-export function randomConfig() {
-  let maxWorkgroups =  randomGenerator(4,1024);
-  let minWorkgroups = randomGenerator(4, maxWorkgroups);
-  let stressLineSize = Math.pow(2, randomGenerator(1,10));
-  let stressTargetLines = randomGenerator(1,16);
-  let memStride = Math.pow(2, randomGenerator(1, 9));
-  return {
-    minWorkgroups: minWorkgroups,
-    maxWorkgroups: maxWorkgroups,
-    shufflePct: randomGenerator(0, 100),
-    barrierPct: randomGenerator(0, 100),
-    memStressPct: randomGenerator(0, 100),
-    testMemorySize: memStride * 128,
-    scratchMemorySize: 32 * stressLineSize * stressTargetLines,
-    memStride: memStride,
-    memStressIterations: randomGenerator(0, 1024),
-    preStressIterations: randomGenerator(0, 128),
-    stressLineSize: stressLineSize,
-    stressTargetLines: stressTargetLines,
-    preStressPct: randomGenerator(0, 100)
-  };
-}
 
 function setConfig(params, uiParams, config) {
   for (let key of Object.keys(config)) {
@@ -214,7 +188,10 @@ export function getStressPanel(params, pageState) {
     preStressIterations : buildIntStressParam("Pre Stress Loops", "How many times the testing threads perform their accesses on the scratch memory region before performing the litmus test  (values should be between 0 and 2048)" , "preStressIterations", params, pageState, 0, 2048),
     scratchMemorySize : buildIntStressParam("Scatch Memory Size", "The size of the memory buffer where threads stress the memory" , "scratchMemorySize", params, pageState, 256, 4096),
     stressLineSize : buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many 32-bit words (values should be between 1 and 128)", "stressLineSize", params, pageState, 2, 128),
-    stressTargetLines : buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 128 )
+    stressTargetLines : buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 128),
+    stressAssignmentStrategy: buildDropdownStressParam("Stress Assignment Strategy", "How non-testing threads are assigned to scratch memory regions to access", "stressAssignmentStrategy", params, pageState, ["round-robin", "chunking"]),
+    memStressPattern: buildDropdownStressParam("Memory Stress Pattern", "The access pattern that non-testing threads access the scratch memory region", "memStressPattern", params, pageState, ["store-store", "store-load", "load-store", "load-load"]),
+    preStressPattern: buildDropdownStressParam("Pre Stress Pattern", "The access pattern that testing threads access the scratch memory region before executing their litmus test", "preStressPattern", params, pageState, ["store-store", "store-load", "load-store", "load-load"])
   }; 
 
   return {
@@ -241,9 +218,9 @@ export function getStressPanel(params, pageState) {
             {uiParams.preStressIterations.jsx}
             {uiParams.stressLineSize.jsx}
             {uiParams.stressTargetLines.jsx}
-            <DropdownStressParam name="Stress Assignment Strategy" description="How non-testing threads are assigned to scratch memory regions to access" paramName="stressAssignmentStrategy" params={params} options={["round-robin", "chunking"]} updateFunc={stressAssignmentStrategyOnChange} pageState={pageState}/>
-            <DropdownStressParam name="Memory Stress Pattern" description="The access pattern that non-testing threads access the scratch memory region" paramName="memStressPattern" params={params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={pageState}/>
-            <DropdownStressParam name="Pre Stress Pattern" description="The access pattern that testing threads access the scratch memory region before executing their litmus test" paramName="preStressPattern" params={params} options={["load-store", "store-load", "load-load", "store-store"]} updateFunc={stressPatternOnChange} pageState={pageState}/>
+            {uiParams.stressAssignmentStrategy.jsx}
+            {uiParams.memStressPattern.jsx}
+            {uiParams.preStressPattern.jsx}
           </div>
             <div className="panel-block p-2">
             <div className="columns is-2 ">
