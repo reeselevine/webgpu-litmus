@@ -279,15 +279,27 @@ export default function ConformanceTestSuite() {
         <div className="column">
           <div className="section">
             <h1 className="testName">Conformance Test Suite</h1>
-            <h2 className="testDescription">
-              The conformance test suite currently consists of 30 tests, split into several categories. The five classic coherence tests,
-              CoRR, CoWW, CoWR, CoRW1, and CoRW2, are included, as well as a sixth test that expands CoRR to use four threads. For several of these tests,
-              variants that use read-modify-write instructions instead of plain loads and stores are included. An atomicity test is also included to confirm
-              the correct behavior of a read-modify-write instruction. Two categories of barrier tests are included. The first category includes combinations
-              of a read and a barrier on one thread, and a write and a barrier on another thread. This leads to six tests, with three for each flavor of barrier
-              implemented by WebGPU. Finally, three classic litmus tests, message passing, load buffer, and store, are included, as their weak behaviors can be disallowed due to the acquire/release semantics
-              of WebGPU's barrier. Each of these classic litmus tests also includes a variant where one memory location is made to be non-atomic.
-            </h2>
+            <p>
+              The conformance test suite currently consists of 30 tests, split into several categories.
+            </p>
+            <h5>Classic Coherence Tests</h5>
+            <p>
+              Five classic coherence tests that verify sequential consistency per location are included: CoRR, CoWW, CoWR, CoRW1, and CoRW2. Additionally, 
+              a four threaded version of CoRR is included. For several of these tests, variants that use atomic read-modify-write instructions are also included
+              as long as they maintain the same ordering and adjacency of reads and writes as the original tests. An atomicity test is also included to confirm
+              the correct behavior of a read-modify-write instruction. 
+            </p>
+            <h5>Workgroup Execution Barrier Tests</h5>
+            <p>
+              Basic tests for WebGPU's barriers are included. Each test consists of either a read or write along with a call to the barrier on two threads, leading to
+              three test formats for each of WebGPU's two barrier types.
+            </p>
+            <h5>Weak Memory Litmus Tests</h5>
+            <p>
+              Due to the acquire/release semantics of WebGPU's barrier, we can include three classic litmus tests: message passing, load buffer, and store. Each of these
+              tests should not show a weak behavior because of the barrier in between the instructions in each thread. A non-atomic variant of each of the tests is also
+              included.
+            </p>
           </div>
         </div>
         {stressPanel.jsx}

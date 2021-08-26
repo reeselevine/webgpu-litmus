@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }) {
          <link rel="stylesheet" href="https://www.jsdelivr.com/package/npm/bulma"></link>
         </Head>
       <div className="columns">
-        <div className="column is-one-quarter">
+        <div className="column is-one-fifth">
          <Panel>
           <Link href="/">
               <a>← Back to home</a>
