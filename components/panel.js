@@ -27,7 +27,7 @@ return(
     </Link>
   </div>
   <div className="panel-block">
-    <b>Explore Tests:</b>
+    <b>Weak Memory Tests:</b>
   </div>
   <div className="panel-block ">
     <Link href='/tests/message-passing'>
@@ -48,6 +48,9 @@ return(
     <Link href='/tests/store-buffer'>
           Store Buffer 
     </Link>
+  </div>
+  <div className="panel-block">
+    <b>Coherence Tests:</b>
   </div>
   <div className="panel-block ">
     <Link href='/tests/corr'>
@@ -85,7 +88,7 @@ return(
     </Link>
   </div>
   <div className="panel-block">
-    <b>Barrier Tests:</b>
+    <b>Workgroup Execution Barrier Tests:</b>
   </div>
   <div className="panel-block ">
     <Link href='/tests/barrier-store-load'>

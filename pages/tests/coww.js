@@ -51,7 +51,7 @@ export default function CoWW() {
 
   const props = {
     testName: "CoWW",
-    testDescription: "The CoWW litmus test checks to see if memory is coherent.",
+    testDescription: "The CoWW litmus test checks SC-per-location by ensuring two writes to the same address on the same thread cannot be re-ordered.",
     testParams: testParams,
     shaderCode: coWW,
     stateConfig: stateConfig,

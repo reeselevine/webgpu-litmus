@@ -19,7 +19,7 @@ export const defaultTestParams = {
     preStressPattern: 2,
     stressLineSize: 64,
     stressTargetLines: 2,
-    stressAssignmentStrategy: "round-robin",
+    stressAssignmentStrategy: 0,
     memoryAliases: {}
 }
 let currentIteration = 0;
@@ -169,12 +169,12 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
             region = getRandomInt(scratchNumRegions);
         }
         const locInRegion = getRandomInt(testParams.stressLineSize);
-        if (testParams.stressAssignmentStrategy == "round-robin") {
+        if (testParams.stressAssignmentStrategy == 0) {
             for (let j = i; j < numWorkgroups; j += testParams.stressTargetLines) {
                 scratchLocationsArray[j] = region * testParams.stressLineSize + locInRegion;
 
             }
-        } else if (testParams.stressAssignmentStrategy == "chunking") {
+        } else if (testParams.stressAssignmentStrategy == 1) {
             const workgroupsPerLocation = numWorkgroups / testParams.stressTargetLines;
             for (let j = 0; j < workgroupsPerLocation; j++) {
                 scratchLocationsArray[i * workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;

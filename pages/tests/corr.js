@@ -83,7 +83,7 @@ export default function CoRR() {
 
   const props = {
       testName: "CoRR",
-      testDescription: "The CoRR litmus test checks to see if memory is coherent.",
+      testDescription: "The CoRR litmus test checks SC-per-location by ensuring subsequent reads of the same value cannot be re-ordered. Variants using rmw instructions are included.",
       testParams: testParams,
       shaderCode: coRR,
       stateConfig: stateConfig,

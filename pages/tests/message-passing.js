@@ -76,7 +76,7 @@ export default function MessagePassing() {
 
   const props = {
       testName: "Message Passing",
-      testDescription: "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread.",
+      testDescription: "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread. This test also includes variants using WebGPU's acquire/release workgroup control barrier to synchronize across testing threads and disallow the weak behavior.",
       testParams: defaultTestParams,
       shaderCode: messagePassing,
       stateConfig: stateConfig,

@@ -46,7 +46,7 @@ export default function CoRR4() {
 
   const props = {
       testName: "4-Threaded CoRR",
-      testDescription: "The 4-Threaded CoRR litmus test checks to see if memory is coherent.",
+      testDescription: "The 4-Threaded CoRR litmus test is similar to the classic CoRR test, but adds threads to stress the coherence protocols more fully. Variants using rmw instructions are included.",
       testParams: testParams,
       shaderCode: coRR4,
       stateConfig: stateConfig,

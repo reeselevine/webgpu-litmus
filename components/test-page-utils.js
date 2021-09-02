@@ -408,3 +408,35 @@ export const barrierWorkgroupSync = {
   sync: commonHandlers.bothOne,
   weak: commonHandlers.oneZero
 }
+
+// random config generation
+// Generates a random number between min and max (inclusive)
+function randomGenerator(min, max){
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export function randomConfig() {
+  let maxWorkgroups =  randomGenerator(4,1024);
+  let minWorkgroups = randomGenerator(4, maxWorkgroups);
+  let stressLineSize = Math.pow(2, randomGenerator(1,10));
+  let stressTargetLines = randomGenerator(1,16);
+  let memStride = Math.pow(2, randomGenerator(1, 9));
+  return {
+    minWorkgroups: minWorkgroups,
+    maxWorkgroups: maxWorkgroups,
+    shufflePct: randomGenerator(0, 100),
+    barrierPct: randomGenerator(0, 100),
+    memStressPct: randomGenerator(0, 100),
+    testMemorySize: memStride * 128,
+    scratchMemorySize: 32 * stressLineSize * stressTargetLines,
+    memStride: memStride,
+    memStressIterations: randomGenerator(0, 1024),
+    preStressIterations: randomGenerator(0, 128),
+    stressLineSize: stressLineSize,
+    stressTargetLines: stressTargetLines,
+    preStressPct: randomGenerator(0, 100),
+    stressAssignmentStrategy: randomGenerator(0, 1),
+    memStressPattern: randomGenerator(0, 3),
+    preStressPattern: randomGenerator(0, 3)
+  };
+}

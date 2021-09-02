@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import { getStressPanel, randomConfig }from './stressPanel.js';
+import { getStressPanel }from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, workgroupMemorySize } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
 import TuningTable, { BuildStaticRows } from "../components/tuningTable"
 
 function getPageState(props) {

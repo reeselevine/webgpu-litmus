@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Link from'next/link'
+import Link from 'next/link'
 import { getStressPanel } from '../components/stressPanel.js';
 import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, workgroupMemorySize, messagePassingHandlers, loadBufferHandlers, storeHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
@@ -41,6 +41,8 @@ const keys = ["seq", "interleaved", "weak"];
 function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(1000);
+  const [failedTests, setFailedTests] = useState(0);
+  const [passedTests, setPassedTests] = useState(0);
   return {
     running: {
       value: running,
@@ -49,7 +51,16 @@ function getPageState() {
     iterations: {
       value: iterations,
       update: setIterations
+    },
+    failedTests: {
+      value: failedTests,
+      update: setFailedTests
+    },
+    passedTests: {
+      value: passedTests,
+      update: setPassedTests 
     }
+
   }
 }
 
@@ -61,6 +72,20 @@ function buildStateValues(key, handlers, state, updateFunc) {
     throttledUpdate: buildThrottle(updateFunc),
     resultHandler: handlers[key]
   }
+}
+
+function TestSuiteResult(props) {
+  let suiteResult;
+  if (props.pageState.failedTests.value > 0) {
+    suiteResult="testFailed";
+  } else if (props.pageState.passedTests.value == props.totalTests) {
+    suiteResult="testPassed";
+  } else {
+    suiteResult="";
+  }
+  return <div className="column"><b>Suite Result:</b>
+    <p className={suiteResult}>{props.pageState.passedTests.value}/{props.totalTests} Passed</p>
+  </div>;
 }
 
 function TestStatus(props) {
@@ -133,7 +158,7 @@ function buildTest(testName, testUrl, pageState, testParams, shaderCode, handler
     run: async function () {
       return doTest(pageState, testParams, shaderCode, state, fixedMemorySize);
     },
-    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode} fixedMemorySize={fixedMemorySize}/>
+    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode} fixedMemorySize={fixedMemorySize} />
   }
 }
 
@@ -166,7 +191,6 @@ async function doTest(pageState, testParams, shaderCode, testState, useWorkgroup
   let newParams;
   if (useWorkgroupMemorySize) {
     newParams = JSON.parse(JSON.stringify(testParams));
-    console.log("here");
     newParams.testMemorySize = workgroupMemorySize;
   } else {
     newParams = testParams;
@@ -178,18 +202,31 @@ async function doTest(pageState, testParams, shaderCode, testState, useWorkgroup
   testState.time.update(0);
   testState.result.update(undefined);
   await runLitmusTest(shaderCode, newParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
-  if (testState.weak.internalState > 0) {
-    testState.result.update(false);
-  } else {
-    testState.result.update(true);
-  }
   testState.progress.update(100);
   pageState.running.update(false);
+  if (testState.weak.internalState > 0) {
+    testState.result.update(false);
+    return false;
+  } else {
+    testState.result.update(true);
+    return true;
+  }
 }
 
-async function doAllTests(tests) {
+async function doAllTests(pageState, tests) {
+  var passedTests = 0;
+  var failedTests = 0;
+  pageState.passedTests.update(passedTests);
+  pageState.failedTests.update(failedTests);
   for (let test of tests) {
-    await test.run();
+    let result = await test.run();
+    if (result) {
+      passedTests = passedTests + 1;
+      pageState.passedTests.update(passedTests);
+    } else {
+      failedTests = failedTests + 1;
+      pageState.failedTests.update(failedTests);
+    }
   }
 }
 
@@ -228,10 +265,10 @@ export default function ConformanceTestSuite() {
   const loadBufferBarrierNAConfig = buildTest("Load Buffer with Barrier (non-atomic variant)", "load-buffer", pageState, testParams, barrierLBNA, loadBufferHandlers);
   const storeBarrierNAConfig = buildTest("Store with Barrier (non-atomic variant)", "store", pageState, testParams, barrierSNA, storeHandlers);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig, 
-    coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config, 
-    coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierStoreLoadConfig, barrierStoreStoreConfig, 
-    barrierWorkgroupLoadStoreConfig, barrierWorkgroupStoreLoadConfig, barrierWorkgroupStoreStoreConfig, messagePassingBarrierConfig,
+  const tests = [coRRConfig, coRRRMWConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, coRR4RMWConfig, coWWConfig,
+    coWWRMWConfig, coWRConfig, coWRRMWConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, coRW1Config,
+    coRW2Config, coRW2RMWConfig, atomicityConfig, barrierLoadStoreConfig, barrierWorkgroupLoadStoreConfig, barrierStoreLoadConfig,
+    barrierWorkgroupStoreLoadConfig, barrierStoreStoreConfig, barrierWorkgroupStoreStoreConfig, messagePassingBarrierConfig,
     messagePassingBarrierNAConfig, loadBufferBarrierConfig, loadBufferBarrierNAConfig, storeBarrierConfig, storeBarrierNAConfig];
 
   let initialIterations = pageState.iterations.value;
@@ -242,7 +279,27 @@ export default function ConformanceTestSuite() {
         <div className="column">
           <div className="section">
             <h1 className="testName">Conformance Test Suite</h1>
-            <h2 className="testDescription">Run all the tests.</h2>
+            <p>
+              The conformance test suite currently consists of 30 tests, split into several categories.
+            </p>
+            <h5>Classic Coherence Tests</h5>
+            <p>
+              Five classic coherence tests that verify sequential consistency per location are included: CoRR, CoWW, CoWR, CoRW1, and CoRW2. Additionally, 
+              a four threaded version of CoRR is included. For several of these tests, variants that use atomic read-modify-write instructions are also included
+              as long as they maintain the same ordering and adjacency of reads and writes as the original tests. An atomicity test is also included to confirm
+              the correct behavior of a read-modify-write instruction. 
+            </p>
+            <h5>Workgroup Execution Barrier Tests</h5>
+            <p>
+              Basic tests for WebGPU's barriers are included. Each test consists of either a read or write along with a call to the barrier on two threads, leading to
+              three test formats for each of WebGPU's two barrier types.
+            </p>
+            <h5>Weak Memory Litmus Tests</h5>
+            <p>
+              Due to the acquire/release semantics of WebGPU's barrier, we can include three classic litmus tests: message passing, load buffer, and store. Each of these
+              tests should not show a weak behavior because of the barrier in between the instructions in each thread. A non-atomic variant of each of the tests is also
+              included.
+            </p>
           </div>
         </div>
         {stressPanel.jsx}
@@ -257,9 +314,14 @@ export default function ConformanceTestSuite() {
           </div>
         </div>
       </div>
-      <button className="button" onClick={() => {
-        doAllTests(tests);
-      }} disabled={pageState.running.value} >Run CTS</button>
+      <div className="columns">
+        <div className="column">
+          <button className="button" onClick={() => {
+            doAllTests(pageState, tests);
+          }} disabled={pageState.running.value} >Run CTS</button>
+        </div>
+        <TestSuiteResult pageState={pageState} totalTests={tests.length}/>
+      </div>
       <div className="table-container">
         <table className="table is-hoverable">
           <thead>

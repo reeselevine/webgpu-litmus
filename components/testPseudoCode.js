@@ -1,7 +1,16 @@
-export function buildPseudoCode(threads, variant) {
+export function buildPseudoCode(threads, sameWorkgroup = false) {
     let pseudoCode = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
-        pseudoCode[i] = <TestThreadPseudoCode key={i} thread={i} code={threads[i]}/>;
+      var thread;
+      var workgroup;
+      if (sameWorkgroup) {
+        workgroup = 0;
+        thread = i;
+      } else {
+        workgroup = i;
+        thread = 0;
+      }
+      pseudoCode[i] = <TestThreadPseudoCode key={i} workgroup={workgroup} thread={thread} code={threads[i]}/>;
     }
     if (threads.length == 4) {
         return <>
@@ -25,7 +34,7 @@ function TestThreadPseudoCode(props) {
     return (
         <div className="column">
             <div className="box">
-                <b>Thread {props.thread}</b>
+                <b>Workgroup {props.workgroup} Thread {props.thread}</b>
                 <pre><code>
                     {props.code}
                 </code></pre>

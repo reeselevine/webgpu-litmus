@@ -33,7 +33,7 @@ export default function Atomicity() {
 
   const props = {
     testName: "Atomicity",
-    testDescription: "The atomicity litmus test checks to see if a read-modify-write instruction is atomic.",
+    testDescription: "The atomicity litmus test checks to see if a read-modify-write instruction is atomic. One thread in one workgroup performs an atomic rmw, while one thread in a second workgroup performs an atomic write. If the read part of the rmw does not observe the write by the other thread, then the value in memory after the test finishes must be the write by the thread in the second workgroup.",
     testParams: testParams,
     shaderCode: atom,
     stateConfig: stateConfig,
