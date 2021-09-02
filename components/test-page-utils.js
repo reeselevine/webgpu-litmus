@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import _ from 'lodash'
 import { makeTestPage } from './test-page-setup';
-import { loadGetInitialProps } from 'next/dist/next-server/lib/utils';
 
 export const workgroupMemorySize = 2048;
 
