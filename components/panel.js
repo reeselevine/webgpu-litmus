@@ -40,6 +40,12 @@ return(
     </Link>
   </div>
   <div className="panel-block ">
+    <Link href='/tests/read'>
+          Read 
+    </Link>
+  </div>
+
+  <div className="panel-block ">
     <Link href='/tests/load-buffer'>
           Load Buffer 
     </Link>
@@ -47,6 +53,11 @@ return(
   <div className="panel-block ">
     <Link href='/tests/store-buffer'>
           Store Buffer 
+    </Link>
+  </div>
+  <div className="panel-block ">
+    <Link href='/tests/2-plus-2-write'>
+          2+2 Write 
     </Link>
   </div>
   <div className="panel-block">

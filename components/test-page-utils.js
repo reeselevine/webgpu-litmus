@@ -278,6 +278,50 @@ export const storeHandlers = {
   }
 };
 
+function readSeq0(result, memResult) {
+  return result[0] == 1 && memResult[1] == 2;
+}
+
+function readSeq1(result, memResult) {
+  return result[0] == 0 && memResult[1] == 1;
+}
+
+export const readHandlers = {
+  seq: function(result, memResult) {
+    return readSeq0(result, memResult) || readSeq1(result, memResult);
+  },
+  seq0: readSeq0,
+  seq1: readSeq1,
+  interleaved: function(result, memResult) {
+    return result[0] == 1 && memResult[1] == 1;
+  },
+  weak: function (result, memResult) {
+    return result[0] == 0 && memResult[1] == 2;
+  }
+};
+
+function twoPlusTwoWriteSeq0(result, memResult) {
+  return memResult[0] == 1 && memResult[1] == 2;
+}
+
+function twoPlusTwoWriteSeq1(result, memResult) {
+  return memResult[0] == 2 && memResult[1] == 1;
+}
+
+export const twoPlusTwoWriteHandlers = {
+  seq: function(result, memResult) {
+    return twoPlusTwoWriteSeq0(result, memResult) || twoPlusTwoWriteSeq1(result, memResult);
+  },
+  seq0: twoPlusTwoWriteSeq0,
+  seq1: twoPlusTwoWriteSeq1,
+  interleaved: function(result, memResult) {
+    return memResult[0] == 1 && memResult[1] == 1;
+  },
+  weak: function(result, memResult) {
+    return memResult[0] == 2 && memResult[1] == 2;
+  }
+};
+
 function coRR4Seq(result, memResult) {
   return (result[0] == result[1]) && (result[2] == result[3]);
 }
