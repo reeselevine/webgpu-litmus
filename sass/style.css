@@ -61,3 +61,21 @@ img {
 .testFailed {
   color: red;
 }
+
+.sequentialTH {
+  color: green !important;
+  white-space: nowrap;
+  font-size: 0.7em;
+}
+
+.interleavedTH {
+  color: blue !important;
+  white-space: nowrap;
+  font-size: 0.7em;
+}
+
+.weakTH {
+  color: red !important;
+  white-space: nowrap;
+  font-size: 0.7em;
+}

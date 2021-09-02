@@ -5,7 +5,7 @@ import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel }from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
-import TuningTable, { BuildStaticRows } from "../components/tuningTable"
+import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
   const [iterations, setIterations] = useState(1000);
@@ -143,6 +143,7 @@ function DropdownOption(props) {
 }
 
 let totalIteration = 0;
+
 function VariantOptions(props) {
   const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
   return (
@@ -162,26 +163,22 @@ function VariantOptions(props) {
     </>)
 }
 
-let rows = [];
-let currentParam;
-let config;
 //run litmus test for each random config and store config for displaying 
 async function random(pageState, activeShader, testState, tuningTimes, keys){
  pageState.tuningRows.update([]);
- rows.splice(0,rows.length);
  pageState.running.update(true);
   for(let i =0; i<tuningTimes; i++){
-    let obj = randomConfig();
-    obj={...obj, 
-        id:i,
-        minWorkgroupSize: 1,
-        maxWorkgroupSize: 1,
-        numMemLocations: 2,
-        numOutputs: 2,
-        memoryAliases: {}
-      }
-    await doTest(pageState, obj, activeShader, testState, keys);
-     config ={
+    let params = {
+      ...randomConfig(), 
+      id:i,
+      minWorkgroupSize: 1,
+      maxWorkgroupSize: 1,
+      numMemLocations: 2,
+      numOutputs: 2,
+      memoryAliases: {}
+    };
+    await doTest(pageState, params, activeShader, testState, keys);
+    let config = {
       progress: 100,
       rate: Math.round((getCurrentIteration() / (reportTime()))),
       time: reportTime(),
@@ -190,12 +187,9 @@ async function random(pageState, activeShader, testState, tuningTimes, keys){
       interleaved: testState.interleaved.internalState,
       weak: testState.weak.internalState,
     }
-    //call component here with the current config 
-    currentParam = obj
-    let row = <BuildStaticRows pageState={pageState} key={obj.id} params={obj} config={config} rows={rows}></BuildStaticRows>
-    rows.push(row);
+    let row = <StaticRow pageState={pageState} key={params.id} params={params} config={config}/>
+    pageState.tuningRows.update(oldRows => [...oldRows, row]);
   }
-  pageState.tuningRows.update(rows);
 }
 
 export function makeTestPage(props) {
@@ -301,7 +295,7 @@ export function makeTestPage(props) {
                 </div>  
                 {
                 (pageState.tuningActive.value && !pageState.resetTable.value)
-                  ? <TuningTable params={currentParam} pageState={pageState} testState={props.testState} ></TuningTable>
+                  ? <TuningTable pageState={pageState} testState={props.testState} ></TuningTable>
                   :<></>
                 }
            </div>
