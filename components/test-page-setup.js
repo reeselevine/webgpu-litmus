@@ -164,28 +164,26 @@ function VariantOptions(props) {
 }
 
 //run litmus test for each random config and store config for displaying 
-async function random(pageState, activeShader, testState, tuningTimes, keys){
+async function random(pageState, testState, testParams, keys, buildStaticRowOutputs){
  pageState.tuningRows.update([]);
  pageState.running.update(true);
-  for(let i =0; i<tuningTimes; i++){
+  for(let i =0; i<pageState.tuningTimes.value; i++){
     let params = {
       ...randomConfig(), 
       id:i,
-      minWorkgroupSize: 1,
-      maxWorkgroupSize: 1,
-      numMemLocations: 2,
-      numOutputs: 2,
-      memoryAliases: {}
+      minWorkgroupSize: testParams.minWorkgroupSize,
+      maxWorkgroupSize: testParams.maxWorkgroupSize,
+      numMemLocations: testParams.numMemLocations,
+      numOutputs: testParams.numOutputs,
+      memoryAliases: testParams.memoryAliases
     };
-    await doTest(pageState, params, activeShader, testState, keys);
+    await doTest(pageState, params, pageState.activeShader.value, testState, keys);
     let config = {
       progress: 100,
       rate: Math.round((getCurrentIteration() / (reportTime()))),
       time: reportTime(),
-      seq0: testState.seq0.internalState,
-      seq1: testState.seq1.internalState,
-      interleaved: testState.interleaved.internalState,
-      weak: testState.weak.internalState,
+      testState: testState,
+      outputs: buildStaticRowOutputs(testState),
     }
     let row = <StaticRow pageState={pageState} key={params.id} params={params} config={config}/>
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
@@ -277,7 +275,7 @@ export function makeTestPage(props) {
                     <button className="button is-primary" onClick={()=>{
                       pageState.resetTable.update(false);
                       pageState.tuningRows.value.splice(0,pageState.tuningRows.length);
-                      random(pageState, pageState.activeShader.value, props.testState, pageState.tuningTimes.value, props.keys);
+                      random(pageState, props.testState, props.testParams, props.keys, props.buildStaticRowOutputs);
                       pageState.tuningActive.update(true);
                       
                     }}>
@@ -295,7 +293,7 @@ export function makeTestPage(props) {
                 </div>  
                 {
                 (pageState.tuningActive.value && !pageState.resetTable.value)
-                  ? <TuningTable pageState={pageState} testState={props.testState} ></TuningTable>
+                  ? <TuningTable pageState={pageState} header={props.tuningHeader} dynamicRowOutputs={props.dynamicRowOutputs}/>
                   :<></>
                 }
            </div>

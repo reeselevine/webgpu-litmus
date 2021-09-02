@@ -46,18 +46,7 @@ function DynamicRow(props) {
       <td>
         {time}
       </td>
-      <td>
-        {props.testState.seq0.visibleState}
-      </td>
-      <td>
-        {props.testState.seq1.visibleState}
-      </td>
-      <td>
-        {props.testState.interleaved.visibleState}
-      </td>
-      <td>
-        {props.testState.weak.visibleState}
-      </td>
+      {props.outputs}
     </tr>
   )
 }
@@ -81,27 +70,13 @@ export function StaticRow(props) {
       <td>
         {props.config.time}
       </td>
-      <td>
-        {props.config.seq0}
-      </td>
-      <td>
-        {props.config.seq1}
-      </td>
-      <td>
-        {props.config.interleaved}
-      </td>
-      <td>
-        {props.config.weak}
-      </td>
-      <td>
-
-      </td>
+      {props.config.outputs}
     </tr>
   )
 }
 
 export default function TuningTable(props) {
-  let dynamicRow = <DynamicRow pageState={props.pageState} testState={props.testState}/>
+  let dynamicRow = <DynamicRow pageState={props.pageState} outputs={props.dynamicRowOutputs}/>
   return (
     <>
       <div className="table-container">
@@ -113,10 +88,7 @@ export default function TuningTable(props) {
               <th>Progress</th>
               <th>Iterations per second</th>
               <th>Time (seconds)</th>
-              <th className="sequentialTH">{props.testState.seq0.label}</th>
-              <th className="sequentialTH">{props.testState.seq1.label}</th>
-              <th className="interleavedTH">{props.testState.interleaved.label}</th>
-              <th className="weakTH">{props.testState.weak.label}</th>
+              {props.header}
             </tr>
           </thead>
           {props.pageState.resetTable.value

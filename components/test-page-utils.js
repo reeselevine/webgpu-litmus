@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import _ from 'lodash'
 import { makeTestPage } from './test-page-setup';
+import { loadGetInitialProps } from 'next/dist/next-server/lib/utils';
 
 export const workgroupMemorySize = 2048;
 
@@ -9,7 +10,45 @@ export function makeOneOutputLitmusTestPage(props) {
   props.chartData = oneOutputChartData(props.testState);
   props.keys = ["seq", "weak"];
   props.tooltipFilter = commonTooltipFilter;
+  props.tuningHeader = <OneOutputTuningHeader testState={props.testState}/>;
+  props.dynamicRowOutputs = <OneOutputDynamicTuningRow testState={props.testState}/>;
+  props.buildStaticRowOutputs = buildOneOutputStaticTuningRow;
   return makeTestPage(props);
+}
+
+function OneOutputTuningHeader(props) {
+  return (
+    <>
+      <th className="sequentialTH">{props.testState.seq.label}</th>
+      <th className="weakTH">{props.testState.weak.label}</th>
+    </>
+  );
+}
+
+function OneOutputDynamicTuningRow(props) {
+  return (
+    <>
+      <td>
+        {props.testState.seq.visibleState}
+      </td>
+      <td>
+        {props.testState.weak.visibleState}
+      </td>
+    </>
+  );
+}
+
+function buildOneOutputStaticTuningRow(testState) {
+  return (
+    <>
+      <td>
+        {testState.seq.internalState}
+      </td>
+      <td>
+        {testState.weak.internalState}
+      </td>
+    </>
+  );
 }
 
 export function makeTwoOutputLitmusTestPage(props) {
@@ -17,15 +56,114 @@ export function makeTwoOutputLitmusTestPage(props) {
   props.chartData = twoOutputChartData(props.testState);
   props.keys = ["seq0", "seq1", "interleaved", "weak"];
   props.tooltipFilter = twoOutputTooltipFilter;
+  props.tuningHeader = <TwoOutputTuningHeader testState={props.testState}/>;
+  props.dynamicRowOutputs = <TwoOutputDynamicTuningRow testState={props.testState}/>;
+  props.buildStaticRowOutputs = buildTwoOutputStaticTuningRow;
   return makeTestPage(props);
 }
+
+function TwoOutputTuningHeader(props) {
+  return (
+    <>
+      <th className="sequentialTH">{props.testState.seq0.label}</th>
+      <th className="sequentialTH">{props.testState.seq1.label}</th>
+      <th className="interleavedTH">{props.testState.interleaved.label}</th>
+      <th className="weakTH">{props.testState.weak.label}</th>
+    </>
+  );
+}
+
+function TwoOutputDynamicTuningRow(props) {
+  return (
+    <>
+      <td>
+        {props.testState.seq0.visibleState}
+      </td>
+      <td>
+        {props.testState.seq1.visibleState}
+      </td>
+      <td>
+        {props.testState.interleaved.visibleState}
+      </td>
+      <td>
+        {props.testState.weak.visibleState}
+      </td>
+    </>
+  );
+}
+
+function buildTwoOutputStaticTuningRow(testState) {
+  return (
+    <>
+      <td>
+        {testState.seq0.internalState}
+      </td>
+      <td>
+        {testState.seq1.internalState}
+      </td>
+      <td>
+        {testState.interleaved.internalState}
+      </td>
+      <td>
+        {testState.weak.internalState}
+      </td>
+    </>
+  );
+}
+
 
 export function makeFourOutputLitmusTestPage(props) {
   props.testState = getFourOutputState(props.stateConfig);
   props.chartData = fourOutputChartData(props.testState);
   props.keys = ["seq", "interleaved", "weak"];
   props.tooltipFilter = commonTooltipFilter;
+  props.tuningHeader = <FourOutputTuningHeader testState={props.testState}/>;
+  props.dynamicRowOutputs = <FourOutputDynamicTuningRow testState={props.testState}/>;
+  props.buildStaticRowOutputs = buildFourOutputStaticTuningRow;
+
   return makeTestPage(props);
+}
+
+function FourOutputTuningHeader(props) {
+  return (
+    <>
+      <th className="sequentialTH">{props.testState.seq.label}</th>
+      <th className="interleavedTH">{props.testState.interleaved.label}</th>
+      <th className="weakTH">{props.testState.weak.label}</th>
+    </>
+  );
+}
+
+function FourOutputDynamicTuningRow(props) {
+  return (
+    <>
+      <td>
+        {props.testState.seq.visibleState}
+      </td>
+      <td>
+        {props.testState.interleaved.visibleState}
+      </td>
+      <td>
+        {props.testState.weak.visibleState}
+      </td>
+    </>
+  );
+}
+
+function buildFourOutputStaticTuningRow(testState) {
+  return (
+    <>
+      <td>
+        {testState.seq.internalState}
+      </td>
+      <td>
+        {testState.interleaved.internalState}
+      </td>
+      <td>
+        {testState.weak.internalState}
+      </td>
+    </>
+  );
 }
 
 export function buildThrottle(updateFunc) {
