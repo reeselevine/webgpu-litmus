@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
-import { getStressPanel }from './stressPanel.js';
+import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
 import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
@@ -22,6 +22,11 @@ function getPageState(props) {
   //do next test if true, stop otherwise; change by tuningTable component
   const [renderTable, setRender] = useState(false);
   const [rows, setRows] = useState([]);
+  const [tuningStats, setTuningStats] = useState({
+    maxWeak: 0,
+    maxWeakRows: [],
+    averageWeak: 0
+  })
   return {
     iterations: {
       value: iterations,
@@ -47,46 +52,49 @@ function getPageState(props) {
       value: activeVariant,
       update: setActiveVariant
     },
-    modeActive:{
+    modeActive: {
       value: mode,
       update: setMode
     },
-    tuningActive:{
+    tuningActive: {
       value: tuning,
       update: setTuning
     },
-    tuningTimes:{
+    tuningTimes: {
       value: tuningTimes,
       update: setTuningTimes
     },
-    resetTable:{
+    resetTable: {
       value: resetTable,
       update: setResetTable
     },
-    progress:{
+    progress: {
       value: progress,
       update: setProgress
     },
-    renderTable:{
+    renderTable: {
       value: renderTable,
       update: setRender
     },
-    tuningRows:{
+    tuningRows: {
       value: rows,
       update: setRows
+    },
+    tuningStats: {
+      value: tuningStats,
+      update: setTuningStats
     }
-  
   }
 }
 
 async function doTest(pageState, testParams, shaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
-   await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
+  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")
-     
+
     },
     error => console.log(error)
   );
@@ -145,7 +153,7 @@ function DropdownOption(props) {
 let totalIteration = 0;
 
 function VariantOptions(props) {
-  const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key}/>)
+  const variantOptions = Object.keys(props.variants).map(key => <DropdownOption value={key} key={key} />)
   return (
     <>
       <label><b>Choose variant:</b></label>
@@ -164,13 +172,18 @@ function VariantOptions(props) {
 }
 
 //run litmus test for each random config and store config for displaying 
-async function random(pageState, testState, testParams, keys, buildStaticRowOutputs){
- pageState.tuningRows.update([]);
- pageState.running.update(true);
-  for(let i =0; i<pageState.tuningTimes.value; i++){
+async function random(pageState, testState, testParams, keys, buildStaticRowOutputs) {
+  pageState.tuningRows.update([]);
+  pageState.running.update(true);
+  pageState.tuningStats.update({
+    maxWeak: 0,
+    maxWeakRows: [],
+    averageWeak: 0
+  });
+  for (let i = 0; i < pageState.tuningTimes.value; i++) {
     let params = {
-      ...randomConfig(), 
-      id:i,
+      ...randomConfig(),
+      id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
@@ -185,8 +198,27 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
       testState: testState,
       outputs: buildStaticRowOutputs(testState),
     }
-    let row = <StaticRow pageState={pageState} key={params.id} params={params} config={config}/>
+    let row = <StaticRow pageState={pageState} key={params.id} params={params} config={config} />
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
+    pageState.tuningStats.update(curStats => {
+      let newMax;
+      let maxRows = curStats.maxWeakRows;
+      if (testState.weak.internalState > curStats.maxWeak) {
+        newMax = testState.weak.internalState;
+        maxRows = [i + 1];
+      } else if (testState.weak.internalState == curStats.maxWeak) {
+        maxRows.push(i + 1);
+        newMax = testState.weak.internalState;
+      } else {
+        newMax = curStats.maxWeak;
+      }
+      let newAverage = (curStats.averageWeak * i + testState.weak.internalState) / (i + 1);
+      return {
+        maxWeak: newMax,
+        maxWeakRows: maxRows,
+        averageWeak: newAverage
+      }
+    });
   }
 }
 
@@ -197,7 +229,7 @@ export function makeTestPage(props) {
   let initialTuningTimes = pageState.tuningTimes.value;
   let variantOptions;
   if ('variants' in props) {
-    variantOptions = <VariantOptions variants={props.variants} pageState={pageState} uiParams={stressPanel.uiParams} testParams={props.testParams}/>;
+    variantOptions = <VariantOptions variants={props.variants} pageState={pageState} uiParams={stressPanel.uiParams} testParams={props.testParams} />;
   } else {
     variantOptions = <></>;
   }
@@ -241,121 +273,127 @@ export function makeTestPage(props) {
               </div>
             </div>
           </div>
-         {/* here is the mode */}
-         <div className="section " style={{width:"700px"}}>
+          {/* here is the mode */}
+          <div className="section " style={{ width: "700px" }}>
             <div className="columns is-6 ">
               <div className="column is-half ">
-                <div className="button is-info " onClick={()=>{
+                <div className="button is-info " onClick={() => {
                   pageState.modeActive.update(false);
                 }}>
-                    Explorer Mode
+                  Explorer Mode
                 </div>
               </div>
               <div className="column is-half pl-6">
-                <div className="button is-info " onClick={()=>{
+                <div className="button is-info " onClick={() => {
                   pageState.modeActive.update(true);
                 }}>
-                    Tuning Mode 
+                  Tuning Mode
                 </div>
               </div>
             </div>
           </div>
           {pageState.modeActive.value
-          ?
+            ?
             <div className="container">
-                
-                <div className="columns">
-                  <div className="column  is-two-fifth">
-                    <div className="control mb-2">
-                      <label><b>Tuning Config Num:</b></label>
-                      <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
-                        pageState.tuningTimes.update(e.target.value);
-                      }} />
-                     </div>
-                    <button className="button is-primary" onClick={()=>{
-                      pageState.resetTable.update(false);
-                      pageState.tuningRows.value.splice(0,pageState.tuningRows.length);
-                      random(pageState, props.testState, props.testParams, props.keys, props.buildStaticRowOutputs);
-                      pageState.tuningActive.update(true);
-                      
-                    }}>
-                      Start Tuning
-                    </button>
+
+              <div className="columns">
+                <div className="column">
+                  <div className="control mb-2">
+                    <label><b>Tuning Config Num:</b></label>
+                    <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
+                      pageState.tuningTimes.update(e.target.value);
+                    }} disabled={pageState.running.value} />
                   </div>
-                  <div className="column is-two-fifth" >
-                    <div className="control">
-                      <label><b>Iterations:</b></label>
-                      <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
-                        pageState.iterations.update(e.target.value);
-                      }} disabled={pageState.running.value}/>
+                  <button className="button is-primary" onClick={() => {
+                    pageState.resetTable.update(false);
+                    pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
+                    random(pageState, props.testState, props.testParams, props.keys, props.buildStaticRowOutputs);
+                    pageState.tuningActive.update(true);
+
+                  }} disabled={pageState.running.value}>
+                    Start Tuning
+                  </button>
+                </div>
+                <div className="column" >
+                  <div className="control">
+                    <label><b>Iterations:</b></label>
+                    <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+                      pageState.iterations.update(e.target.value);
+                    }} disabled={pageState.running.value} />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <b>Max Weak Behaviors:</b> {pageState.tuningStats.value.maxWeak} <b>Rows:</b> {pageState.tuningStats.value.maxWeakRows.join(", ")}
+              </div>
+              <div>
+                <b>Average Weak Behaviors:</b> {pageState.tuningStats.value.averageWeak}
+              </div>
+              {
+                (pageState.tuningActive.value && !pageState.resetTable.value)
+                  ? <TuningTable pageState={pageState} header={props.tuningHeader} dynamicRowOutputs={props.dynamicRowOutputs} />
+                  : <></>
+              }
+            </div>
+            : <div className="columns mr-2">
+              <div className="column is-two-thirds">
+                <div className="section">
+                  <div className="columns">
+                    <Bar
+                      data={props.chartData}
+                      options={chartConfig(pageState, props.tooltipFilter)}
+                    />
+                  </div>
+                </div>
+                <div className="columns" >
+                  <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
+                    <div className="column " style={{ width: "200px" }}>
+                      <ProgressBar ></ProgressBar>
                     </div>
                   </div>
-                </div>  
-                {
-                (pageState.tuningActive.value && !pageState.resetTable.value)
-                  ? <TuningTable pageState={pageState} header={props.tuningHeader} dynamicRowOutputs={props.dynamicRowOutputs}/>
-                  :<></>
-                }
-           </div>
-          : <div className="columns mr-2">
-            <div className="column is-two-thirds">
-              <div className="section">
-                <div className="columns">
-                <Bar
-                data={props.chartData}
-                options={chartConfig(pageState, props.tooltipFilter)}
-              />
                 </div>
               </div>
-              <div className="columns" >
-                <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
-                  <div className="column " style={{ width: "200px" }}>
-                    <ProgressBar ></ProgressBar>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {stressPanel.jsx}
+              {stressPanel.jsx}
             </div>
           }
         </div>
       </div>
       {pageState.modeActive.value
-      ?
-      <div className="section"></div>
-      :
-      <div className="columns">
-        <div className="column is-one-fifth">
-          <div className="control">
-            <label><b>Iterations:</b></label>
-            <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
-              pageState.iterations.update(e.target.value);
-            }} disabled={pageState.running.value}/>
-          </div>
-          <div className="buttons mt-2">
-            <button className="button is-primary" onClick={() => {
-              doTest(pageState, props.testParams, pageState.activeShader.value, props.testState, props.keys);
-              setProgressBarState();
-              totalIteration = pageState.iterations.value;
-            }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>
-          </div>
-        </div>
-        <div className="column">
-          <div className="columns">
-            <div className="column is-one-fifth">
-              {pageState.running.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
+        ?
+        <div className="section"></div>
+        :
+        <div className="columns">
+          <div className="column is-one-fifth">
+            <div className="control">
+              <label><b>Iterations:</b></label>
+              <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+                pageState.iterations.update(e.target.value);
+              }} disabled={pageState.running.value} />
             </div>
-            <div className="column">
-              <p>Run time : {reportTime()} seconds</p>
-              <p>Rate : {Math.round((getCurrentIteration() / (reportTime())))} iterations per second</p>
-              <p>Time Remaining : {Math.floor((totalIteration - getCurrentIteration()) / (Math.round(getCurrentIteration() / (reportTime()))))} seconds </p>
+            <div className="buttons mt-2">
+              <button className="button is-primary" onClick={() => {
+                doTest(pageState, props.testParams, pageState.activeShader.value, props.testState, props.keys);
+                setProgressBarState();
+                totalIteration = pageState.iterations.value;
+              }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>
             </div>
           </div>
+          <div className="column">
+            <div className="columns">
+              <div className="column is-one-fifth">
+                {pageState.running.value ? (<ReactBootStrap.Spinner animation="border" />) : (<><p></p></>)}
+              </div>
+              <div className="column">
+                <p>Run time : {reportTime()} seconds</p>
+                <p>Rate : {Math.round((getCurrentIteration() / (reportTime())))} iterations per second</p>
+                <p>Time Remaining : {Math.floor((totalIteration - getCurrentIteration()) / (Math.round(getCurrentIteration() / (reportTime()))))} seconds </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
       }
     </>
-    
+
   );
 }
 export function getIterationNum() {
