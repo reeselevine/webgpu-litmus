@@ -506,6 +506,56 @@ export async function runLitmusTest( shaderCode, testParams, iterations, handleR
     }
 }
 
+export async function runEvaluationLitmusTest(validShader, buggyShader, testParams, iterations, buggyPercentage, handleResult) {
+    const device = await getDevice();
+    if (device === undefined) {
+        alert("WebGPU not enabled or supported!")
+        return;
+    }
+    const buffers = {
+        testData: createBuffer(device, testParams.testMemorySize, true, true),
+        memLocations: createBuffer(device, testParams.numMemLocations, false, true),
+        results: createBuffer(device, testParams.numOutputs, true, true),
+        shuffleIds: createBuffer(device, testParams.maxWorkgroups * testParams.maxWorkgroupSize, false, true),
+        barrier: createBuffer(device, 1, false, true),
+        scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),
+        scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
+        stressParams: createBuffer(device, 7*4, false, true, GPUBufferUsage.UNIFORM)
+    }
+
+    const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);
+
+    const bindGroupLayout = createBindGroupLayout(device);
+    const bindGroup = createBindGroup(device, bindGroupLayout, buffers);
+
+    // Before the iterations we can initialize the scratchpad
+    // and set the stress parameters. Increases test throughput
+    // a little more
+    const p0 = map_buffer(buffers.scratchpad);
+    await p0;
+    clearBuffer(buffers.scratchpad, testParams.scratchMemorySize);
+
+    const p7 = map_buffer(buffers.stressParams);
+    await p7;
+    setStressParams(buffers.stressParams, testParams);
+    const start = Date.now();
+
+    for (let i = 0; i < iterations; i++) {
+      let shaderCode;
+      if (Math.random() <= buggyPercentage) {
+        shaderCode = buggyShader;
+      } else {
+        shaderCode = validShader;
+      }
+      const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
+      currentIteration = i;
+      const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
+      handleResult(result.readResult, result.memResult);
+      duration = Date.now() - start;
+    }
+}
+
+
 export function getCurrentIteration() {
     return currentIteration;
 }
