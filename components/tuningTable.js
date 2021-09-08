@@ -1,167 +1,108 @@
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
-function PopUp(props){
-    return(
+
+function PopUp(props) {
+  return (
     <div class="modal">
-        <div class="modal-background"></div>
-        <div class="modal-content">
-            {JSON.stringify(props.params,null, 4)}
-        </div>
-        <button class="modal-close is-large" aria-label="close"></button>
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        {JSON.stringify(props.params, null, 4)}
+      </div>
+      <button class="modal-close is-large" aria-label="close"></button>
     </div>
   )
 }
-function ParamButton(props){
-    return(
-        <button className="button is-info is-small" onClick={()=>{
-           alert (JSON.stringify(props.params,null, 4))
-            }}>
-            Show Param
-        </button> 
-    )
+function ParamButton(props) {
+  return (
+    <button className="button is-info is-small" onClick={() => {
+      alert(JSON.stringify(props.params, null, 4))
+    }}>
+      Show Param
+    </button>
+  )
 }
-let checkLast;
-function lastIteration(iteration){
-    checkLast = false
-    if(getCurrentIteration() +1 == iteration ){
-        checkLast = true
-        return checkLast;
-    }
-    else return checkLast;
+
+function DynamicRow(props) {
+  let time = reportTime();
+  let curIter = getCurrentIteration();
+  let rate;
+  if (time == 0) {
+    rate = 0;
+  } else {
+    rate = Math.round(curIter / time);
+  }
+  return (
+    <tr >
+      <td>
+        Currently Running
+      </td>
+      <td>
+      </td>
+      <td>
+        {Math.floor(curIter * 100 / props.pageState.iterations.value)}
+      </td>
+      <td>
+        {rate}
+      </td>
+      <td>
+        {time}
+      </td>
+      {props.outputs}
+    </tr>
+  )
 }
-let percentage = 0; 
-let rate = 0;
-let time = 0;
-function Percentage(props){
-     percentage =Math.floor(getCurrentIteration()*100/props.pageState.iterations.value);
-    return(
-        <>
-        {lastIteration(props.pageState.iterations.value) ? "Done" : `${percentage}%`}
-        </>
-    )
+
+export function StaticRow(props) {
+
+  return (
+    <tr  >
+      <td>
+        {props.params.id + 1}
+      </td>
+      <td>
+        <ParamButton params={props.params}></ParamButton>
+      </td>
+      <td>
+        {props.config.progress}
+      </td>
+      <td>
+        {props.config.rate}
+      </td>
+      <td>
+        {props.config.time}
+      </td>
+      {props.config.outputs}
+    </tr>
+  )
 }
-function DynamicRow(props){
-    time = reportTime();
-    rate = Math.round((getCurrentIteration() / (reportTime())));
-    return (
-        <tr >
-        <td>
-            Curr Running 
-        </td>
-        <td>
-        </td>
-        <td>
-            <Percentage pageState ={props.pageState}></Percentage>
-        </td>
-        <td>
-            {rate}
-        </td>
-        <td>
-            {time}
-        </td>
-        <td>
-            {props.testState.seq0.visibleState}
-        </td>
-        <td>
-            {props.testState.seq1.visibleState}
-        </td>
-        <td>
-            {props.testState.interleaved.visibleState}
-        </td>
-        <td>
-            {props.testState.weak.visibleState}
-        </td>
-        <td>
-            
-        </td>
-        </tr>
-    )
-}
-function BuildDynamicRow(props){
-    
-    let jsx = (
-        <DynamicRow pageState = {props.pageState} params={props.params}  testState={props.testState} ></DynamicRow>
-    )
-    return jsx
-}
- function StaticRow(props){
-    
-    return(
-        <tr  >
-        <td>
-            {props.params.id+1}
-        </td>
-        <td>
-            <ParamButton params={props.params}></ParamButton>
-        </td>
-        <td>
-            {props.config.progress}
-        </td>
-        <td>
-            {props.config.rate}
-        </td>
-        <td>
-            {props.config.time}
-        </td>
-        <td>
-            {props.config.seq0}
-        </td>
-        <td>
-            {props.config.seq1}
-        </td>
-        <td>
-            {props.config.interleaved}
-        </td>
-        <td>
-            {props.config.weak}
-        </td>
-        <td>
-            
-        </td>
-        </tr>
-    )
-     
-}
-export function BuildStaticRows(props,key){
-    let row = <StaticRow pageState = {props.pageState}  key={key} params={props.params} config={props.config}></StaticRow>
-   
-    return row;
-}
-export default function TuningTable(props){
-    let dynamicRow =  <BuildDynamicRow pageState = {props.pageState} params={props.params} testState={props.testState} ></BuildDynamicRow>
-    return (
+
+export default function TuningTable(props) {
+  let dynamicRow = <DynamicRow pageState={props.pageState} outputs={props.dynamicRowOutputs}/>
+  return (
     <>
-     <div className="columns mr-2">
-        <div className="column is-two-thirds">
-            <div className="columns">
-            <table className="table is-striped ">
-                <thead>
-                <tr>
-                    <th>Test Number</th>
-                    <th>Parameters</th>
-                    <th>Progress</th>
-                    <th>Iterations per second</th>
-                    <th>Time (seconds)</th>
-                    <th>Seq 0 0</th>
-                    <th>Seq 0 1</th>
-                    <th>Interleaved</th>
-                    <th>Weak Behaviors</th>
-                </tr>
-                </thead>
-        {props.pageState.resetTable.value 
+      <div className="table-container">
+        <table className="table is-striped ">
+          <thead>
+            <tr>
+              <th>Test Number</th>
+              <th>Parameters</th>
+              <th>Progress</th>
+              <th>Iterations per second</th>
+              <th>Time (seconds)</th>
+              {props.header}
+            </tr>
+          </thead>
+          {props.pageState.resetTable.value
             ?
-                <tbody>
-                </tbody>
-             :
-             <tbody>
-                 {dynamicRow}
-                 {props.pageState.tuningRows.value}
-             </tbody>
-        }
-               
-            </table>
-        </div>
-        </div>
-    </div>
+            <tbody>
+            </tbody>
+            :
+            <tbody>
+              {dynamicRow}
+              {props.pageState.tuningRows.value}
+            </tbody>
+          }
+        </table>
+      </div>
     </>
-    );
+  );
 }
