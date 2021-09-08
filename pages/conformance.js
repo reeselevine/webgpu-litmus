@@ -286,8 +286,10 @@ export default function ConformanceTestSuite() {
             <p>
               Five classic coherence tests that verify sequential consistency per location are included: CoRR, CoWW, CoWR, CoRW1, and CoRW2. Additionally, 
               a four threaded version of CoRR is included. For several of these tests, variants that use atomic read-modify-write instructions are also included
-              as long as they maintain the same ordering and adjacency of reads and writes as the original tests. An atomicity test is also included to confirm
-              the correct behavior of a read-modify-write instruction. 
+              as long as they maintain the same ordering and adjacency of reads and writes as the original tests.             </p>
+            <h5>Atomicity Tests</h5>
+            <p>
+              An atomicity test is also included to confirm the correct behavior of a read-modify-write instruction. 
             </p>
             <h5>Workgroup Execution Barrier Tests</h5>
             <p>

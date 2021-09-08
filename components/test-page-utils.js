@@ -599,7 +599,7 @@ function randomGenerator(min, max){
 export function randomConfig() {
   let maxWorkgroups =  randomGenerator(4,1024);
   let minWorkgroups = randomGenerator(4, maxWorkgroups);
-  let stressLineSize = Math.pow(2, randomGenerator(1,10));
+  let stressLineSize = Math.pow(2, randomGenerator(2,10));
   let stressTargetLines = randomGenerator(1,16);
   let memStride = Math.pow(2, randomGenerator(1, 9));
   return {
