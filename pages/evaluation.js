@@ -9,8 +9,12 @@ import wr from '../shaders/evaluation/eval-wr.wgsl';
 import wrBuggy from '../shaders/evaluation/eval-wr-buggy.wgsl';
 import ww from '../shaders/evaluation/eval-ww.wgsl';
 import wwBuggy from '../shaders/evaluation/eval-ww-buggy.wgsl';
-import read from '../shaders/evaluation/read.wgsl';
 import messagePassing from '../shaders/evaluation/message-passing.wgsl';
+import store from '../shaders/evaluation/store.wgsl';
+import read from '../shaders/evaluation/read.wgsl';
+import loadBuffer from '../shaders/evaluation/load-buffer.wgsl';
+import storeBuffer from '../shaders/evaluation/store-buffer.wgsl';
+import twoPlusTwoWrite from '../shaders/evaluation/2+2-write.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["nonWeak", "weak"];
@@ -245,6 +249,42 @@ const messagePassingHandlers = {
   }
 };
 
+const loadBufferHandlers = {
+  nonWeak: function(result, memResult) {
+    return result[0] != 2 || result[1] != 1;
+  },
+  weak: function(result, memResult) {
+    return result[0] == 2 && result[1] == 1;
+  }
+};
+
+const storeHandlers = {
+  nonWeak: function(result, memResult) {
+    return result[0] != 2 || memResult[0] != 1;
+  },
+  weak: function(result, memResult) {
+    return result[0] == 2 && memResult[0] == 1;
+  }
+};
+
+const storeBufferHandlers = {
+  nonWeak: function(result, memResult) {
+    return result[0] != 0 || result[1] != 0;
+  },
+  weak: function(result, memResult) {
+    return result[0] == 0 && result[1] == 0;
+  }
+};
+
+const twoPlusTwoWriteHandlers = {
+  nonWeak: function(result, memResult) {
+    return memResult[0] != 1 || memResult[1] != 3;
+  },
+  weak: function(result, memResult) {
+    return memResult[0] == 1 && memResult[1] == 3;
+  }
+};
+
 function getOneReadOneWriteParams(testParams) {
   const oneReadOneWriteParams = JSON.parse(JSON.stringify(testParams));
   oneReadOneWriteParams.numOutputs = 3;
@@ -275,10 +315,14 @@ export default function EvaluationTestSuite() {
   let rwConfig = buildTest("RW", pageState, testParams, getOneReadOneWriteParams, getOneReadOneWriteParams, rw, rwBuggy, rwHandlers);
   let wrConfig = buildTest("WR", pageState, testParams, getOneReadOneWriteParams, getOneReadOneWriteParams, wr, wrBuggy, wrHandlers);
   let wwConfig = buildTest("WW", pageState, testParams, getWWParams, getWWParams, ww, wwBuggy, wwHandlers);
-  let readConfig = buildTest("Read", pageState, testParams, getWeakParams, getBuggyWeakParams, read, read, readHandlers);
   let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getWeakParams, getBuggyWeakParams, messagePassing, messagePassing, messagePassingHandlers);
+  let storeConfig = buildTest("Store", pageState, testParams, getWeakParams, getBuggyWeakParams, store, store, storeHandlers);
+  let readConfig = buildTest("Read", pageState, testParams, getWeakParams, getBuggyWeakParams, read, read, readHandlers);
+  let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getWeakParams, getBuggyWeakParams, loadBuffer, loadBuffer, loadBufferHandlers);
+  let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getWeakParams, getBuggyWeakParams, storeBuffer, storeBuffer, storeBufferHandlers);
+  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getWeakParams, getBuggyWeakParams, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteHandlers);
 
-  const tests = [rwConfig, wrConfig, wwConfig, readConfig, messagePassingConfig];
+  const tests = [rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
   let initialIterations = pageState.iterations.value;
   let initialBuggyPercentage = pageState.buggyPercentage.value;
   const stressPanel = getStressPanel(testParams, pageState);
