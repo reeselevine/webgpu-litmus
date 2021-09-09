@@ -19,6 +19,8 @@
 [[group(0), binding(7)]] var<storage, read_write> scratch_locations : Memory;
 [[group(0), binding(8)]] var<uniform> stress_params : StressParamsMemory;
 
+var<workgroup> workgroup_test_data: array<atomic<u32>, 2048>;
+
 fn spin() {
   var i : u32 = 0u;
   var bar_val : u32 = atomicAdd(&barrier.value[0], 1u);
@@ -80,21 +82,21 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
   }
 }
 
-let workgroupXSize = 1;
+let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];
-  let ax = &atomic_test_data.value[mem_locations.value[0]];
-  let ay = &atomic_test_data.value[mem_locations.value[1]];
-  if (shuffled_ids.value[global_invocation_id[0]] == u32(workgroupXSize) * 0u + 0u) {
+  let ax = &workgroup_test_data[mem_locations.value[0]];
+  let ay = &workgroup_test_data[mem_locations.value[1]];
+  if (shuffled_ids.value[global_invocation_id[0]] == 0u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
     }
     if (do_barrier == 1u) {
       spin();
     }
-    let r0 = atomicAdd(ax, 0u);
-    let unused = atomicExchange(ay, 1u);
+    let r0 = atomicLoad(ax);
+    atomicStore(ay, 1u);
     results.value[0] = r0;
   } elseif (stress_params.value[1] == 1u) {  
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);  

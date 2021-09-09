@@ -2,9 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { coRW1Handlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coRW1 from '../../shaders/corw1.wgsl';
-import coRW1_RMW1 from '../../shaders/corw1-rmw1.wgsl';
-import coRW1_RMW2 from '../../shaders/corw1-rmw2.wgsl';
-import coRW1_RMW3 from '../../shaders/corw1-rmw3.wgsl';
+import coRW1_workgroup from '../../shaders/corw1-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -14,20 +12,10 @@ const variants = {
 0.2: atomicStore(x, 1)`]),
     shader: coRW1
   },
-  rmw1: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicStore(x, 1)`]),
-    shader: coRW1_RMW1 
-  },
-  rmw2: {
+  workgroup: {
     pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
-0.2: atomicExchange(x, 1)`]),
-    shader: coRW1_RMW2
-  },
-  rmw3: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicExchange(x, 1)`]),
-    shader: coRW1_RMW3 
+0.2: atomicStore(x, 1)`], true),
+    shader: coRW1_workgroup
   }
 }
 

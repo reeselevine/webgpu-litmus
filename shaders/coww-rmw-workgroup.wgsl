@@ -95,8 +95,8 @@ let workgroupXSize = 256;
     if (do_barrier == 1u) {
       spin();
     }
-    atomicStore(ax, 1u);
-    let unused = atomicExchange(ay, 2u);
+    let unused = atomicExchange(ax, 1u);
+    atomicStore(ay, 2u);
   } elseif (stress_params.value[1] == 1u) {  
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);  
   }
