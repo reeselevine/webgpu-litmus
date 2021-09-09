@@ -2,14 +2,26 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { atomicityHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import atom from '../../shaders/atomicity.wgsl';
+import atom_workgroup from '../../shaders/atomicity-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+
+const variants = {
+  default: {
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"]),
+    shader: atom
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: let r0 = atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"], true),
+    shader: atom_workgroup
+  }
+};
 
 export default function Atomicity() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0 && *x == 1"/>,
-    code: buildPseudoCode([`0.1: let r0 = atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"])
+    code: variants.default.pseudo
   };
 
   const stateConfig = {
@@ -38,7 +50,7 @@ export default function Atomicity() {
     shaderCode: atom,
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
+    variants: variants
   };
-
   return makeTwoOutputLitmusTestPage(props);
 }

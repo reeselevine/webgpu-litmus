@@ -3,12 +3,8 @@ import { coRW2Handlers, makeTwoOutputLitmusTestPage } from '../../components/tes
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRW2 from '../../shaders/corw2.wgsl';
 import coRW2_RMW from '../../shaders/corw2-rmw.wgsl';
-import coRW2_RMW1 from '../../shaders/corw2-rmw1.wgsl';
-import coRW2_RMW2 from '../../shaders/corw2-rmw2.wgsl';
-import coRW2_RMW3 from '../../shaders/corw2-rmw3.wgsl';
-import coRW2_RMW4 from '../../shaders/corw2-rmw4.wgsl';
-import coRW2_RMW5 from '../../shaders/corw2-rmw5.wgsl';
-import coRW2_RMW6 from '../../shaders/corw2-rmw6.wgsl';
+import coRW2_workgroup from '../../shaders/corw2-workgroup.wgsl';
+import coRW2_RMW_workgroup from '../../shaders/corw2-rmw-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -23,36 +19,17 @@ const variants = {
 0.2: atomicStore(x, 1)`, "1.1: atomicExchange(x, 2)"]),
     shader: coRW2_RMW
   },
-  rmw1: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicStore(x, 1)`, "1.1: atomicStore(x, 2)"]),
-    shader: coRW2_RMW1
-  },
-  rmw2: {
+  workgroup: {
     pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
-0.2: atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"]),
-    shader: coRW2_RMW2
+0.2: atomicStore(x, 1)`, "1.1: atomicStore(x, 2)"], true),
+    shader: coRW2_workgroup
   },
-  rmw3: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicExchange(x, 1)`, "1.1: atomicStore(x, 2)"]),
-    shader: coRW2_RMW3
-  },
-  rmw4: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicStore(x, 1)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coRW2_RMW4
-  },
-  rmw5: {
+  workgroup_rmw: {
     pseudo: buildPseudoCode([`0.1: let r0 = atomicLoad(x)
-0.2: atomicExchange(x, 1)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coRW2_RMW5
-  },
-  rmw6: {
-    pseudo: buildPseudoCode([`0.1: let r0 = atomicAdd(x, 0)
-0.2: atomicExchange(x, 1)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coRW2_RMW6
+0.2: atomicStore(x, 1)`, "1.1: atomicExchange(x, 2)"], true),
+    shader: coRW2_RMW_workgroup
   }
+
 }
 
 export default function CoRW2() {

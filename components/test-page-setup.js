@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
+import { runLitmusTest, reportTime, getCurrentIteration, defaultTestParams } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig, workgroupMemorySize, workgroupVariantWorkgroupSize } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
@@ -161,9 +161,14 @@ function VariantOptions(props) {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
         props.pageState.activeVariant.update(e.target.value);
-        if (e.target.value == "workgroup") {
+        if (e.target.value.includes("workgroup")) {
           props.uiParams.testMemorySize.state.update(workgroupMemorySize);
           props.testParams['testMemorySize'] = workgroupMemorySize;
+          props.testParams['minWorkgroupSize'] = workgroupVariantWorkgroupSize;
+          props.testParams['maxWorkgroupSize'] = workgroupVariantWorkgroupSize;
+        } else {
+          props.testParams['minWorkgroupSize'] = 1;
+          props.testParams['maxWorkgroupSize'] = 1;
         }
       }} disabled={props.pageState.running.value}>
         {variantOptions}
