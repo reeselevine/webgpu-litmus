@@ -59,7 +59,7 @@ function IntegerStressParam(props) {
             }} disabled={props.pageState.running.value || 
                         (props.pageState.activeVariant != undefined && 
                          props.paramName == "testMemorySize" && 
-                        props.pageState.activeVariant.value == "workgroup")}/>
+                        props.pageState.activeVariant.value.includes("workgroup"))}/>
         </div>
       </div>
     </>
