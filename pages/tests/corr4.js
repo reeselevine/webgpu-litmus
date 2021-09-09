@@ -3,6 +3,8 @@ import { coRR4Handlers, makeFourOutputLitmusTestPage } from '../../components/te
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR4 from '../../shaders/corr4.wgsl';
 import coRR4_RMW from '../../shaders/corr4-rmw.wgsl';
+import coRR4_workgroup from '../../shaders/corr4-workgroup.wgsl';
+import coRR4_RMW_workgroup from '../../shaders/corr4-rmw-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -18,6 +20,18 @@ const variants = {
 1.2: let r1 = atomicAdd(x, 0)`, `2.1: atomicExchange(x, 2)`, `3.1: let r2= atomicLoad(x)
 3.2: let r3 = atomicAdd(x, 0)`]),
     shader: coRR4_RMW
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`, `2.1: atomicStore(x, 2)`, `3.1: let r2 = atomicLoad(x)
+3.2: let r3 = atomicLoad(x)`], true),
+    shader: coRR4_workgroup
+  },
+  workgroup_rmw: {
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicAdd(x, 0)`, `2.1: atomicExchange(x, 2)`, `3.1: let r2= atomicLoad(x)
+3.2: let r3 = atomicAdd(x, 0)`], true),
+    shader: coRR4_RMW_workgroup
   }
 }
 
