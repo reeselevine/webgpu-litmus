@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { makeTestPage } from './test-page-setup';
 
 export const workgroupMemorySize = 2048;
+export const workgroupVariantWorkgroupSize = 256;
 
 export function makeOneOutputLitmusTestPage(props) {
   props.testState = getOneOutputState(props.stateConfig);

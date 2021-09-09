@@ -3,12 +3,10 @@ import { coRRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr.wgsl';
 import coRR_RMW from '../../shaders/corr-rmw.wgsl';
+import coRR_workgroup from '../../shaders/corr-workgroup.wgsl';
+import coRR_RMW_workgroup from '../../shaders/corr-rmw-workgroup.wgsl';
 import coRR_RMW1 from '../../shaders/corr-rmw1.wgsl';
 import coRR_RMW2 from '../../shaders/corr-rmw2.wgsl';
-import coRR_RMW3 from '../../shaders/corr-rmw3.wgsl';
-import coRR_RMW4 from '../../shaders/corr-rmw4.wgsl';
-import coRR_RMW5 from '../../shaders/corr-rmw5.wgsl';
-import coRR_RMW6 from '../../shaders/corr-rmw6.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -23,6 +21,16 @@ const variants = {
 1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW
   },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`], true),
+    shader: coRR_workgroup
+  },
+  workgroup_rmw: {
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicAdd(x, 0)`], true),
+    shader: coRR_RMW_workgroup
+  },
   rmw1: {
     pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
 1.2: let r1 = atomicLoad(x)`]),
@@ -32,26 +40,6 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
 1.2: let r1 = atomicAdd(x, 0)`]),
     shader: coRR_RMW2
-  },
-  rmw3: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
-1.2: let r1 = atomicLoad(x)`]),
-    shader: coRR_RMW3
-  },
-  rmw4: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
-1.2: let r1 = atomicLoad(x)`]),
-    shader: coRR_RMW4
-  },
-  rmw5: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
-1.2: let r1 = atomicAdd(x, 0)`]),
-    shader: coRR_RMW5
-  },
-  rmw6: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicAdd(x, 0)
-1.2: let r1 = atomicAdd(x, 0)`]),
-    shader: coRR_RMW6
   }
 }
 

@@ -3,6 +3,8 @@ import { coWRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coWR from '../../shaders/cowr.wgsl';
 import coWR_RMW from '../../shaders/cowr-rmw.wgsl';
+import coWR_workgroup from '../../shaders/cowr-workgroup.wgsl';
+import coWR_RMW_workgroup from '../../shaders/cowr-rmw-workgroup.wgsl';
 import coWR_RMW1 from '../../shaders/cowr-rmw1.wgsl';
 import coWR_RMW2 from '../../shaders/cowr-rmw2.wgsl';
 import coWR_RMW3 from '../../shaders/cowr-rmw3.wgsl';
@@ -22,6 +24,16 @@ const variants = {
     pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
 0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicExchange(x, 2)"]),
     shader: coWR_RMW
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
+0.2: let r0 = atomicLoad(x)`, "1.1: atomicStore(x, 2)"], true),
+    shader: coWR_workgroup
+  },
+  workgroup_rmw: {
+    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
+0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicExchange(x, 2)"], true),
+    shader: coWR_RMW_workgroup
   },
   rmw1: {
     pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
