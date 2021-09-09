@@ -9,6 +9,8 @@ import wr from '../shaders/evaluation/eval-wr.wgsl';
 import wrBuggy from '../shaders/evaluation/eval-wr-buggy.wgsl';
 import ww from '../shaders/evaluation/eval-ww.wgsl';
 import wwBuggy from '../shaders/evaluation/eval-ww-buggy.wgsl';
+import read from '../shaders/evaluation/read.wgsl';
+import messagePassing from '../shaders/evaluation/message-passing.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["nonWeak", "weak"];
@@ -89,7 +91,7 @@ function TestRow(props) {
         <td>{props.state.nonWeak.visibleState}</td>
         <td>{props.state.weak.visibleState}</td>
         <td><button className="button" onClick={() => {
-          doTest(props.pageState, props.testParams, props.validShader, props.buggyShader, props.state, props.fixedMemorySize);
+          doTest(props.pageState, props.testParams, props.getValidParams, props.getBuggyParams, props.validShader, props.buggyShader, props.state, props.fixedMemorySize);
         }} disabled={props.pageState.running.value}>Run</button></td>
       </tr>
     </>
@@ -97,7 +99,7 @@ function TestRow(props) {
 
 }
 
-function buildTest(testName, pageState, testParams, validShader, buggyShader, handlers, fixedMemorySize = false) {
+function buildTest(testName, pageState, testParams, getValidTestParams, getBuggyTestParams, validShader, buggyShader, handlers, fixedMemorySize = false) {
   const [nonWeak, setNonWeak] = useState(0);
   const [weak, setWeak] = useState(0);
   const [result, setResult] = useState(undefined);
@@ -130,9 +132,9 @@ function buildTest(testName, pageState, testParams, validShader, buggyShader, ha
   };
   return {
     run: async function () {
-      return doTest(pageState, testParams, validShader, buggyShader, state, fixedMemorySize);
+      return doTest(pageState, testParams, getValidTestParams, getBuggyTestParams, validShader, buggyShader, state, fixedMemorySize);
     },
-    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} testParams={testParams} validShader={validShader} buggyShader={buggyShader} fixedMemorySize={fixedMemorySize} />
+    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} testParams={testParams} getValidParams={getValidTestParams} getBuggyParams={getBuggyTestParams} validShader={validShader} buggyShader={buggyShader} fixedMemorySize={fixedMemorySize} />
   }
 }
 
@@ -154,13 +156,14 @@ function updateStateAndHandleResult(pageState, testState) {
   }
 }
 
-async function doTest(pageState, testParams, validShader, buggyShader, testState, useWorkgroupMemorySize) {
-  let newParams;
+async function doTest(pageState, testParams, getValidTestParams, getBuggyTestParams, validShader, buggyShader, testState, useWorkgroupMemorySize) {
+  let newParams = getValidTestParams(testParams);
+  let newBuggyParams = getBuggyTestParams(testParams);
   if (useWorkgroupMemorySize) {
     newParams = JSON.parse(JSON.stringify(testParams));
     newParams.testMemorySize = workgroupMemorySize;
-  } else {
-    newParams = testParams;
+    newBuggyParams = JSON.parse(JSON.stringify(buggyParams));
+    newBuggyParamsParams.testMemorySize = workgroupMemorySize;
   }
   pageState.running.update(true);
   clearState(testState, keys);
@@ -168,7 +171,7 @@ async function doTest(pageState, testParams, validShader, buggyShader, testState
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runEvaluationLitmusTest(validShader, buggyShader, newParams, pageState.iterations.value, pageState.buggyPercentage.value, updateStateAndHandleResult(pageState, testState));
+  await runEvaluationLitmusTest(validShader, buggyShader, newParams, newBuggyParams, pageState.iterations.value, pageState.buggyPercentage.value, updateStateAndHandleResult(pageState, testState));
   testState.progress.update(100);
   pageState.running.update(false);
   if (testState.weak.internalState > 0) {
@@ -224,20 +227,58 @@ const wwHandlers = {
   }
 };
 
+const readHandlers = {
+  nonWeak: function(result, memResult) {
+    return result[0] != 0 || memResult[1] != 3;
+  },
+  weak: function(result, memResult) {
+    return result[0] == 0 && memResult[1] == 3;
+  }
+};
+
+const messagePassingHandlers = {
+  nonWeak: function(result, memResult) {
+    return result[0] != 2 || result[1] != 0;
+  },
+  weak: function(result, memResult) {
+    return result[0] == 2 && result[1] == 0;
+  }
+};
+
+function getOneReadOneWriteParams(testParams) {
+  const oneReadOneWriteParams = JSON.parse(JSON.stringify(testParams));
+  oneReadOneWriteParams.numOutputs = 3;
+  oneReadOneWriteParams.memoryAliases[1] = 0;
+  return oneReadOneWriteParams;
+}
+
+function getWWParams(testParams) {
+  const wwParams = JSON.parse(JSON.stringify(testParams));
+  wwParams.numOutputs = 4;
+  wwParams.memoryAliases[1] = 0;
+  return wwParams;
+}
+
+function getWeakParams(testParams) {
+  const weakParams = JSON.parse(JSON.stringify(testParams));
+  weakParams.memoryAliases[1] = 0;
+  return weakParams;
+}
+
+function getBuggyWeakParams(testParams) {
+  const weakBuggyParams = JSON.parse(JSON.stringify(testParams));
+  return weakBuggyParams;
+}
+
 export default function EvaluationTestSuite() {
   const pageState = getPageState();
-  const oneReadOneWriteParams = JSON.parse(JSON.stringify(defaultTestParams));
-  oneReadOneWriteParams.numOutputs = 3;
-  oneReadOneWriteParams.numMemLocations = 1;
-  oneReadOneWriteParams.memoryAliases[1] = 0;
-  let rwConfig = buildTest("RW", pageState, oneReadOneWriteParams, rw, rwBuggy, rwHandlers);
-  let wrConfig = buildTest("WR", pageState, oneReadOneWriteParams, wr, wrBuggy, wrHandlers);
-  const wwParams = JSON.parse(JSON.stringify(defaultTestParams));
-  wwParams.numOutputs = 4;
-  wwParams.numMemLocations = 1;
-  wwParams.memoryAliases[1] = 0;
-  let wwConfig = buildTest("WW", pageState, wwParams, ww, wwBuggy, wwHandlers);
-  const tests = [rwConfig, wrConfig, wwConfig];
+  let rwConfig = buildTest("RW", pageState, testParams, getOneReadOneWriteParams, getOneReadOneWriteParams, rw, rwBuggy, rwHandlers);
+  let wrConfig = buildTest("WR", pageState, testParams, getOneReadOneWriteParams, getOneReadOneWriteParams, wr, wrBuggy, wrHandlers);
+  let wwConfig = buildTest("WW", pageState, testParams, getWWParams, getWWParams, ww, wwBuggy, wwHandlers);
+  let readConfig = buildTest("Read", pageState, testParams, getWeakParams, getBuggyWeakParams, read, read, readHandlers);
+  let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getWeakParams, getBuggyWeakParams, messagePassing, messagePassing, messagePassingHandlers);
+
+  const tests = [rwConfig, wrConfig, wwConfig, readConfig, messagePassingConfig];
   let initialIterations = pageState.iterations.value;
   let initialBuggyPercentage = pageState.buggyPercentage.value;
   const stressPanel = getStressPanel(testParams, pageState);

@@ -506,7 +506,14 @@ export async function runLitmusTest( shaderCode, testParams, iterations, handleR
     }
 }
 
-export async function runEvaluationLitmusTest(validShader, buggyShader, testParams, iterations, buggyPercentage, handleResult) {
+export async function runEvaluationLitmusTest(
+  validShader, 
+  buggyShader, 
+  testParams, 
+  buggyParams,
+  iterations, 
+  buggyPercentage, 
+  handleResult) {
     const device = await getDevice();
     if (device === undefined) {
         alert("WebGPU not enabled or supported!")
@@ -542,14 +549,17 @@ export async function runEvaluationLitmusTest(validShader, buggyShader, testPara
 
     for (let i = 0; i < iterations; i++) {
       let shaderCode;
+      let params;
       if (Math.random() <= buggyPercentage) {
         shaderCode = buggyShader;
+        params = buggyParams;
       } else {
         shaderCode = validShader;
+        params = testParams;
       }
       const computePipeline = createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSize);
       currentIteration = i;
-      const result = await runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize);
+      const result = await runTestIteration(device, computePipeline, bindGroup, buffers, params, workgroupSize);
       handleResult(result.readResult, result.memResult);
       duration = Date.now() - start;
     }
