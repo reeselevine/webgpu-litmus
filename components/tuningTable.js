@@ -1,23 +1,19 @@
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
-
-function PopUp(props) {
-  return (
-    <div class="modal">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        {JSON.stringify(props.params, null, 4)}
-      </div>
-      <button class="modal-close is-large" aria-label="close"></button>
-    </div>
-  )
+import PopUp from 'reactjs-popup';
+let list =['id', 'minWorkgroupSize','maxWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases','memStressPattern','preStressPattern','stressAssignmentStrategy']
+function replacer(key, value) {
+  // Filtering out properties
+  if ( list.includes(key) ) {
+    return undefined;
+  }
+  return value;
 }
 function ParamButton(props) {
   return (
-    <button className="button is-info is-small" onClick={() => {
-      alert(JSON.stringify(props.params, null, 4))
-    }}>
-      Show Param
-    </button>
+    <PopUp className="my-popup" trigger={<button className="button is-info is-small" > Show Param</button>} >
+      <div>{JSON.stringify(props.params, replacer).split(",").join('\n').replace(/{|}/g, "")}</div>
+    </PopUp>
+
   )
 }
 
