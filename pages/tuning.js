@@ -1,19 +1,24 @@
 import { useState } from 'react';
-import { buildThrottle } from '../components/test-page-utils.js';
+import { buildThrottle, loadBufferHandlers, messagePassingHandlers, randomConfig } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
+import messagePassing from '../shaders/message-passing.wgsl';
+import loadBuffer from '../shaders/load-buffer.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
-  const [iterations, setIterations] = useState(1000);
-  const [tuningTimes, setTuningTimes] = useState(10);
+  const [iterations, setIterations] = useState(100);
+  const [tuningTimes, setTuningTimes] = useState(2);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+  const [totalTests, setTotalTests] = useState(0);
+  const [completedTests, setCompletedTests] = useState(0);
   return {
     running: {
       value: running,
@@ -40,10 +45,28 @@ function getPageState() {
     weak: {
       ...buildStateValues(weak, setWeak)
     },
-    totalTime: 0,
-    totalTests: 0,
-    completedTests: 0,
+    totalTime: {
+      ...buildStateValues(totalTime, setTotalTime)
+    },
+    totalTests: {
+      ...buildStateValues(totalTests, setTotalTests)
+    },
+    completedTests: {
+      ...buildStateValues(completedTests, setCompletedTests)
+    },
     curParams: testParams
+  }
+}
+
+function buildTest(shader, handler) {
+  return {
+    shader: shader,
+    handler: handler,
+    state: {
+      seq: 0,
+      interleaved: 0,
+      weak: 0
+    }
   }
 }
 
@@ -81,13 +104,6 @@ function ParamButton(props) {
 function DynamicRow(props) {
   let time = reportTime();
   let curIter = getCurrentIteration();
-  let rate;
-  if (time == 0) {
-    rate = 0;
-  } else {
-    rate = Math.round(curIter / time);
-  }
-  let overallProgress = 100 * (props.pageState.completedTests * props.pageState.iterations.value + curIter)/(props.pageState.totalTests * props.pageState.iterations.value);
   return (
     <tr >
       <td>
@@ -97,13 +113,14 @@ function DynamicRow(props) {
         <ParamButton testParams={props.pageState.curParams}/>
       </td>
       <td>
-        {props.pageState.completedTests}/{props.pageState.totalTests}
+        {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.visibleState}
       </td>
       <td>
-        {overallProgress}
+        {100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter)/(props.pageState.totalTests.visibleState * props.pageState.iterations.value)}
+
       </td>
       <td>
-        {props.pageState.totalTime + time}
+        {props.pageState.totalTime.visibleState + time}
       </td>
       <td>
         {props.pageState.seq.visibleState}
@@ -128,13 +145,13 @@ export function StaticRow(props) {
         <ParamButton params={props.pageState.curParams}></ParamButton>
       </td>
       <td>
-        {props.pageState.completedTests}/{props.pageState.totalTests}
+        {props.pageState.completedTests.internalState}/{props.pageState.totalTests.internalState}
       </td>
       <td>
         100
       </td>
       <td>
-        {props.pageState.totalTime}
+        {props.pageState.totalTime.internalState}
       </td>
       <td>
         {props.pageState.seq.internalState}
@@ -151,8 +168,20 @@ export function StaticRow(props) {
 
 async function tune(tests, testParams, pageState) {
   pageState.tuningRows.update([]);
+  pageState.totalTests.internalState = tests.length;
+  pageState.totalTests.update(pageState.totalTests.internalState);
   pageState.running.update(true);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
+    pageState.totalTime.internalState = 0;
+    pageState.totalTime.update(pageState.totalTime.internalState);
+    pageState.completedTests.internalState = 0;
+    pageState.completedTests.update(pageState.completedTests.internalState);
+    pageState.seq.internalState = 0;
+    pageState.seq.update(pageState.seq.internalState);
+    pageState.interleaved.internalState = 0;
+    pageState.interleaved.update(pageState.interleaved.internalState);
+    pageState.weak.internalState = 0;
+    pageState.weak.update(pageState.weak.internalState);
     let params = {
       ...randomConfig(),
       id: i,
@@ -165,21 +194,27 @@ async function tune(tests, testParams, pageState) {
     pageState.curParams = params;
     for (let j = 0; j < tests.length; j++) {
       let curTest = tests[j];
-      await runLitmusTest(curTest.shaderCode, params, pageState.iterations.value, handleResult(curTest, pageState));
-      pageState.totalTime = pageState.totalTime + reportTime();
-      pageState.completedTests = pageState.completedTests + 1;
+      await runLitmusTest(curTest.shader, params, pageState.iterations.value, handleResult(curTest, pageState));
+      pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
+      pageState.totalTime.update(pageState.totalTime.internalState);
+      pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
+      pageState.completedTests.update(pageState.completedTests.internalState);
     }
     let row = <StaticRow pageState={pageState} key={params.id} />
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
   }
+  pageState.running.update(false);
 }
 
 export default function TuningSuite() {
   const pageState = getPageState();
-  const tests = [];
+  const messagePassingConfig = buildTest(messagePassing, messagePassingHandlers);
+  const loadBufferConfig = buildTest(loadBuffer, loadBufferHandlers);
+  const tests = [messagePassingConfig, loadBufferConfig];
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
-  pageState.totalTests = 1;
+  testParams.memoryAliases[1] = 0;
+  testParams.numOutputs = 4;
   return (
     <>
       <div className="columns">
