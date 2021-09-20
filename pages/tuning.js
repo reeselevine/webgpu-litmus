@@ -152,12 +152,12 @@ function DynamicRow(props) {
         {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.visibleState}
       </td>
       <td>
-        {props.pageState.completedTests.visibleState == props.pageState.totalTests.visibleState ?
+        {!props.pageState.running.value ?
           100 :
           (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.visibleState * props.pageState.iterations.value)).toFixed(0)}
       </td>
       <td>
-        {(props.pageState.totalTime.visibleState + time).toFixed(3)}
+        {(props.pageState.running.value ? (props.pageState.totalTime.visibleState + time) : props.pageState.totalTime.visibleState).toFixed(3)}
       </td>
       <td>
         {props.pageState.seq.visibleState}
@@ -287,7 +287,7 @@ function getTestSelector(pageState) {
             <div className="panel-block p-2">
               <div className="columns is-2 ">
                 <div className="column ">
-                  <b> Test Parameter Presets </b>
+                  <b> Presets </b>
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
                       mpTests[0].state.setIsChecked(true);
