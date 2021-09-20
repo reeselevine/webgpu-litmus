@@ -27,6 +27,11 @@ return(
     </Link>
   </div>
   <div className="panel-block">
+    <Link href="/tuning">
+      <a>Tuning Suite</a>
+    </Link>
+  </div>
+  <div className="panel-block">
     <b>Weak Memory Tests:</b>
   </div>
   <div className="panel-block ">

@@ -1,9 +1,26 @@
 import { useState } from 'react';
-import { buildThrottle, loadBufferHandlers, messagePassingHandlers, randomConfig } from '../components/test-page-utils.js';
+import { buildThrottle, loadBufferHandlers, messagePassingHandlers, randomConfig, readHandlers, storeBufferHandlers, storeHandlers, twoPlusTwoWriteHandlers } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import messagePassing from '../shaders/message-passing.wgsl';
+import barrierMessagePassing from '../shaders/barrier-message-passing.wgsl'
+import barrier1MessagePassing from '../shaders/barrier1-message-passing.wgsl'
+import barrier2MessagePassing from '../shaders/barrier2-message-passing.wgsl'
+import barrierMessagePassingNA from '../shaders/barrier-message-passing-na.wgsl';
+import store from '../shaders/store.wgsl';
+import barrierStore from '../shaders/barrier-store.wgsl'
+import barrier1Store from '../shaders/barrier1-store.wgsl'
+import barrier2Store from '../shaders/barrier2-store.wgsl'
+import barrierStoreNA from '../shaders/barrier-store-na.wgsl';
 import loadBuffer from '../shaders/load-buffer.wgsl';
+import barrierLoadBuffer from '../shaders/barrier-load-buffer.wgsl';
+import barrier1LoadBuffer from '../shaders/barrier1-load-buffer.wgsl';
+import barrier2LoadBuffer from '../shaders/barrier2-load-buffer.wgsl';
+import barrierLoadBufferNA from '../shaders/barrier-load-buffer-na.wgsl';
+
+import read from '../shaders/read.wgsl';
+import storeBuffer from '../shaders/store-buffer.wgsl';
+import twoPlusTwoWrite from '../shaders/2+2-write.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
@@ -60,16 +77,16 @@ function getPageState() {
 
 function TuningTest(props) {
   return (
-      <>
-        <div>
-            <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange}/>
-              {props.testName}
-        </div>
-      </>
+    <>
+      <div>
+        <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value}/>
+        {props.testName}
+      </div>
+    </>
   )
 }
 
-function buildTest(testName, shader, handler) {
+function buildTest(testName, shader, handler, pageState) {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleOnChange = () => {
@@ -83,9 +100,9 @@ function buildTest(testName, shader, handler) {
       interleaved: 0,
       weak: 0,
       isChecked: isChecked,
-      update: setIsChecked
+      setIsChecked: setIsChecked
     },
-    jsx: <TuningTest key={testName} testName={testName} isChecked={isChecked} handleOnChange={handleOnChange}/>
+    jsx: <TuningTest key={testName} testName={testName} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState}/>
   }
 }
 
@@ -129,14 +146,15 @@ function DynamicRow(props) {
         Currently Running
       </td>
       <td>
-        <ParamButton testParams={props.pageState.curParams}/>
+        <ParamButton testParams={props.pageState.curParams} />
       </td>
       <td>
         {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.visibleState}
       </td>
       <td>
-        {100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter)/(props.pageState.totalTests.visibleState * props.pageState.iterations.value)}
-
+        {props.pageState.completedTests.visibleState == props.pageState.totalTests.visibleState ?
+          100 :
+          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.visibleState * props.pageState.iterations.value)).toFixed(0)}
       </td>
       <td>
         {(props.pageState.totalTime.visibleState + time).toFixed(3)}
@@ -161,7 +179,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <ParamButton params={props.pageState.curParams}></ParamButton>
+        <ParamButton testParams={props.pageState.curParams}></ParamButton>
       </td>
       <td>
         {props.pageState.completedTests.internalState}/{props.pageState.totalTests.internalState}
@@ -185,25 +203,114 @@ export function StaticRow(props) {
   )
 }
 
+function SelectorTest(props) {
+  const [testsVisible, setTestsVisible] = useState(false);
+  return (
+    <>
+      <li>
+        <a onClick={() => setTestsVisible(!testsVisible)}>{props.testName}</a>
+        <ul className={testsVisible ? "is-active" : "is-hidden"}>
+          {props.tests.map(test => test.jsx)}
+        </ul>
+      </li>
 
-function getTestSelector() {
-  const messagePassingConfig = buildTest("Message Passing", messagePassing, messagePassingHandlers);
-  const loadBufferConfig = buildTest("Load Buffer", loadBuffer, loadBufferHandlers);
-  let tests = [messagePassingConfig, loadBufferConfig];
+    </>
+  )
+}
+
+function SelectorCategory(props) {
+  return (
+    <>
+      <p className="menu-label">
+        {props.category}
+      </p>
+      <ul className="menu-list">
+        {props.tests}
+      </ul>
+    </>
+  )
+}
+
+function getTestSelector(pageState) {
+  let mpTests = [
+    buildTest("Default", messagePassing, messagePassingHandlers, pageState),
+    buildTest("Barrier Variant", barrierMessagePassing, messagePassingHandlers, pageState),
+    buildTest("Barrier Variant 1", barrier1MessagePassing, messagePassingHandlers, pageState),
+    buildTest("Barrier Variant 2", barrier2MessagePassing, messagePassingHandlers, pageState),
+    buildTest("Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState)
+  ];
+  const mpJsx = <SelectorTest key="mp" testName="Message Passing" tests={mpTests} />;
+  let storeTests = [
+    buildTest("Default", store, storeHandlers, pageState),
+    buildTest("Barrier Variant", barrierStore, storeHandlers, pageState),
+    buildTest("Barrier Variant 1", barrier1Store, storeHandlers, pageState),
+    buildTest("Barrier Variant 2", barrier2Store, storeHandlers, pageState),
+    buildTest("Non-atomic with barrier", barrierStoreNA, storeHandlers, pageState)
+  ];
+  const storeJsx = <SelectorTest key="store" testName="Store" tests={storeTests} />;
+  let readTests = [
+    buildTest("Default", read, readHandlers, pageState),
+  ];
+  const readJsx = <SelectorTest key="read" testName="Read" tests={readTests} />;
+  let lbTests = [
+    buildTest("Default", loadBuffer, loadBufferHandlers, pageState),
+    buildTest("Barrier Variant", barrierLoadBuffer, loadBufferHandlers, pageState),
+    buildTest("Barrier Variant 1", barrier1LoadBuffer, loadBufferHandlers, pageState),
+    buildTest("Barrier Variant 2", barrier2LoadBuffer, loadBufferHandlers, pageState),
+    buildTest("Non-atomic with barrier", barrierLoadBufferNA, loadBufferHandlers, pageState)
+  ];
+  const lbJsx = <SelectorTest kep="lb" testName="Load Buffer" tests={lbTests} />;
+  let sbTests = [
+    buildTest("Default", storeBuffer, storeBufferHandlers, pageState),
+  ];
+  const sbJsx = <SelectorTest kep="sb" testName="Store Buffer" tests={sbTests} />;
+  let twoPlusTwoWriteTests = [
+    buildTest("Default", twoPlusTwoWrite, twoPlusTwoWriteHandlers, pageState),
+  ];
+  const twoPlusTwoWriteJsx = <SelectorTest kep="sb" testName="2+2 Write" tests={twoPlusTwoWriteTests} />;
+  let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
+  let tests = [...mpTests, ...storeTests, ...readTests, ...lbTests, ...sbTests, ...twoPlusTwoWriteTests];
   return {
     tests: tests,
     jsx: (
       <>
-      <div className="column is-one-third mr-2">
-        <nav className="panel">
-          <p className="panel-heading">
-            Selected Tests 
-          </p>
-          <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
-            {tests.map(test => test.jsx)}
-          </div>
-        </nav>
-      </div>
+        <div className="column is-one-third mr-2">
+          <nav className="panel">
+            <p className="panel-heading">
+              Selected Tests
+            </p>
+            <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
+              <aside className="menu">
+                <SelectorCategory category="Weak Memory Tests" tests={weakMemoryJsx} />
+              </aside>
+            </div>
+            <div className="panel-block p-2">
+              <div className="columns is-2 ">
+                <div className="column ">
+                  <b> Test Parameter Presets </b>
+                  <div className="buttons are-small">
+                    <button className="button is-link is-outlined " onClick={() => {
+                      mpTests[0].state.setIsChecked(true);
+                      storeTests[0].state.setIsChecked(true);
+                      readTests[0].state.setIsChecked(true);
+                      lbTests[0].state.setIsChecked(true);
+                      sbTests[0].state.setIsChecked(true);
+                      twoPlusTwoWriteTests[0].state.setIsChecked(true);
+                    }} disabled={pageState.running.value}>
+                      Weak Memory Defaults
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.state.setIsChecked(false));
+                    }} disabled={pageState.running.value}>
+                      Clear all
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
       </>
     )
   }
@@ -244,6 +351,9 @@ async function tune(tests, testParams, pageState) {
     pageState.curParams = params;
     for (let j = 0; j < activeTests.length; j++) {
       let curTest = activeTests[j];
+      curTest.state.seq = 0;
+      curTest.state.interleaved = 0;
+      curTest.state.weak = 0;
       await runLitmusTest(curTest.shader, params, pageState.iterations.value, handleResult(curTest, pageState));
       pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
       pageState.totalTime.update(pageState.totalTime.internalState);
@@ -258,10 +368,9 @@ async function tune(tests, testParams, pageState) {
 
 export default function TuningSuite() {
   const pageState = getPageState();
-  const testSelector = getTestSelector();
+  const testSelector = getTestSelector(pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
-  testParams.memoryAliases[1] = 0;
   testParams.numOutputs = 4;
   return (
     <>
@@ -315,7 +424,7 @@ export default function TuningSuite() {
             </tr>
           </thead>
           <tbody>
-            <DynamicRow pageState={pageState} testParams={testParams}/>
+            <DynamicRow pageState={pageState} testParams={testParams} />
             {pageState.tuningRows.value}
           </tbody>
         </table>

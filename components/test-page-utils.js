@@ -394,6 +394,16 @@ export const loadBufferHandlers = {
   weak: commonHandlers.bothOne
 };
 
+export const storeBufferHandlers = {
+  seq: function(result, memResult) {
+    return commonHandlers.oneZero(result, memResult) || commonHandlers.zeroOne(result, memResult);
+  },
+  seq0: commonHandlers.oneZero,
+  seq1: commonHandlers.zeroOne,
+  interleaved: commonHandlers.bothOne,
+  weak: commonHandlers.bothZero
+};
+
 function storeSeq0(result, memResult) {
   return result[0] == 1 && memResult[0] == 1;
 }
