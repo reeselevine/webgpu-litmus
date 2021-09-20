@@ -58,15 +58,34 @@ function getPageState() {
   }
 }
 
-function buildTest(shader, handler) {
+function TuningTest(props) {
+  return (
+      <>
+        <div>
+            <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange}/>
+              {props.testName}
+        </div>
+      </>
+  )
+}
+
+function buildTest(testName, shader, handler) {
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleOnChange = () => {
+    setIsChecked(!isChecked);
+  };
   return {
     shader: shader,
     handler: handler,
     state: {
       seq: 0,
       interleaved: 0,
-      weak: 0
-    }
+      weak: 0,
+      isChecked: isChecked,
+      update: setIsChecked
+    },
+    jsx: <TuningTest key={testName} testName={testName} isChecked={isChecked} handleOnChange={handleOnChange}/>
   }
 }
 
@@ -120,7 +139,7 @@ function DynamicRow(props) {
 
       </td>
       <td>
-        {props.pageState.totalTime.visibleState + time}
+        {(props.pageState.totalTime.visibleState + time).toFixed(3)}
       </td>
       <td>
         {props.pageState.seq.visibleState}
@@ -151,7 +170,7 @@ export function StaticRow(props) {
         100
       </td>
       <td>
-        {props.pageState.totalTime.internalState}
+        {props.pageState.totalTime.internalState.toFixed(3)}
       </td>
       <td>
         {props.pageState.seq.internalState}
@@ -166,9 +185,40 @@ export function StaticRow(props) {
   )
 }
 
+
+function getTestSelector() {
+  const messagePassingConfig = buildTest("Message Passing", messagePassing, messagePassingHandlers);
+  const loadBufferConfig = buildTest("Load Buffer", loadBuffer, loadBufferHandlers);
+  let tests = [messagePassingConfig, loadBufferConfig];
+  return {
+    tests: tests,
+    jsx: (
+      <>
+      <div className="column is-one-third mr-2">
+        <nav className="panel">
+          <p className="panel-heading">
+            Selected Tests 
+          </p>
+          <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
+            {tests.map(test => test.jsx)}
+          </div>
+        </nav>
+      </div>
+      </>
+    )
+  }
+}
+
 async function tune(tests, testParams, pageState) {
   pageState.tuningRows.update([]);
-  pageState.totalTests.internalState = tests.length;
+  pageState.totalTests.internalState = 0;
+  let activeTests = [];
+  for (let i = 0; i < tests.length; i++) {
+    if (tests[i].state.isChecked) {
+      activeTests.push(tests[i]);
+    }
+  }
+  pageState.totalTests.internalState = activeTests.length;
   pageState.totalTests.update(pageState.totalTests.internalState);
   pageState.running.update(true);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
@@ -192,8 +242,8 @@ async function tune(tests, testParams, pageState) {
       memoryAliases: testParams.memoryAliases
     };
     pageState.curParams = params;
-    for (let j = 0; j < tests.length; j++) {
-      let curTest = tests[j];
+    for (let j = 0; j < activeTests.length; j++) {
+      let curTest = activeTests[j];
       await runLitmusTest(curTest.shader, params, pageState.iterations.value, handleResult(curTest, pageState));
       pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
       pageState.totalTime.update(pageState.totalTime.internalState);
@@ -208,9 +258,7 @@ async function tune(tests, testParams, pageState) {
 
 export default function TuningSuite() {
   const pageState = getPageState();
-  const messagePassingConfig = buildTest(messagePassing, messagePassingHandlers);
-  const loadBufferConfig = buildTest(loadBuffer, loadBufferHandlers);
-  const tests = [messagePassingConfig, loadBufferConfig];
+  const testSelector = getTestSelector();
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
   testParams.memoryAliases[1] = 0;
@@ -226,6 +274,7 @@ export default function TuningSuite() {
             </p>
           </div>
         </div>
+        {testSelector.jsx}
       </div>
       <div className="columns">
         <div className="column">
@@ -237,7 +286,7 @@ export default function TuningSuite() {
           </div>
           <button className="button is-primary" onClick={() => {
             pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-            tune(tests, testParams, pageState);
+            tune(testSelector.tests, testParams, pageState);
           }} disabled={pageState.running.value}>
             Start Tuning
           </button>
