@@ -18,7 +18,6 @@ const variants = {
 };
 
 export default function Atomicity() {
-  testParams.memoryAliases[1] = 0;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0 && *x == 1"/>,
     code: variants.default.pseudo
