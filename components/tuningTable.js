@@ -1,6 +1,6 @@
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import PopUp from 'reactjs-popup';
-let list =['id', 'minWorkgroupSize','maxWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases','memStressPattern','preStressPattern','stressAssignmentStrategy']
+let list =['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases','memStressPattern','preStressPattern','stressAssignmentStrategy']
 function replacer(key, value) {
   // Filtering out properties
   if ( list.includes(key) ) {
@@ -8,9 +8,10 @@ function replacer(key, value) {
   }
   return value;
 }
-function ParamButton(props) {
+
+export function ParamButton(props) {
   return (
-    <PopUp className="my-popup" trigger={<button className="button is-info is-small" > Show Param</button>} >
+    <PopUp className="my-popup" trigger={<button className="button is-info is-small" >Parameters</button>} >
       <div>{JSON.stringify(props.params, replacer).split(",").join('\n').replace(/{|}/g, "")}</div>
     </PopUp>
 

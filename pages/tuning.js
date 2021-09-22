@@ -57,14 +57,15 @@ import barrierWorkgroupSS from '../shaders/barrier-store-store-workgroup.wgsl';
 import read from '../shaders/read.wgsl';
 import storeBuffer from '../shaders/store-buffer.wgsl';
 import twoPlusTwoWrite from '../shaders/2+2-write.wgsl';
+import { ParamButton } from '../components/tuningTable.js';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const keys = ["seq", "interleaved", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
-  const [iterations, setIterations] = useState(100);
-  const [tuningTimes, setTuningTimes] = useState(2);
+  const [iterations, setIterations] = useState(1000);
+  const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
@@ -172,16 +173,6 @@ function handleResult(test, pageState) {
   }
 }
 
-function ParamButton(props) {
-  return (
-    <button className="button is-info is-small" onClick={() => {
-      alert(JSON.stringify(props.testParams, null, 4))
-    }}>
-      Show Param
-    </button>
-  )
-}
-
 function getRunStats(activeTests) {
   let stats = {};
   for (const test of activeTests) {
@@ -195,7 +186,7 @@ function RunStatistics(props) {
   let json = JSON.stringify(props.stats, null, 2);
   return (
     <>
-      <button className="button is-info is-small" disabled={props.disabled} onClick={() => {
+      <button className="button is-info is-small" onClick={() => {
         setIsActive(!isActive);
       }}>
         Statistics
@@ -236,10 +227,8 @@ function DynamicRow(props) {
         Currently Running
       </td>
       <td>
-        <ParamButton testParams={props.pageState.curParams} />
       </td>
       <td>
-        <RunStatistics stats={{}} disabled={true}/>
       </td>
       <td>
         {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.value}
@@ -276,7 +265,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <ParamButton testParams={props.pageState.curParams}></ParamButton>
+        <ParamButton params={props.pageState.curParams}></ParamButton>
       </td>
       <td>
         <RunStatistics stats={props.stats}/>
