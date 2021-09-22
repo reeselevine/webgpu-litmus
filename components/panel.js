@@ -124,6 +124,18 @@ return(
         Barrier Store Store 
     </Link>
   </div>
+  <div className="panel-block ">
+    <div className="columns">
+      <div className="column">
+        <footer className="footer">
+          <div className="content has-text-centered">
+          Here is the footer
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+  
 </nav>
   );
 }
