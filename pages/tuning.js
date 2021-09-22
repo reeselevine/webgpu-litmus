@@ -69,9 +69,10 @@ function getPageState() {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
+  const [logSum, setLogSum] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-  const [totalTests, setTotalTests] = useState(0);
   const [completedTests, setCompletedTests] = useState(0);
+  const [totalTests, setTotalTests] = useState(0);
   return {
     running: {
       value: running,
@@ -98,15 +99,20 @@ function getPageState() {
     weak: {
       ...buildStateValues(weak, setWeak)
     },
+    logSum: {
+      ...buildStateValues(logSum, setLogSum)
+    },
     totalTime: {
       ...buildStateValues(totalTime, setTotalTime)
-    },
-    totalTests: {
-      ...buildStateValues(totalTests, setTotalTests)
     },
     completedTests: {
       ...buildStateValues(completedTests, setCompletedTests)
     },
+    totalTests: {
+      value: totalTests,
+      update: setTotalTests
+    },
+    activeTests: [],
     curParams: testParams
   }
 }
@@ -115,31 +121,33 @@ function TuningTest(props) {
   return (
     <>
       <div>
-        <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value}/>
-        {props.testName}
+        <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value} />
+        {props.testVariant}
       </div>
     </>
   )
 }
 
-function buildTest(testName, shader, handler, pageState, testParamOverrides = {}) {
+function buildTest(testName, testVariant, shader, handler, pageState, testParamOverrides = {}) {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleOnChange = () => {
     setIsChecked(!isChecked);
   };
   return {
+    testName: testName,
+    testVariant: testVariant,
     shader: shader,
     handler: handler,
     state: {
       seq: 0,
       interleaved: 0,
-      weak: 0,
-      isChecked: isChecked,
-      setIsChecked: setIsChecked
+      weak: 0
     },
+    isChecked: isChecked,
+    setIsChecked: setIsChecked,
     testParamOverrides: testParamOverrides,
-    jsx: <TuningTest key={testName} testName={testName} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState}/>
+    jsx: <TuningTest key={testVariant} testVariant={testVariant} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
   }
 }
 
@@ -174,6 +182,51 @@ function ParamButton(props) {
   )
 }
 
+function getRunStats(activeTests) {
+  let stats = {};
+  for (const test of activeTests) {
+    stats[test.testName + " " + test.testVariant] = JSON.parse(JSON.stringify(test.state));
+  }
+  return stats;
+}
+
+function RunStatistics(props) {
+  const [isActive, setIsActive] = useState(false);
+  let json = JSON.stringify(props.stats, null, 2);
+  return (
+    <>
+      <button className="button is-info is-small" disabled={props.disabled} onClick={() => {
+        setIsActive(!isActive);
+      }}>
+        Statistics
+      </button>
+      <div className={"modal " + (isActive ? "is-active" : "")}>
+        <div className="modal-background" onClick={() => {
+          setIsActive(!isActive)
+        }}></div>
+        <div className="modal-card">
+          <header className="modal-card-head">
+            <p className="modal-card-title">Statistics</p>
+            <button className="delete" aria-label="close" onClick={() => {
+              setIsActive(!isActive)
+            }}></button>
+          </header>
+          <section className="modal-card-body">
+            <pre>
+              {json}
+            </pre>
+          </section>
+          <footer className="modal-card-foot">
+            <a className="button is-success" href={`data:text/json;charset=utf-8,${encodeURIComponent(json)}`} download="stats.json">
+              Download
+            </a>
+          </footer>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function DynamicRow(props) {
   let time = reportTime();
   let curIter = getCurrentIteration();
@@ -186,12 +239,15 @@ function DynamicRow(props) {
         <ParamButton testParams={props.pageState.curParams} />
       </td>
       <td>
-        {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.visibleState}
+        <RunStatistics stats={{}} disabled={true}/>
+      </td>
+      <td>
+        {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.value}
       </td>
       <td>
         {!props.pageState.running.value ?
           100 :
-          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.visibleState * props.pageState.iterations.value)).toFixed(0)}
+          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.value * props.pageState.iterations.value)).toFixed(0)}
       </td>
       <td>
         {(props.pageState.running.value ? (props.pageState.totalTime.visibleState + time) : props.pageState.totalTime.visibleState).toFixed(3)}
@@ -205,6 +261,10 @@ function DynamicRow(props) {
       <td>
         {props.pageState.weak.visibleState}
       </td>
+      <td>
+        {props.pageState.logSum.visibleState.toFixed(3)}
+      </td>
+
     </tr>
   )
 }
@@ -219,7 +279,10 @@ export function StaticRow(props) {
         <ParamButton testParams={props.pageState.curParams}></ParamButton>
       </td>
       <td>
-        {props.pageState.completedTests.internalState}/{props.pageState.totalTests.internalState}
+        <RunStatistics stats={props.stats}/>
+      </td>
+      <td>
+        {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
       </td>
       <td>
         100
@@ -235,6 +298,9 @@ export function StaticRow(props) {
       </td>
       <td>
         {props.pageState.weak.internalState}
+      </td>
+      <td>
+        {props.pageState.logSum.internalState.toFixed(3)}
       </td>
     </tr>
   )
@@ -270,136 +336,150 @@ function SelectorCategory(props) {
 
 function getTestSelector(pageState) {
   // Weak memory tests
+  let mpName = "Message Passing";
   let mpTests = [
-    buildTest("Default", messagePassing, messagePassingHandlers, pageState),
-    buildTest("Barrier Variant", barrierMessagePassing, messagePassingHandlers, pageState),
-    buildTest("Barrier Variant 1", barrier1MessagePassing, messagePassingHandlers, pageState),
-    buildTest("Barrier Variant 2", barrier2MessagePassing, messagePassingHandlers, pageState),
-    buildTest("Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState)
+    buildTest(mpName, "Default", messagePassing, messagePassingHandlers, pageState),
+    buildTest(mpName, "Barrier Variant", barrierMessagePassing, messagePassingHandlers, pageState),
+    buildTest(mpName, "Barrier Variant 1", barrier1MessagePassing, messagePassingHandlers, pageState),
+    buildTest(mpName, "Barrier Variant 2", barrier2MessagePassing, messagePassingHandlers, pageState),
+    buildTest(mpName, "Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState)
   ];
-  const mpJsx = <SelectorTest key="mp" testName="Message Passing" tests={mpTests} />;
+  const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
+  let storeName = "Store";
   let storeTests = [
-    buildTest("Default", store, storeHandlers, pageState),
-    buildTest("Barrier Variant", barrierStore, storeHandlers, pageState),
-    buildTest("Barrier Variant 1", barrier1Store, storeHandlers, pageState),
-    buildTest("Barrier Variant 2", barrier2Store, storeHandlers, pageState),
-    buildTest("Non-atomic with barrier", barrierStoreNA, storeHandlers, pageState)
+    buildTest(storeName, "Default", store, storeHandlers, pageState),
+    buildTest(storeName, "Barrier Variant", barrierStore, storeHandlers, pageState),
+    buildTest(storeName, "Barrier Variant 1", barrier1Store, storeHandlers, pageState),
+    buildTest(storeName, "Barrier Variant 2", barrier2Store, storeHandlers, pageState),
+    buildTest(storeName, "Non-atomic with barrier", barrierStoreNA, storeHandlers, pageState)
   ];
-  const storeJsx = <SelectorTest key="store" testName="Store" tests={storeTests} />;
+  let readName = "Read";
+  const storeJsx = <SelectorTest key="store" testName={storeName} tests={storeTests} />;
   let readTests = [
-    buildTest("Default", read, readHandlers, pageState),
+    buildTest(readName, "Default", read, readHandlers, pageState),
   ];
-  const readJsx = <SelectorTest key="read" testName="Read" tests={readTests} />;
+  const readJsx = <SelectorTest key="read" testName={readName} tests={readTests} />;
+  let lbName = "Load Buffer";
   let lbTests = [
-    buildTest("Default", loadBuffer, loadBufferHandlers, pageState),
-    buildTest("Barrier Variant", barrierLoadBuffer, loadBufferHandlers, pageState),
-    buildTest("Barrier Variant 1", barrier1LoadBuffer, loadBufferHandlers, pageState),
-    buildTest("Barrier Variant 2", barrier2LoadBuffer, loadBufferHandlers, pageState),
-    buildTest("Non-atomic with barrier", barrierLoadBufferNA, loadBufferHandlers, pageState)
+    buildTest(lbName, "Default", loadBuffer, loadBufferHandlers, pageState),
+    buildTest(lbName, "Barrier Variant", barrierLoadBuffer, loadBufferHandlers, pageState),
+    buildTest(lbName, "Barrier Variant 1", barrier1LoadBuffer, loadBufferHandlers, pageState),
+    buildTest(lbName, "Barrier Variant 2", barrier2LoadBuffer, loadBufferHandlers, pageState),
+    buildTest(lbName, "Non-atomic with barrier", barrierLoadBufferNA, loadBufferHandlers, pageState)
   ];
-  const lbJsx = <SelectorTest kep="lb" testName="Load Buffer" tests={lbTests} />;
+  const lbJsx = <SelectorTest kep="lb" testName={lbName} tests={lbTests} />;
+  let sbName = "Store Buffer";
   let sbTests = [
-    buildTest("Default", storeBuffer, storeBufferHandlers, pageState),
+    buildTest(sbName, "Default", storeBuffer, storeBufferHandlers, pageState),
   ];
-  const sbJsx = <SelectorTest kep="sb" testName="Store Buffer" tests={sbTests} />;
+  const sbJsx = <SelectorTest kep="sb" testName={sbName} tests={sbTests} />;
+  let tptName = "2+2 Write";
   let twoPlusTwoWriteTests = [
-    buildTest("Default", twoPlusTwoWrite, twoPlusTwoWriteHandlers, pageState),
+    buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteHandlers, pageState),
   ];
-  const twoPlusTwoWriteJsx = <SelectorTest kep="sb" testName="2+2 Write" tests={twoPlusTwoWriteTests} />;
+  const twoPlusTwoWriteJsx = <SelectorTest kep="sb" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
 
 
   // Coherence tests
   const coherenceOverrides = {
-    memoryAliases : {
-      1 : 0
+    memoryAliases: {
+      1: 0
     }
   };
+  let corrName = "CoRR";
   let corrTests = [
-    buildTest("Default", coRR, coRRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant", coRR_RMW, coRRHandlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coRR_workgroup, coRRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant (workgroup memory)", coRR_RMW_workgroup, coRRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 1", coRR_RMW1, coRRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 2", coRR_RMW2, coRRHandlers, pageState, coherenceOverrides)
+    buildTest(corrName, "Default", coRR, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "RMW Variant", coRR_RMW, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "Default (workgroup memory)", coRR_workgroup, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "RMW Variant (workgroup memory)", coRR_RMW_workgroup, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "RMW Variant 1", coRR_RMW1, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "RMW Variant 2", coRR_RMW2, coRRHandlers, pageState, coherenceOverrides)
   ];
-  const coRRJsx = <SelectorTest key="corr" testName="CoRR" tests={corrTests}/>;
+  const coRRJsx = <SelectorTest key="corr" testName={corrName} tests={corrTests} />;
+  let corr4Name = "4-threaded CoRR";
   let corr4Tests = [
-    buildTest("Default", coRR4, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant", coRR4_RMW, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coRR4_workgroup, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant (workgroup memory)", coRR4_RMW_workgroup, coRR4Handlers, pageState, coherenceOverrides)
+    buildTest(corr4Name, "Default", coRR4, coRR4Handlers, pageState, coherenceOverrides),
+    buildTest(corr4Name, "RMW Variant", coRR4_RMW, coRR4Handlers, pageState, coherenceOverrides),
+    buildTest(corr4Name, "Default (workgroup memory)", coRR4_workgroup, coRR4Handlers, pageState, coherenceOverrides),
+    buildTest(corr4Name, "RMW Variant (workgroup memory)", coRR4_RMW_workgroup, coRR4Handlers, pageState, coherenceOverrides)
   ];
-  const coRR4Jsx = <SelectorTest key="corr4" testName="4-threaded CoRR" tests={corr4Tests}/>;
+  const coRR4Jsx = <SelectorTest key="corr4" testName={corr4Name} tests={corr4Tests} />;
+  let cowwName = "CoWW";
   let cowwTests = [
-    buildTest("Default", coWW, coWWHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant", coWW_RMW, coWWHandlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coWW_workgroup, coWWHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant (workgroup memory)", coWW_RMW_workgroup, coWWHandlers, pageState, coherenceOverrides)
+    buildTest(cowwName, "Default", coWW, coWWHandlers, pageState, coherenceOverrides),
+    buildTest(cowwName, "RMW Variant", coWW_RMW, coWWHandlers, pageState, coherenceOverrides),
+    buildTest(cowwName, "Default (workgroup memory)", coWW_workgroup, coWWHandlers, pageState, coherenceOverrides),
+    buildTest(cowwName, "RMW Variant (workgroup memory)", coWW_RMW_workgroup, coWWHandlers, pageState, coherenceOverrides)
   ];
-  const coWWJsx = <SelectorTest key="coww" testName="CoWW" tests={cowwTests}/>;
+  const coWWJsx = <SelectorTest key="coww" testName={cowwName} tests={cowwTests} />;
+  let cowrName = "CoWR";
   let cowrTests = [
-    buildTest("Default", coWR, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant", coWR_RMW, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coWR_workgroup, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant (workgroup memory)", coWR_RMW_workgroup, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 1", coWR_RMW1, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 2", coWR_RMW2, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 3", coWR_RMW3, coWRHandlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant 4", coWR_RMW4, coWRHandlers, pageState, coherenceOverrides)
+    buildTest(cowrName, "Default", coWR, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant", coWR_RMW, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "Default (workgroup memory)", coWR_workgroup, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant (workgroup memory)", coWR_RMW_workgroup, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant 1", coWR_RMW1, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant 2", coWR_RMW2, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant 3", coWR_RMW3, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "RMW Variant 4", coWR_RMW4, coWRHandlers, pageState, coherenceOverrides)
   ];
-  const coWRJsx = <SelectorTest key="cowr" testName="CoWR" tests={cowrTests}/>;
+  const coWRJsx = <SelectorTest key="cowr" testName={cowrName} tests={cowrTests} />;
+  let corw1Name = "CoRW1";
   let corw1Tests = [
-    buildTest("Default", coRW1, coRW1Handlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coRW1_workgroup, coRW1Handlers, pageState, coherenceOverrides),
+    buildTest(corw1Name, "Default", coRW1, coRW1Handlers, pageState, coherenceOverrides),
+    buildTest(corw1Name, "Default (workgroup memory)", coRW1_workgroup, coRW1Handlers, pageState, coherenceOverrides),
   ];
-  const coRW1Jsx = <SelectorTest key="corw1" testName="CoRW1" tests={corw1Tests}/>;
+  const coRW1Jsx = <SelectorTest key="corw1" testName={corw1Name} tests={corw1Tests} />;
+  let corw2Name = "CoRW2";
   let corw2Tests = [
-    buildTest("Default", coRW2, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant", coRW2_RMW, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest("Default (workgroup memory)", coRW2_workgroup, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest("RMW Variant (workgroup memory)", coRW2_RMW_workgroup, coRW2Handlers, pageState, coherenceOverrides)
+    buildTest(corw2Name, "Default", coRW2, coRW2Handlers, pageState, coherenceOverrides),
+    buildTest(corw2Name, "RMW Variant", coRW2_RMW, coRW2Handlers, pageState, coherenceOverrides),
+    buildTest(corw2Name, "Default (workgroup memory)", coRW2_workgroup, coRW2Handlers, pageState, coherenceOverrides),
+    buildTest(corw2Name, "RMW Variant (workgroup memory)", coRW2_RMW_workgroup, coRW2Handlers, pageState, coherenceOverrides)
   ];
-  const coRW2Jsx = <SelectorTest key="corw2" testName="CoRW2" tests={corw2Tests}/>;
+  const coRW2Jsx = <SelectorTest key="corw2" testName={corw2Name} tests={corw2Tests} />;
   let coherenceJsx = [coRRJsx, coRR4Jsx, coWWJsx, coWRJsx, coRW1Jsx, coRW2Jsx];
 
   // Atomicity
+  let atomName = "Atomicity";
   let atomicityTests = [
-    buildTest("Default", atomicity, atomicityHandlers, pageState),
-    buildTest("Default (workgroup memory)", atomicity_workgroup, atomicityHandlers, pageState)
+    buildTest(atomName, "Default", atomicity, atomicityHandlers, pageState),
+    buildTest(atomName, "Default (workgroup memory)", atomicity_workgroup, atomicityHandlers, pageState)
   ];
-  const atomicityJsx = [<SelectorTest key="atom" testName="Atomicity" tests={atomicityTests}/>];
+  const atomicityJsx = [<SelectorTest key="atom" testName={atomName} tests={atomicityTests} />];
 
   // Barrier
   const barrierOverrides = {
-    memoryAliases : {
-      1 : 0
+    memoryAliases: {
+      1: 0
     },
     minWorkgroupSize: 256,
     maxWorkgroupSize: 256
   };
+  let barrierSLName = "Barrier Store Load";
   let barrierSLTests = [
-    buildTest("Default", barrierSL, barrierStoreLoadHandlers, pageState, barrierOverrides),
-    buildTest("Default (workgroup memory)", barrierWorkgroupSL, barrierStoreLoadHandlers, pageState, barrierOverrides)
+    buildTest(barrierSLName, "Default", barrierSL, barrierStoreLoadHandlers, pageState, barrierOverrides),
+    buildTest(barrierSLName, "Default (workgroup memory)", barrierWorkgroupSL, barrierStoreLoadHandlers, pageState, barrierOverrides)
   ];
-  const barrierSLJsx = <SelectorTest key="barriersl" testName="Barrier Store Load" tests={barrierSLTests}/>;
-
+  const barrierSLJsx = <SelectorTest key="barriersl" testName={barrierSLName} tests={barrierSLTests} />;
+  let barrierLSName = "Barrier Load Store";
   let barrierLSTests = [
-    buildTest("Default", barrierLS, barrierLoadStoreHandlers, pageState, barrierOverrides),
-    buildTest("Default (workgroup memory)", barrierWorkgroupLS, barrierLoadStoreHandlers, pageState, barrierOverrides)
+    buildTest(barrierLSName, "Default", barrierLS, barrierLoadStoreHandlers, pageState, barrierOverrides),
+    buildTest(barrierLSName, "Default (workgroup memory)", barrierWorkgroupLS, barrierLoadStoreHandlers, pageState, barrierOverrides)
   ];
-  const barrierLSJsx = <SelectorTest key="barrierls" testName="Barrier Load Store" tests={barrierLSTests}/>;
-
+  const barrierLSJsx = <SelectorTest key="barrierls" testName={barrierLSName} tests={barrierLSTests} />;
+  let barrierSSName = "Barrier Store Store";
   let barrierSSTests = [
-    buildTest("Default", barrierSS, barrierStoreStoreHandlers, pageState, barrierOverrides),
-    buildTest("Default (workgroup memory)", barrierWorkgroupSS, barrierStoreStoreHandlers, pageState, barrierOverrides)
+    buildTest(barrierSSName, "Default", barrierSS, barrierStoreStoreHandlers, pageState, barrierOverrides),
+    buildTest(barrierSSName, "Default (workgroup memory)", barrierWorkgroupSS, barrierStoreStoreHandlers, pageState, barrierOverrides)
   ];
-  const barrierSSJsx = <SelectorTest key="barrierss" testName="Barrier Store Store" tests={barrierSSTests}/>;
+  const barrierSSJsx = <SelectorTest key="barrierss" testName={barrierSSName} tests={barrierSSTests} />;
   const barrierJsx = [barrierSLJsx, barrierLSJsx, barrierSSJsx];
 
   let tests = [...mpTests, ...storeTests, ...readTests, ...lbTests, ...sbTests, ...twoPlusTwoWriteTests,
-    ...corrTests, ...corr4Tests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
-    ...barrierSLTests, ...barrierLSTests, ...barrierSSTests];
+  ...corrTests, ...corr4Tests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
+  ...barrierSLTests, ...barrierLSTests, ...barrierSSTests];
   return {
     tests: tests,
     jsx: (
@@ -423,34 +503,34 @@ function getTestSelector(pageState) {
                   <b> Presets </b>
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
-                      mpTests[0].state.setIsChecked(true);
-                      storeTests[0].state.setIsChecked(true);
-                      readTests[0].state.setIsChecked(true);
-                      lbTests[0].state.setIsChecked(true);
-                      sbTests[0].state.setIsChecked(true);
-                      twoPlusTwoWriteTests[0].state.setIsChecked(true);
+                      mpTests[0].setIsChecked(true);
+                      storeTests[0].setIsChecked(true);
+                      readTests[0].setIsChecked(true);
+                      lbTests[0].setIsChecked(true);
+                      sbTests[0].setIsChecked(true);
+                      twoPlusTwoWriteTests[0].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Weak Memory Defaults
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      corrTests[0].state.setIsChecked(true);
-                      corr4Tests[0].state.setIsChecked(true);
-                      cowwTests[0].state.setIsChecked(true);
-                      cowrTests[0].state.setIsChecked(true);
-                      corw1Tests[0].state.setIsChecked(true);
-                      corw2Tests[0].state.setIsChecked(true);
+                      corrTests[0].setIsChecked(true);
+                      corr4Tests[0].setIsChecked(true);
+                      cowwTests[0].setIsChecked(true);
+                      cowrTests[0].setIsChecked(true);
+                      corw1Tests[0].setIsChecked(true);
+                      corw2Tests[0].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Coherence Defaults
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      barrierSLTests[0].state.setIsChecked(true);
-                      barrierLSTests[0].state.setIsChecked(true);
-                      barrierSSTests[0].state.setIsChecked(true);
+                      barrierSLTests[0].setIsChecked(true);
+                      barrierLSTests[0].setIsChecked(true);
+                      barrierSSTests[0].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Barrier Defaults
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      tests.map(test => test.state.setIsChecked(false));
+                      tests.map(test => test.setIsChecked(false));
                     }} disabled={pageState.running.value}>
                       Clear all
                     </button>
@@ -466,29 +546,25 @@ function getTestSelector(pageState) {
   }
 }
 
+function clearState(pageState, keys) {
+  for (const key of keys) {
+    pageState[key].internalState = 0;
+    pageState[key].update(pageState[key].internalState);
+  }
+}
+
 async function tune(tests, testParams, pageState) {
   pageState.tuningRows.update([]);
-  pageState.totalTests.internalState = 0;
-  let activeTests = [];
+  pageState.activeTests = [];
   for (let i = 0; i < tests.length; i++) {
-    if (tests[i].state.isChecked) {
-      activeTests.push(tests[i]);
+    if (tests[i].isChecked) {
+      pageState.activeTests.push(tests[i]);
     }
   }
-  pageState.totalTests.internalState = activeTests.length;
-  pageState.totalTests.update(pageState.totalTests.internalState);
   pageState.running.update(true);
+  pageState.totalTests.update(pageState.activeTests.length);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    pageState.totalTime.internalState = 0;
-    pageState.totalTime.update(pageState.totalTime.internalState);
-    pageState.completedTests.internalState = 0;
-    pageState.completedTests.update(pageState.completedTests.internalState);
-    pageState.seq.internalState = 0;
-    pageState.seq.update(pageState.seq.internalState);
-    pageState.interleaved.internalState = 0;
-    pageState.interleaved.update(pageState.interleaved.internalState);
-    pageState.weak.internalState = 0;
-    pageState.weak.update(pageState.weak.internalState);
+    clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
     let params = {
       ...randomConfig(),
       id: i,
@@ -499,8 +575,8 @@ async function tune(tests, testParams, pageState) {
       memoryAliases: testParams.memoryAliases
     };
     pageState.curParams = params;
-    for (let j = 0; j < activeTests.length; j++) {
-      let curTest = activeTests[j];
+    for (let j = 0; j < pageState.activeTests.length; j++) {
+      let curTest = pageState.activeTests[j];
       curTest.state.seq = 0;
       curTest.state.interleaved = 0;
       curTest.state.weak = 0;
@@ -513,8 +589,12 @@ async function tune(tests, testParams, pageState) {
       pageState.totalTime.update(pageState.totalTime.internalState);
       pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
       pageState.completedTests.update(pageState.completedTests.internalState);
+      if (curTest.state.weak != 0) {
+        pageState.logSum.internalState += Math.log(curTest.state.weak);
+        pageState.logSum.update(pageState.logSum.internalState);
+      }
     }
-    let row = <StaticRow pageState={pageState} key={params.id} />
+    let row = <StaticRow pageState={pageState} key={params.id} stats={getRunStats(pageState.activeTests)}/>
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
   }
   pageState.running.update(false);
@@ -569,12 +649,14 @@ export default function TuningSuite() {
             <tr>
               <th>Run number</th>
               <th>Parameters</th>
+              <th>Run Statistics</th>
               <th>Tests Completed</th>
               <th>Overall Progress</th>
               <th>Time (seconds)</th>
               <th>Total Sequential Behaviors</th>
               <th>Total Interleaved Behaviors</th>
               <th>Total Weak Behaviors</th>
+              <th>Log Sum of Weak Behaviors</th>
             </tr>
           </thead>
           <tbody>
