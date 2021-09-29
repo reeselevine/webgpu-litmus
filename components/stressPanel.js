@@ -243,7 +243,7 @@ export function getStressPanel(params, pageState) {
                   Stress
                 </button>
                 <button className="button is-link is-outlined " onClick={()=>{
-                  setConfig(params, uiParams, randomConfig());
+                  setConfig(params, uiParams, randomConfig(Math.random));
                 }} disabled={pageState.running.value}>
                   Random
                 </button>
