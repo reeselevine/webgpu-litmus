@@ -531,22 +531,22 @@ function getTestSelector(pageState) {
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
-                      corrTests[0].setIsChecked(true);
-                      corr4Tests[0].setIsChecked(true);
-                      cowwTests[0].setIsChecked(true);
-                      cowrTests[0].setIsChecked(true);
-                      corw1Tests[0].setIsChecked(true);
-                      corw2Tests[0].setIsChecked(true);
+                      corrTests.map(test => test.setIsChecked(true));
+                      corr4Tests.map(test => test.setIsChecked(true));
+                      cowwTests.map(test => test.setIsChecked(true));
+                      cowrTests.map(test => test.setIsChecked(true));
+                      corw1Tests.map(test => test.setIsChecked(true));
+                      corw2Tests.map(test => test.setIsChecked(true));
                     }} disabled={pageState.running.value}>
-                      Coherence Defaults
+                      Coherence All
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
-                      barrierSLTests[0].setIsChecked(true);
-                      barrierLSTests[0].setIsChecked(true);
-                      barrierSSTests[0].setIsChecked(true);
+                      barrierSLTests.map(test => test.setIsChecked(true));
+                      barrierLSTests.map(test => test.setIsChecked(true));
+                      barrierSSTests.map(test => test.setIsChecked(true));
                     }} disabled={pageState.running.value}>
-                      Barrier Defaults
+                      Barrier All
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
