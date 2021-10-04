@@ -187,7 +187,7 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
   });
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     let params = {
-      ...randomConfig(),
+      ...randomConfig(Math.random),
       id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,

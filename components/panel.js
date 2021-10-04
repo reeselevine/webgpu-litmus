@@ -129,13 +129,12 @@ return(
       <div className="column">
         <footer className="footer">
           <div className="content has-text-centered">
-          Here is the footer
+            Built at UC Santa Cruz by Reese Levine, Tim Guo, and Tyler Sorensen. 
           </div>
         </footer>
       </div>
     </div>
   </div>
-  
 </nav>
   );
 }

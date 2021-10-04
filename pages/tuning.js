@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import * as seedrandom from 'seedrandom';
 import { atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, buildThrottle, coRR4Handlers, coRRHandlers, coRW1Handlers, coRW2Handlers, coWRHandlers, coWWHandlers, loadBufferHandlers, messagePassingHandlers, randomConfig, readHandlers, storeBufferHandlers, storeHandlers, twoPlusTwoWriteHandlers } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
@@ -65,6 +66,7 @@ const keys = ["seq", "interleaved", "weak"];
 function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(1000);
+  const [randomSeed, setRandomSeed] = useState("");
   const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
@@ -74,6 +76,7 @@ function getPageState() {
   const [totalTime, setTotalTime] = useState(0);
   const [completedTests, setCompletedTests] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
+  const [allStats, setAllStats] = useState({});
   return {
     running: {
       value: running,
@@ -86,6 +89,10 @@ function getPageState() {
     tuningTimes: {
       value: tuningTimes,
       update: setTuningTimes
+    },
+    randomSeed: {
+      value: randomSeed,
+      update: setRandomSeed
     },
     tuningRows: {
       value: rows,
@@ -112,6 +119,9 @@ function getPageState() {
     totalTests: {
       value: totalTests,
       update: setTotalTests
+    },
+    allStats: {
+      ...buildStateValues(allStats, setAllStats)
     },
     activeTests: [],
     curParams: testParams
@@ -492,6 +502,7 @@ function getTestSelector(pageState) {
                   <b> Presets </b>
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
                       mpTests[0].setIsChecked(true);
                       storeTests[0].setIsChecked(true);
                       readTests[0].setIsChecked(true);
@@ -502,21 +513,40 @@ function getTestSelector(pageState) {
                       Weak Memory Defaults
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      corrTests[0].setIsChecked(true);
-                      corr4Tests[0].setIsChecked(true);
-                      cowwTests[0].setIsChecked(true);
-                      cowrTests[0].setIsChecked(true);
-                      corw1Tests[0].setIsChecked(true);
-                      corw2Tests[0].setIsChecked(true);
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[0].setIsChecked(true);
+                      mpTests[2].setIsChecked(true);
+                      mpTests[3].setIsChecked(true);
+                      storeTests[0].setIsChecked(true);
+                      storeTests[2].setIsChecked(true);
+                      storeTests[3].setIsChecked(true);
+                      readTests[0].setIsChecked(true);
+                      lbTests[0].setIsChecked(true);
+                      lbTests[2].setIsChecked(true);
+                      lbTests[3].setIsChecked(true);
+                      sbTests[0].setIsChecked(true);
+                      twoPlusTwoWriteTests[0].setIsChecked(true);
                     }} disabled={pageState.running.value}>
-                      Coherence Defaults
+                      Weak Memory Comprehensive
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      barrierSLTests[0].setIsChecked(true);
-                      barrierLSTests[0].setIsChecked(true);
-                      barrierSSTests[0].setIsChecked(true);
+                      tests.map(test => test.setIsChecked(false));
+                      corrTests.map(test => test.setIsChecked(true));
+                      corr4Tests.map(test => test.setIsChecked(true));
+                      cowwTests.map(test => test.setIsChecked(true));
+                      cowrTests.map(test => test.setIsChecked(true));
+                      corw1Tests.map(test => test.setIsChecked(true));
+                      corw2Tests.map(test => test.setIsChecked(true));
                     }} disabled={pageState.running.value}>
-                      Barrier Defaults
+                      Coherence All
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      barrierSLTests.map(test => test.setIsChecked(true));
+                      barrierLSTests.map(test => test.setIsChecked(true));
+                      barrierSSTests.map(test => test.setIsChecked(true));
+                    }} disabled={pageState.running.value}>
+                      Barrier All
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
@@ -544,6 +574,7 @@ function clearState(pageState, keys) {
 
 async function tune(tests, testParams, pageState) {
   pageState.tuningRows.update([]);
+  pageState.allStats.internalState = {};
   pageState.activeTests = [];
   for (let i = 0; i < tests.length; i++) {
     if (tests[i].isChecked) {
@@ -552,10 +583,17 @@ async function tune(tests, testParams, pageState) {
   }
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
+  let generator;
+  if (pageState.randomSeed.value.length === 0) {
+    generator = seedrandom();
+  } else {
+    generator = seedrandom(pageState.randomSeed.value);
+    pageState.allStats.internalState["randomSeed"] = pageState.randomSeed.value;
+  }
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
     let params = {
-      ...randomConfig(),
+      ...randomConfig(generator),
       id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,
@@ -583,9 +621,12 @@ async function tune(tests, testParams, pageState) {
         pageState.logSum.update(pageState.logSum.internalState);
       }
     }
-    let row = <StaticRow pageState={pageState} key={params.id} stats={getRunStats(pageState.activeTests)}/>
+    let stats = getRunStats(pageState.activeTests);
+    let row = <StaticRow pageState={pageState} key={params.id} stats={stats}/>;
+    pageState.allStats.internalState[i] = stats;
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
   }
+  pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
 }
 
@@ -631,6 +672,18 @@ export default function TuningSuite() {
             }} disabled={pageState.running.value} />
           </div>
         </div>
+        <div className="column" >
+          <div className="control">
+            <label><b>Random Seed:</b></label>
+            <input className="input" type="text" defaultValue={""} onInput={(e) => {
+              pageState.randomSeed.update(e.target.value);
+            }} disabled={pageState.running.value} />
+          </div>
+        </div>
+      </div>
+      <div>
+        <label><b>All Runs:</b></label>
+        <RunStatistics stats={pageState.allStats.visibleState}/>
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
