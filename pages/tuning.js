@@ -246,7 +246,7 @@ function DynamicRow(props) {
       <td>
         {!props.pageState.running.value ?
           100 :
-          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.value * props.pageState.iterations.value)).toFixed(0)}
+          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.value * props.pageState.iterations.value)).toFixed(0)}%
       </td>
       <td>
         {(props.pageState.running.value ? (props.pageState.totalTime.visibleState + time) : props.pageState.totalTime.visibleState).toFixed(3)}
@@ -284,7 +284,7 @@ export function StaticRow(props) {
         {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
       </td>
       <td>
-        100
+        100%
       </td>
       <td>
         {props.pageState.totalTime.internalState.toFixed(3)}
@@ -617,7 +617,7 @@ async function tune(tests, testParams, pageState) {
       pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
       pageState.completedTests.update(pageState.completedTests.internalState);
       if (curTest.state.weak != 0) {
-        pageState.logSum.internalState += Math.log(curTest.state.weak);
+        pageState.logSum.internalState += Math.log(curTest.state.weak + 1);
         pageState.logSum.update(pageState.logSum.internalState);
       }
     }

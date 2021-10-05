@@ -32,6 +32,11 @@ return(
     </Link>
   </div>
   <div className="panel-block">
+    <Link href="/gallery">
+      <a>Results Gallery</a>
+    </Link>
+  </div>
+  <div className="panel-block">
     <b>Weak Memory Tests:</b>
   </div>
   <div className="panel-block ">
