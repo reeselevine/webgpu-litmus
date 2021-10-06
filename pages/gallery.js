@@ -52,7 +52,7 @@ function buildOption(name) {
     name: name,
     isChecked: isChecked,
     setIsChecked: setIsChecked,
-    jsx: <Option name={name} isChecked={isChecked} handleOnChange={handleOnChange}/>
+    jsx: <Option key={name} name={name} isChecked={isChecked} handleOnChange={handleOnChange}/>
   }
 }
 
@@ -149,7 +149,7 @@ function getOptionsSelector(pageState) {
                 <div className="column">
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
-                      pageState.activeDatasets.update([intel_0, intel_1]);
+                      updateActiveDataSets(pageState, gpuOptions);
                     }}>
                       Apply Options
                     </button>
@@ -165,9 +165,24 @@ function getOptionsSelector(pageState) {
   }
 }
 
+function updateActiveDataSets(pageState, gpuOptions) {
+  let newDatasets = [];
+  for (const option of gpuOptions) {
+    if (option.isChecked) {
+      for (const dataset of pageState.datasets) {
+        if (option.name === dataset.gpu) {
+          newDatasets.push(dataset);
+        }
+      }
+    }
+  }
+  pageState.activeDatasets.update(newDatasets);
+}
+
 export default function Gallery() {
   let pageState = getPageState();
   let optionsSelector = getOptionsSelector(pageState);
+  let chart = totalWeakBehaviorChart(pageState);
   return (
     <>
       <div className="columns">
@@ -183,7 +198,7 @@ export default function Gallery() {
       </div>
       <div className="columns">
         <div className="column">
-          {totalWeakBehaviorChart(pageState)}
+          {chart}
         </div>
       </div>
     </>
