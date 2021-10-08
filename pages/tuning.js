@@ -246,7 +246,7 @@ function DynamicRow(props) {
       <td>
         {!props.pageState.running.value ?
           100 :
-          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.value * props.pageState.iterations.value)).toFixed(0)}
+          (100 * (props.pageState.completedTests.visibleState * props.pageState.iterations.value + curIter) / (props.pageState.totalTests.value * props.pageState.iterations.value)).toFixed(0)}%
       </td>
       <td>
         {(props.pageState.running.value ? (props.pageState.totalTime.visibleState + time) : props.pageState.totalTime.visibleState).toFixed(3)}
@@ -284,7 +284,7 @@ export function StaticRow(props) {
         {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
       </td>
       <td>
-        100
+        100%
       </td>
       <td>
         {props.pageState.totalTime.internalState.toFixed(3)}
@@ -366,17 +366,17 @@ function getTestSelector(pageState) {
     buildTest(lbName, "Barrier Variant 2", barrier2LoadBuffer, loadBufferHandlers, pageState),
     buildTest(lbName, "Non-atomic with barrier", barrierLoadBufferNA, loadBufferHandlers, pageState)
   ];
-  const lbJsx = <SelectorTest kep="lb" testName={lbName} tests={lbTests} />;
+  const lbJsx = <SelectorTest key="lb" testName={lbName} tests={lbTests} />;
   let sbName = "Store Buffer";
   let sbTests = [
     buildTest(sbName, "Default", storeBuffer, storeBufferHandlers, pageState),
   ];
-  const sbJsx = <SelectorTest kep="sb" testName={sbName} tests={sbTests} />;
+  const sbJsx = <SelectorTest key="sb" testName={sbName} tests={sbTests} />;
   let tptName = "2+2 Write";
   let twoPlusTwoWriteTests = [
     buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteHandlers, pageState),
   ];
-  const twoPlusTwoWriteJsx = <SelectorTest kep="sb" testName={tptName} tests={twoPlusTwoWriteTests} />;
+  const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
 
 
@@ -386,12 +386,19 @@ function getTestSelector(pageState) {
       1: 0
     }
   };
+  const coherenceWorkgroupOverrides = {
+    memoryAliases: {
+      1: 0
+    },
+    minWorkgroupSize: 256,
+    maxWorkgroupSize: 256
+  };
   let corrName = "CoRR";
   let corrTests = [
     buildTest(corrName, "Default", coRR, coRRHandlers, pageState, coherenceOverrides),
     buildTest(corrName, "RMW Variant", coRR_RMW, coRRHandlers, pageState, coherenceOverrides),
-    buildTest(corrName, "Default (workgroup memory)", coRR_workgroup, coRRHandlers, pageState, coherenceOverrides),
-    buildTest(corrName, "RMW Variant (workgroup memory)", coRR_RMW_workgroup, coRRHandlers, pageState, coherenceOverrides),
+    buildTest(corrName, "Default (workgroup memory)", coRR_workgroup, coRRHandlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(corrName, "RMW Variant (workgroup memory)", coRR_RMW_workgroup, coRRHandlers, pageState, coherenceWorkgroupOverrides),
     buildTest(corrName, "RMW Variant 1", coRR_RMW1, coRRHandlers, pageState, coherenceOverrides),
     buildTest(corrName, "RMW Variant 2", coRR_RMW2, coRRHandlers, pageState, coherenceOverrides)
   ];
@@ -400,24 +407,24 @@ function getTestSelector(pageState) {
   let corr4Tests = [
     buildTest(corr4Name, "Default", coRR4, coRR4Handlers, pageState, coherenceOverrides),
     buildTest(corr4Name, "RMW Variant", coRR4_RMW, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest(corr4Name, "Default (workgroup memory)", coRR4_workgroup, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest(corr4Name, "RMW Variant (workgroup memory)", coRR4_RMW_workgroup, coRR4Handlers, pageState, coherenceOverrides)
+    buildTest(corr4Name, "Default (workgroup memory)", coRR4_workgroup, coRR4Handlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(corr4Name, "RMW Variant (workgroup memory)", coRR4_RMW_workgroup, coRR4Handlers, pageState, coherenceWorkgroupOverrides)
   ];
   const coRR4Jsx = <SelectorTest key="corr4" testName={corr4Name} tests={corr4Tests} />;
   let cowwName = "CoWW";
   let cowwTests = [
     buildTest(cowwName, "Default", coWW, coWWHandlers, pageState, coherenceOverrides),
     buildTest(cowwName, "RMW Variant", coWW_RMW, coWWHandlers, pageState, coherenceOverrides),
-    buildTest(cowwName, "Default (workgroup memory)", coWW_workgroup, coWWHandlers, pageState, coherenceOverrides),
-    buildTest(cowwName, "RMW Variant (workgroup memory)", coWW_RMW_workgroup, coWWHandlers, pageState, coherenceOverrides)
+    buildTest(cowwName, "Default (workgroup memory)", coWW_workgroup, coWWHandlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(cowwName, "RMW Variant (workgroup memory)", coWW_RMW_workgroup, coWWHandlers, pageState, coherenceWorkgroupOverrides)
   ];
   const coWWJsx = <SelectorTest key="coww" testName={cowwName} tests={cowwTests} />;
   let cowrName = "CoWR";
   let cowrTests = [
     buildTest(cowrName, "Default", coWR, coWRHandlers, pageState, coherenceOverrides),
     buildTest(cowrName, "RMW Variant", coWR_RMW, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "Default (workgroup memory)", coWR_workgroup, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "RMW Variant (workgroup memory)", coWR_RMW_workgroup, coWRHandlers, pageState, coherenceOverrides),
+    buildTest(cowrName, "Default (workgroup memory)", coWR_workgroup, coWRHandlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(cowrName, "RMW Variant (workgroup memory)", coWR_RMW_workgroup, coWRHandlers, pageState, coherenceWorkgroupOverrides),
     buildTest(cowrName, "RMW Variant 1", coWR_RMW1, coWRHandlers, pageState, coherenceOverrides),
     buildTest(cowrName, "RMW Variant 2", coWR_RMW2, coWRHandlers, pageState, coherenceOverrides),
     buildTest(cowrName, "RMW Variant 3", coWR_RMW3, coWRHandlers, pageState, coherenceOverrides),
@@ -427,24 +434,28 @@ function getTestSelector(pageState) {
   let corw1Name = "CoRW1";
   let corw1Tests = [
     buildTest(corw1Name, "Default", coRW1, coRW1Handlers, pageState, coherenceOverrides),
-    buildTest(corw1Name, "Default (workgroup memory)", coRW1_workgroup, coRW1Handlers, pageState, coherenceOverrides),
+    buildTest(corw1Name, "Default (workgroup memory)", coRW1_workgroup, coRW1Handlers, pageState, coherenceWorkgroupOverrides),
   ];
   const coRW1Jsx = <SelectorTest key="corw1" testName={corw1Name} tests={corw1Tests} />;
   let corw2Name = "CoRW2";
   let corw2Tests = [
     buildTest(corw2Name, "Default", coRW2, coRW2Handlers, pageState, coherenceOverrides),
     buildTest(corw2Name, "RMW Variant", coRW2_RMW, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest(corw2Name, "Default (workgroup memory)", coRW2_workgroup, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest(corw2Name, "RMW Variant (workgroup memory)", coRW2_RMW_workgroup, coRW2Handlers, pageState, coherenceOverrides)
+    buildTest(corw2Name, "Default (workgroup memory)", coRW2_workgroup, coRW2Handlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(corw2Name, "RMW Variant (workgroup memory)", coRW2_RMW_workgroup, coRW2Handlers, pageState, coherenceWorkgroupOverrides)
   ];
   const coRW2Jsx = <SelectorTest key="corw2" testName={corw2Name} tests={corw2Tests} />;
   let coherenceJsx = [coRRJsx, coRR4Jsx, coWWJsx, coWRJsx, coRW1Jsx, coRW2Jsx];
 
   // Atomicity
+  const atomicityWorkgroupOverrides = {
+    minWorkgroupSize: 256,
+    maxWorkgroupSize: 256
+  };
   let atomName = "Atomicity";
   let atomicityTests = [
     buildTest(atomName, "Default", atomicity, atomicityHandlers, pageState),
-    buildTest(atomName, "Default (workgroup memory)", atomicity_workgroup, atomicityHandlers, pageState)
+    buildTest(atomName, "Default (workgroup memory)", atomicity_workgroup, atomicityHandlers, pageState, atomicityWorkgroupOverrides)
   ];
   const atomicityJsx = [<SelectorTest key="atom" testName={atomName} tests={atomicityTests} />];
 
@@ -617,7 +628,7 @@ async function tune(tests, testParams, pageState) {
       pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
       pageState.completedTests.update(pageState.completedTests.internalState);
       if (curTest.state.weak != 0) {
-        pageState.logSum.internalState += Math.log(curTest.state.weak);
+        pageState.logSum.internalState += Math.log(curTest.state.weak + 1);
         pageState.logSum.update(pageState.logSum.internalState);
       }
     }
