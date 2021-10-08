@@ -134,7 +134,7 @@ return(
       <div className="column">
         <footer className="footer">
           <div className="content has-text-centered">
-            Developed and maintained at UC Santa Cruz by <a href="https://users.soe.ucsc.edu/~reeselevine">Reese Levine</a> and <a>Tim Guo</a>,
+            Developed and maintained at UC Santa Cruz by <a href="https://users.soe.ucsc.edu/~reeselevine">Reese Levine</a> and <a href="http://linkedin.com/in/tim-guo-04a574194">Tim Guo</a>,
             working with Professor <a href="https://users.soe.ucsc.edu/~tsorensen">Tyler Sorensen</a>. This work is supported in part by a gift from Google.
           </div>
         </footer>
