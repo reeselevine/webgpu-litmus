@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
-let list =['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases','memStressPattern','preStressPattern','stressAssignmentStrategy']
+
+let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases']
+let indexToStringList = ['memStressPattern','preStressPattern','stressAssignmentStrategy']
+let indexToStringMapping = {
+  memStressPattern: ["store-store", "store-load", "load-store", "load-load"],
+  preStressPattern: ["store-store", "store-load", "load-store", "load-load"],
+  stressAssignmentStrategy: ["round-robin", "chunking"]
+};
+
 function replacer(key, value) {
   // Filtering out properties
-  if ( list.includes(key) ) {
+  if (filterOutList.includes(key) ) {
     return undefined;
+  } else if (indexToStringList.includes(key)) {
+    return indexToStringMapping[key][value];
+  } else {
+    return value;
   }
-  return value;
 }
 
 export function ParamButton(props) {
