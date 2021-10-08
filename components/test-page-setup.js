@@ -22,6 +22,7 @@ function getPageState(props) {
   //do next test if true, stop otherwise; change by tuningTable component
   const [renderTable, setRender] = useState(false);
   const [rows, setRows] = useState([]);
+  const [isActive, setIsActive] = useState(false);
   const [tuningStats, setTuningStats] = useState({
     maxWeak: 0,
     maxWeakRows: [],
@@ -83,6 +84,10 @@ function getPageState(props) {
     tuningStats: {
       value: tuningStats,
       update: setTuningStats
+    },
+    paramActive:{
+      value: isActive,
+      update: setIsActive
     }
   }
 }

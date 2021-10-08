@@ -275,7 +275,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <ParamButton params={props.pageState.curParams}></ParamButton>
+        <ParamButton params={props.pageState.curParams} pageState={props.pageState}></ParamButton>
       </td>
       <td>
         <RunStatistics stats={props.stats}/>

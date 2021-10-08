@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
-import PopUp from 'reactjs-popup';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 let list =['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases','memStressPattern','preStressPattern','stressAssignmentStrategy']
 function replacer(key, value) {
   // Filtering out properties
@@ -10,11 +11,42 @@ function replacer(key, value) {
 }
 
 export function ParamButton(props) {
+  const [isCopied, setIsCopied] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  let json = JSON.stringify(props.params, replacer).split(",").join('\n').replace(/{|}/g, "");
   return (
-    <PopUp className="my-popup" trigger={<button className="button is-info is-small" >Parameters</button>} >
-      <div>{JSON.stringify(props.params, replacer).split(",").join('\n').replace(/{|}/g, "")}</div>
-    </PopUp>
-
+    <>
+      <button className="button is-info is-small" onClick={() => {
+        setIsActive(!isActive);
+      }}>
+        Parameters
+      </button>
+      <div className={"modal " + (isActive ? "is-active" : "")}>
+        <div className="modal-background" onClick={() => {
+          setIsActive(!isActive)
+        }}></div>
+        <div className="modal-card">
+          <header className="modal-card-head">
+            <p className="modal-card-title">Parameters</p>
+            <button className="delete" aria-label="close" onClick={() => {
+              setIsActive(!isActive)
+            }}></button>
+          </header>
+          <section className="modal-card-body">
+            <pre>
+              {json}
+            </pre>
+          </section>
+          <footer className="modal-card-foot">
+            <CopyToClipboard text={json}
+              onCopy={() => setIsCopied(true)}>
+            <button className="button is-success">Copy to clipboard </button>
+            </CopyToClipboard>
+            {isCopied ? <span style={{color: 'red'}}>Copied.</span> : null}
+          </footer>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -56,7 +88,7 @@ export function StaticRow(props) {
         {props.params.id + 1}
       </td>
       <td>
-        <ParamButton params={props.params}></ParamButton>
+        <ParamButton params={props.params} pageState={props.pageState}></ParamButton>
       </td>
       <td>
         {props.config.progress}
