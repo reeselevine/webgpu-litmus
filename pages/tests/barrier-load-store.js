@@ -28,7 +28,7 @@ export default function BarrierLoadStore() {
   testParams.minWorkgroupSize = 256;
   testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 1"/>,
     code: variants.storage.pseudo
   };
 

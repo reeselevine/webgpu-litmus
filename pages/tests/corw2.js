@@ -35,7 +35,7 @@ const variants = {
 export default function CoRW2() {
   testParams.memoryAliases[1] = 0;
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 2 && x == 2"/>,
+    setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 2 && *x == 2"/>,
     code: variants.default.pseudo
   };
 

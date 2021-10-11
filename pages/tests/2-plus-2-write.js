@@ -18,7 +18,7 @@ const variants = {
 
 export default function TwoPlusTwoWrite() {
   const pseudoCode = {
-    setup: <TestSetupPseudoCode init="*x = 0, *y = 0" finalState="r0 == 0 && *y == 2"/>,
+    setup: <TestSetupPseudoCode init="*x = 0, *y = 0" finalState="*x == 2 && *y == 2"/>,
     code: variants.default.pseudo
   };
 
