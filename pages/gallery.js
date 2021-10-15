@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import intel_0 from '../results/intel_0.json';
-import intel_1 from '../results/intel_0.json';
+import intel_iris_0 from '../results/intel_iris_0.json';
+import parakeet from '../results/parakeet_0.json';
+import nvidia_0 from '../results/nvidia_geforce_0.json';
+import tim_0 from '../results/tim_0.json';
+import amd_0 from '../results/amd_0.json';
 
-let weakMemoryKeys = Object.keys(intel_0["0"]);
+let weakMemoryKeys = Object.keys(intel_iris_0["0"]);
 
 function getPageState() {
   const [activeDatasets, setActiveDatasets] = useState([]);
@@ -13,7 +16,7 @@ function getPageState() {
       value: activeDatasets,
       update: setActiveDatasets
     },
-    datasets: [intel_0, intel_1]
+    datasets: [intel_iris_0, parakeet, nvidia_0, tim_0, amd_0]
   }
 }
 
@@ -85,8 +88,13 @@ function totalWeakBehaviorChart(pageState) {
   ];
   let datasets = [];
   let i = 0;
+  let maxValue = 0;
   for (let dataset of pageState.activeDatasets.value) {
-    datasets.push(buildTotalWeakBehaviorsDataset(dataset, colors[i]));
+    let result = buildTotalWeakBehaviorsDataset(dataset, colors[i]);
+    if (maxValue < Math.max(result.data)) {
+      maxValue = Math.max(result.data);
+    }
+    datasets.push(result);
     i++;
   }
   const data = {
@@ -103,8 +111,22 @@ function totalWeakBehaviorChart(pageState) {
       },
     },
     scales: {
-      y: {
-        beginAtZero: true
+      yAxis: {
+        axis: 'y',
+        type: 'logarithmic',
+        min: 0.1,
+        max: maxValue,
+        ticks: {
+          callback: function (value, index, values) {
+            var val = value;
+            while (val >= 10 && val % 10 == 0) {
+              val = val / 10;
+            }
+            if (val == 1) {
+              return value;
+            }
+          }
+        }
       }
     }
   }
@@ -113,7 +135,11 @@ function totalWeakBehaviorChart(pageState) {
 
 function getOptionsSelector(pageState) {
   let gpuOptions = [
-    buildOption("Intel Iris Plus Graphics 1536 MB")
+    buildOption("Intel Iris Plus Graphics 1536 MB"),
+    buildOption("Intel UHD Graphics (CML GM2)"),
+    buildOption("Nvidia GeForce RTX 2080"),
+    buildOption("Tim"),
+    buildOption("AMD")
   ];
 
   return {
@@ -135,6 +161,11 @@ function getOptionsSelector(pageState) {
                 <div className="column">
                   <b> Presets </b>
                   <div className="buttons are-small">
+                    <button className="button is-link is-outlined " onClick={() => {
+                      gpuOptions.map(option => option.setIsChecked(true));
+                    }}>
+                      Select all
+                    </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       gpuOptions.map(option => option.setIsChecked(false));
                     }}>
