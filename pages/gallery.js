@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import intel_iris_0 from '../results/intel_iris_0.json';
-import parakeet from '../results/parakeet_0.json';
-import nvidia_0 from '../results/nvidia_geforce_0.json';
-import tim_0 from '../results/tim_0.json';
-import amd_0 from '../results/amd_0.json';
+import intel_iris_osx from '../results/intel_iris_osx.json';
+import intel_iris_windows from '../results/intel_iris_windows.json';
+import intel_uhd from '../results/intel_uhd.json';
+import nvidia from '../results/nvidia_geforce.json';
+import amd from '../results/amd_radeon.json';
 
-let weakMemoryKeys = Object.keys(intel_iris_0["0"]);
+let weakMemoryKeys = Object.keys(intel_iris_osx["0"]);
 
 function getPageState() {
   const [activeDatasets, setActiveDatasets] = useState([]);
@@ -16,7 +16,7 @@ function getPageState() {
       value: activeDatasets,
       update: setActiveDatasets
     },
-    datasets: [intel_iris_0, parakeet, nvidia_0, tim_0, amd_0]
+    datasets: [intel_iris_osx, intel_iris_windows, intel_uhd, nvidia, amd]
   }
 }
 
@@ -135,11 +135,11 @@ function totalWeakBehaviorChart(pageState) {
 
 function getOptionsSelector(pageState) {
   let gpuOptions = [
-    buildOption("Intel Iris Plus Graphics 1536 MB"),
+    buildOption("Intel Iris Plus Graphics (OSX)"),
+    buildOption("Intel Iris Plus Graphics 640 (Windows)"),
     buildOption("Intel UHD Graphics (CML GM2)"),
     buildOption("Nvidia GeForce RTX 2080"),
-    buildOption("Tim"),
-    buildOption("AMD")
+    buildOption("AMD Radeon Pro 5500M")
   ];
 
   return {

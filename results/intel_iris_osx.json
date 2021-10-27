@@ -1,5 +1,5 @@
 {
-  "gpu": "Intel Iris Plus Graphics 1536 MB",
+  "gpu": "Intel Iris Plus Graphics (OSX)",
   "configurations": 150,
   "0": {
     "Message Passing Default": {
