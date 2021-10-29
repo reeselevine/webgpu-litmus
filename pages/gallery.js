@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from'next/link'
 import { Bar } from 'react-chartjs-2';
 import intel_iris_osx from '../results/intel_iris_osx.json';
 import intel_iris_windows from '../results/intel_iris_windows.json';
@@ -182,8 +183,11 @@ function getOptionsSelector(pageState) {
                     <button className="button is-link is-outlined " onClick={() => {
                       updateActiveDataSets(pageState, gpuOptions);
                     }}>
-                      Apply Options
+                      Visualize Selected Datasets 
                     </button>
+                    <a className="button is-link is-outlined" href={`data:text/json;charset=utf-8,${buildDownload(pageState, gpuOptions)}`} download="results.json">
+                      Download Selected Datasets
+                    </a>
                   </div>
                 </div>
               </div>
@@ -196,18 +200,29 @@ function getOptionsSelector(pageState) {
   }
 }
 
-function updateActiveDataSets(pageState, gpuOptions) {
-  let newDatasets = [];
+function getSelectedDatasets(pageState, gpuOptions) {
+  let datasets = [];
   for (const option of gpuOptions) {
     if (option.isChecked) {
       for (const dataset of pageState.datasets) {
         if (option.name === dataset.gpu) {
-          newDatasets.push(dataset);
+          datasets.push(dataset);
         }
       }
     }
   }
-  pageState.activeDatasets.update(newDatasets);
+  return datasets;
+}
+
+function buildDownload(pageState, gpuOptions) {
+  let datasets = getSelectedDatasets(pageState, gpuOptions);
+  let json = JSON.stringify(datasets, null, 2);
+  return json;
+}
+
+function updateActiveDataSets(pageState, gpuOptions) {
+  let datasets = getSelectedDatasets(pageState, gpuOptions);
+  pageState.activeDatasets.update(datasets);
 }
 
 export default function Gallery() {
@@ -223,6 +238,23 @@ export default function Gallery() {
             <p>
               Peruse the results of running tuning suites across many GPUs.
             </p>
+            <h5>Submitting your results</h5>
+            <p>
+              Want to contribute the GPU Harbor gallery? Follow these steps!
+            </p>
+            <ul>
+              <li>1.) Go to the <Link href="/tuning">tuning</Link> page.</li>
+              <li>
+                2.) Set the number of configurations to 150, the number of iterations per configuration to 1000,
+                and the random seed to "webgpu" (no quotation marks).
+              </li>
+              <li>
+                3.) Press start tuning. Tuning will take 3-6 hours. Once it is finished, open the statistics 
+                for all the runs and download it.
+              </li>
+              <li>4.) Go to chrome://gpu and copy and paste the report to a text file.</li>
+              <li>5.) Send both the downloaded statistics and the GPU report to reeselevine@ucsc.edu.</li>
+            </ul>
           </div>
         </div>
         {optionsSelector.jsx}
