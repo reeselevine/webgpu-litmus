@@ -8,6 +8,7 @@ import barrierMessagePassing from '../shaders/barrier-message-passing.wgsl'
 import barrier1MessagePassing from '../shaders/barrier1-message-passing.wgsl'
 import barrier2MessagePassing from '../shaders/barrier2-message-passing.wgsl'
 import barrierMessagePassingNA from '../shaders/barrier-message-passing-na.wgsl';
+import barrierMessagePassingNARacy from '../shaders/barrier-message-passing-na-racy.wgsl';
 import store from '../shaders/store.wgsl';
 import barrierStore from '../shaders/barrier-store.wgsl'
 import barrier1Store from '../shaders/barrier1-store.wgsl'
@@ -341,7 +342,8 @@ function getTestSelector(pageState) {
     buildTest(mpName, "Barrier Variant", barrierMessagePassing, messagePassingHandlers, pageState),
     buildTest(mpName, "Barrier Variant 1", barrier1MessagePassing, messagePassingHandlers, pageState),
     buildTest(mpName, "Barrier Variant 2", barrier2MessagePassing, messagePassingHandlers, pageState),
-    buildTest(mpName, "Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState)
+    buildTest(mpName, "Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState),
+    buildTest(mpName, "Non-atomic with barrier (no if cond)", barrierMessagePassingNARacy, messagePassingHandlers, pageState)
   ];
   const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
   let storeName = "Store";
