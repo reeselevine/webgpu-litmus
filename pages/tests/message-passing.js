@@ -6,6 +6,7 @@ import barrierMessagePassing from '../../shaders/barrier-message-passing.wgsl'
 import barrier1MessagePassing from '../../shaders/barrier1-message-passing.wgsl'
 import barrier2MessagePassing from '../../shaders/barrier2-message-passing.wgsl'
 import barrierMessagePassingNA from '../../shaders/barrier-message-passing-na.wgsl';
+import barrierMessagePassingNARacy from '../../shaders/barrier-message-passing-na-racy.wgsl';
 
 const thread0B = `0.1: atomicStore(x, 1)
 0.2: storageBarrier()
@@ -46,7 +47,16 @@ const variants = {
 1.3: if (r0 == 1):
 1.4:   let r1 = *x`]),
     shader: barrierMessagePassingNA 
+  },
+  nonatomic1: {
+    pseudo: buildPseudoCode([`0.1: *x = 1
+0.2: storageBarrier()
+0.3: atomicStore(y, 1)`, `1.1: let r0 = atomicLoad(y)
+1.2: storageBarrier()
+1.4: let r1 = *x`]),
+    shader: barrierMessagePassingNA 
   }
+
 }
 
 export default function MessagePassing() {
