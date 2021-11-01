@@ -4,6 +4,8 @@ import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudo
 import coRR4 from '../../shaders/corr4.wgsl';
 import coRR4_RMW from '../../shaders/corr4-rmw.wgsl';
 import coRR4_workgroup from '../../shaders/corr4-workgroup.wgsl';
+import coRR4_workgroup_buggy from '../../shaders/corr4-workgroup-buggy.wgsl';
+import coRR4_workgroup_buggy1 from '../../shaders/corr4-workgroup-buggy1.wgsl';
 import coRR4_RMW_workgroup from '../../shaders/corr4-rmw-workgroup.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
@@ -27,6 +29,18 @@ const variants = {
 3.2: let r3 = atomicLoad(x)`], true),
     shader: coRR4_workgroup
   },
+  workgroup_buggy: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`, `2.1: atomicStore(x, 2)`, `3.1: let r2 = atomicLoad(x)
+3.2: let r3 = atomicLoad(x)`], true),
+    shader: coRR4_workgroup_buggy
+  },
+  workgroup_buggy1: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)`, `1.1: let r0 = atomicLoad(x)
+1.2: let r1 = atomicLoad(x)`, `2.1: atomicStore(x, 2)`, `3.1: let r2 = atomicLoad(x)
+3.2: let r3 = atomicLoad(x)`], true),
+    shader: coRR4_workgroup_buggy1
+  },
   workgroup_rmw: {
     pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)`, `1.1: let r0 = atomicLoad(x)
 1.2: let r1 = atomicAdd(x, 0)`, `2.1: atomicExchange(x, 2)`, `3.1: let r2= atomicLoad(x)
@@ -37,7 +51,7 @@ const variants = {
 
 export default function CoRR4() {
   testParams.memoryAliases[1] = 0;
-  testParams.numOutputs = 4;
+  testParams.numOutputs = 5;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="(r0 == 1 && r1 == 2 && r2 == 2 && r3 == 1) || (r0 == 2 && r1 == 1 && r2 == 1 && r3 == 2) || (r0 != 0 && r1 == 0) || (r2 != 0 && r3 == 0)"/>,
     code: variants.default.pseudo

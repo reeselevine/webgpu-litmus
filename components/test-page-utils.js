@@ -329,6 +329,9 @@ export function clearState(state, keys) {
 
 export function handleResult(state, keys) {
   return function (result, memResult) {
+    if (state.weak.resultHandler(result, memResult)) {
+      console.log(result);
+    }
     for (const key of keys) {
       if (state[key].resultHandler(result, memResult)) {
         state[key].internalState = state[key].internalState + 1;

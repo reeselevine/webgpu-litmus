@@ -124,8 +124,8 @@ let workgroupXSize = 256;
     }
     let r2 = atomicLoad(ax);
     let r3 = atomicLoad(ay);
-    results.value[2] = r2;
     results.value[3] = r3;
+    results.value[2] = r2;
     } elseif (stress_params.value[1] == 1u) {  
     do_stress(stress_params.value[2], stress_params.value[3], workgroup_id[0]);  
   }
