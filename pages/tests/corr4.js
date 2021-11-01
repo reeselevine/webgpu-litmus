@@ -45,7 +45,7 @@ const variants = {
 
 export default function CoRR4() {
   testParams.memoryAliases[1] = 0;
-  testParams.numOutputs = 8;
+  testParams.numOutputs = 5;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="(r0 == 1 && r1 == 2 && r2 == 2 && r3 == 1) || (r0 == 2 && r1 == 1 && r2 == 1 && r3 == 2) || (r0 != 0 && r1 == 0) || (r2 != 0 && r3 == 0)"/>,
     code: variants.default.pseudo

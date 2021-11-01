@@ -105,8 +105,8 @@ let workgroupXSize = 256;
     }
     let r0 = atomicLoad(ax);
     let r1 = atomicLoad(ay);
-    results.value[1] = r1;
     results.value[0] = r0;
+    results.value[1] = r1;
   } elseif (shuffled_ids.value[global_invocation_id[0]] == 2u) {
     if (mem_stress == 1u) {
       do_stress(stress_params.value[5], stress_params.value[6], workgroup_id[0]);
@@ -124,6 +124,9 @@ let workgroupXSize = 256;
     }
     let r2 = atomicLoad(ax);
     let r3 = atomicLoad(ay);
+    if (r2 != 0u && r3 == 0u) {
+      results.value[4] = 1u;
+    }
     results.value[2] = r2;
     results.value[3] = r3;
     } elseif (stress_params.value[1] == 1u) {  
