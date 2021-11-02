@@ -54,7 +54,7 @@ const variants = {
 0.3: atomicStore(y, 1)`, `1.1: let r0 = atomicLoad(y)
 1.2: storageBarrier()
 1.4: let r1 = *x`]),
-    shader: barrierMessagePassingNA 
+    shader: barrierMessagePassingNARacy
   }
 
 }
