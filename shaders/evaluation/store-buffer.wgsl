@@ -80,7 +80,7 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
   }
 }
 
-let workgroupXSize = 1;
+let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main([[builtin(workgroup_id)]] workgroup_id : vec3<u32>, [[builtin(global_invocation_id)]] global_invocation_id : vec3<u32>, [[builtin(local_invocation_index)]] local_invocation_index : u32) {
   let mem_stress = stress_params.value[4];
   let do_barrier = stress_params.value[0];

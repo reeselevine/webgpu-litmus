@@ -2,8 +2,8 @@
 export const defaultTestParams = {
     minWorkgroups: 4,
     maxWorkgroups: 4,
-    minWorkgroupSize: 1,
-    maxWorkgroupSize: 1,
+    minWorkgroupSize: 256,
+    maxWorkgroupSize: 256,
     shufflePct: 0,
     barrierPct: 0,
     numMemLocations: 2,

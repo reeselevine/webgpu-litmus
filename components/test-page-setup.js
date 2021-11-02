@@ -4,7 +4,7 @@ import { runLitmusTest, reportTime, getCurrentIteration, defaultTestParams } fro
 import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, randomConfig, workgroupMemorySize, workgroupVariantWorkgroupSize } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
@@ -169,11 +169,6 @@ function VariantOptions(props) {
         if (e.target.value.includes("workgroup")) {
           props.uiParams.testMemorySize.state.update(workgroupMemorySize);
           props.testParams['testMemorySize'] = workgroupMemorySize;
-          props.testParams['minWorkgroupSize'] = workgroupVariantWorkgroupSize;
-          props.testParams['maxWorkgroupSize'] = workgroupVariantWorkgroupSize;
-        } else {
-          props.testParams['minWorkgroupSize'] = 1;
-          props.testParams['maxWorkgroupSize'] = 1;
         }
       }} disabled={props.pageState.running.value}>
         {variantOptions}
