@@ -83,11 +83,51 @@ function TestStatus(props) {
   }
 }
 
+function TestName(props) {
+  const [isActive, setIsActive] = useState(false);
+  const [showValid, setShowValid] = useState(true);
+  return (
+    <>
+      <a onClick={() => {
+        setIsActive(!isActive);
+      }}>
+       {props.testName} 
+      </a>
+      <div className={"modal " + (isActive ? "is-active" : "")}>
+        <div className="modal-background" onClick={() => {
+          setIsActive(!isActive)
+        }}></div>
+        <div className="modal-card">
+          <header className="modal-card-head">
+            <p className="modal-card-title">Shader</p>
+            <button className="delete" aria-label="close" onClick={() => {
+              setIsActive(!isActive)
+            }}></button>
+          </header>
+          <section className="modal-card-body">
+          <div class="tabs is-centered">
+            <ul>
+              <li class={showValid ? "is-active" : ""}><a onClick={() => { setShowValid(true) }}>Valid</a></li>
+              <li class={!showValid ? "is-active" : ""}><a onClick={() => { setShowValid(false) }}>Buggy</a></li>
+            </ul>
+          </div>
+            <pre className="shaderCode">
+              {showValid ? props.validShader : props.buggyShader}
+            </pre>
+          </section>
+        </div>
+      </div>
+    </>
+  )
+}
+
+
+
 function TestRow(props) {
   return (
     <>
       <tr>
-        <th>{props.testName}</th>
+        <td><TestName testName={props.testName} validShader={props.validShader} buggyShader={props.buggyShader}/></td>
         <td>{props.state.progress.value}%</td>
         <td>{props.state.rate.value}</td>
         <td>{props.state.time.value}</td>
