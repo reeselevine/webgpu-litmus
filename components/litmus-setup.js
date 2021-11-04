@@ -28,6 +28,9 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
+/** Used to set buffer sizes/clear buffers. */
+const uint32ByteSize = 4;
+
 /** Returns a random number in between the min and max values. */
 function getRandomInRange(min, max) {
     if (min == max) {
@@ -374,7 +377,6 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
     // Commands submission
-    const uint32ByteSize = 4;
     const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
     let memLocations = new Array(testParams.numMemLocations);
 
@@ -572,7 +574,7 @@ export async function runParallelLitmusTest(shader, iterations, handleResult) {
         return;
     }
     const dataBufSize = 65536 * 2;
-    const controlBufSize = 2;
+    const controlBufSize = 1;
     const dataBuffer = createBuffer(device, dataBufSize, false, true);
     const controlBuffer = createBuffer(device, controlBufSize, true, true)
     const bindGroupLayout = device.createBindGroupLayout({
