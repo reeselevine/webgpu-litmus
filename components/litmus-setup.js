@@ -619,9 +619,9 @@ export async function runParallelLitmusTest(shader, iterations, handleResult) {
         const p1 = map_buffer(dataBuffer);
         const p2 = map_buffer(controlBuffer);
         await p1;
-        clearBuffer(dataBuffer, 524288);
+        clearBuffer(dataBuffer, dataBufSize);
         await p2;
-        clearBuffer(controlBuffer, 8);
+        clearBuffer(controlBuffer, controlBufSize);
         const commandEncoder = device.createCommandEncoder();
         commandEncoder.copyBufferToBuffer(dataBuffer.writeBuffer, 0, dataBuffer.deviceBuffer, 0, dataBufSize * uint32ByteSize);
         commandEncoder.copyBufferToBuffer(controlBuffer.writeBuffer, 0, controlBuffer.deviceBuffer, 0, controlBufSize * uint32ByteSize);
@@ -651,7 +651,6 @@ export async function runParallelLitmusTest(shader, iterations, handleResult) {
         handleResult(result);
         duration = Date.now() - start;
     }
-
 }
 
 
