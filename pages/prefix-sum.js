@@ -76,8 +76,8 @@ function handleResult(state, pageState) {
   return function (result) {
     console.log(result);
     for (let i = 0; i < workgroupSize * pageState.workgroups.value; i++) {
-      if (result[i] != (i * (i + 1))/2) {
-        console.log("Expected: " + ((i * (i + 1))/2).toString() + " at index " + i.toString());
+      if (result[i] != (i * (i + 1)) / 2) {
+        console.log("Expected: " + ((i * (i + 1)) / 2).toString() + " at index " + i.toString());
         console.log("Result: " + result[i].toString());
         state.nonValid.internalState = state.nonValid.internalState + 1;
         state.nonValid.update(state.nonValid.internalState);
@@ -97,12 +97,12 @@ export default function PrefixSum() {
   let initialWorkgroups = pageState.workgroups.value;
   return (
     <>
-          <div className="section">
-            <h1 className="testName">Prefix Sum</h1>
-            <p>
-              For <i>N</i> elements, prefix sum calculates the sum of every element up to <i>i</i> for all <i>i</i> ranging from 0 to <i>N</i>.
-            </p>
-            </div>
+      <div className="section">
+        <h1 className="testName">Prefix Sum</h1>
+        <p>
+          For <i>N</i> elements, prefix sum calculates the sum of every element up to <i>i</i> for all <i>i</i> ranging from 0 to <i>N</i>.
+        </p>
+      </div>
 
       <div className="columns">
         <div className="column is-one-fifth">
@@ -135,7 +135,7 @@ export default function PrefixSum() {
             </tr>
           </thead>
           <tbody>
-            <TestRow testName="Prefix Sum" pageState={pageState} shader={prefixSum}/>
+            <TestRow testName="Prefix Sum" pageState={pageState} shader={prefixSum} />
           </tbody>
         </table>
       </div>
