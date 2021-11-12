@@ -653,13 +653,13 @@ export async function runParallelLitmusTest(shader, iterations, handleResult) {
   }
 }
 
-export async function runPrefixSum(numWorkgroups, workgroupSize, shader, iterations, handleResult) {
+export async function runPrefixSum(numWorkgroups, workgroupSize, n_seq, shader, iterations, handleResult) {
   const device = await getDevice();
   if (device === undefined) {
     alert("WebGPU not enabled or supported!")
     return;
   }
-  const dataBufSize = numWorkgroups * workgroupSize;
+  const dataBufSize = numWorkgroups * workgroupSize * n_seq;
   const controlBufSize = 3 * numWorkgroups + 2;
   const dataBuffer = createBuffer(device, dataBufSize, true, true);
   const controlBuffer = createBuffer(device, controlBufSize, false, true);

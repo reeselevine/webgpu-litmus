@@ -4,6 +4,7 @@ import { buildThrottle } from '../components/test-page-utils';
 import prefixSum from '../shaders/prefix-sum.wgsl';
 
 const workgroupSize = 256;
+const n_seq = 8;
 
 function getPageState() {
   const [running, setRunning] = useState(false);
@@ -68,7 +69,7 @@ async function doTest(pageState, shader, state) {
   state.valid.internalState = 0;
   state.valid.update(0);
   state.time.update(0);
-  await runPrefixSum(pageState.workgroups.value, workgroupSize, shader, pageState.iterations.value, handleResult(state, pageState));
+  await runPrefixSum(pageState.workgroups.value, workgroupSize, n_seq, shader, pageState.iterations.value, handleResult(state, pageState));
   pageState.running.update(false);
 }
 
@@ -76,8 +77,8 @@ function handleResult(state, pageState) {
   return function (result) {
     console.log(result);
     for (let i = 0; i < workgroupSize * pageState.workgroups.value; i++) {
-      if (result[i] != (i * (i + 1)) / 2) {
-        console.log("Expected: " + ((i * (i + 1)) / 2).toString() + " at index " + i.toString());
+      if (result[i] != (((i * (i + 1)) / 2) % 4294967296)) {
+        console.log("Expected: " + (((i * (i + 1)) / 2) % 4294967296).toString() + " at index " + i.toString());
         console.log("Result: " + result[i].toString());
         state.nonValid.internalState = state.nonValid.internalState + 1;
         state.nonValid.update(state.nonValid.internalState);
