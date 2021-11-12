@@ -19,8 +19,8 @@ module.exports = (phase, { defaultConfig }) => {
   }
 
   return {
-    assetPrefix: '/~reeselevine/webgpu/',
-    basePath: '/~reeselevine/webgpu',
+    assetPrefix: '',
+    basePath: '',
     trailingSlash: true,
     ...loader
   }
