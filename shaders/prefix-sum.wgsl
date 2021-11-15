@@ -91,8 +91,9 @@ fn main([[builtin(local_invocation_id)]] local_id: vec3<u32>) {
                 shared_flag = atomicOr(&state_buf.state[look_back_ix * 3u + 1u], 0u);
             }
             workgroupBarrier();
-            flag = shared_flag;
             storageBarrier();
+            flag = shared_flag;
+            workgroupBarrier();
             if (flag == FLAG_PREFIX_READY) {
                 if (local_id.x == workgroup_size - 1u) {
                     let their_prefix = atomicOr(&state_buf.state[look_back_ix * 3u + 3u], 0u);
