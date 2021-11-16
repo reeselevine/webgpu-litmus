@@ -653,6 +653,88 @@ export async function runParallelLitmusTest(shader, iterations, handleResult) {
   }
 }
 
+export async function runPrefixSum(numWorkgroups, workgroupSize, n_seq, shader, iterations, handleResult) {
+  const device = await getDevice();
+  if (device === undefined) {
+    alert("WebGPU not enabled or supported!")
+    return;
+  }
+  const dataBufSize = numWorkgroups * workgroupSize * n_seq;
+  const controlBufSize = 3 * numWorkgroups + 2;
+  const dataBuffer = createBuffer(device, dataBufSize, true, true);
+  const controlBuffer = createBuffer(device, controlBufSize, false, true);
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage"
+        }
+      },
+      {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage"
+        }
+      }
+    ]
+  });
+  const bindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: dataBuffer.deviceBuffer
+        }
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: controlBuffer.deviceBuffer
+        }
+      }
+    ]
+  });
+  const start = Date.now();
+  for (let i = 0; i < iterations; i++) {
+    const computePipeline = createComputePipeline(device, bindGroupLayout, shader, workgroupSize);
+    const p1 = map_buffer(controlBuffer);
+    const p2 = map_buffer(dataBuffer);
+    await p1;
+    clearBuffer(controlBuffer, controlBufSize);
+    await p2;
+    const writeArrayBuffer = dataBuffer.writeBuffer.getMappedRange();
+    const writeArray = new Uint32Array(writeArrayBuffer);
+    for (let i = 0; i < dataBufSize; i++) {
+      writeArray[i] = i;
+    }
+    dataBuffer.writeBuffer.unmap();
+    const commandEncoder = device.createCommandEncoder();
+    commandEncoder.copyBufferToBuffer(dataBuffer.writeBuffer, 0, dataBuffer.deviceBuffer, 0, dataBufSize * uint32ByteSize);
+    commandEncoder.copyBufferToBuffer(controlBuffer.writeBuffer, 0, controlBuffer.deviceBuffer, 0, controlBufSize * uint32ByteSize);
+    const passEncoder = commandEncoder.beginComputePass();
+    passEncoder.setPipeline(computePipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(numWorkgroups);
+    passEncoder.endPass();
+    commandEncoder.copyBufferToBuffer(dataBuffer.deviceBuffer, 0, dataBuffer.readBuffer, 0, dataBufSize * uint32ByteSize);
+
+    // Submit GPU commands.
+    const gpuCommands = commandEncoder.finish();
+    device.queue.submit([gpuCommands]);
+
+    // Read buffer.
+    await dataBuffer.readBuffer.mapAsync(GPUMapMode.READ);
+    const arrayBuffer = dataBuffer.readBuffer.getMappedRange();
+    const result = new Uint32Array(arrayBuffer);
+    handleResult(result);
+    dataBuffer.readBuffer.unmap();
+    duration = Date.now() - start;
+  }
+}
 
 export function getCurrentIteration() {
   return currentIteration;
