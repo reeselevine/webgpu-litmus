@@ -2,13 +2,29 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from '../../shaders/store-buffer.wgsl'
+import storeBufferRMW from '../../shaders/store-buffer-rmw.wgsl'
+
+const variants = {
+  default: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
+0.2: let r0 = atomicLoad(y)`, `1.1: atomicStore(y, 1)
+1.2: let r1 = atomicLoad(x)`]),
+    shader: storeBuffer
+  },
+  rmw_barrier: {
+    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
+0.2: storageBarrier()
+0.3: let r0 = atomicAdd(y, 0)`, `1.1: atomicExchange(y, 1)
+1.2: storageBarrier()
+1.3: let r1 = atomicLoad(x)`]),
+    shader: storeBufferRMW
+  }
+};
 
 export default function StoreBuffer() {
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0, *y = 0" finalState="r0 == 0 && r1 == 0"/>,
-    code: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicLoad(y)`, `1.1: atomicStore(y, 1)
-1.2: let r1 = atomicLoad(x)`]),
+    code: variants.default.pseudo
   };
 
   const stateConfig = {
@@ -36,7 +52,8 @@ export default function StoreBuffer() {
       testParams: defaultTestParams,
       shaderCode: storeBuffer,
       stateConfig: stateConfig,
-      pseudoCode: pseudoCode
+      pseudoCode: pseudoCode,
+      variants: variants
   }
 
   return makeTwoOutputLitmusTestPage(props);
