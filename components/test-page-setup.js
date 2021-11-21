@@ -95,7 +95,8 @@ function getPageState(props) {
 async function doTest(pageState, testParams, shaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
-  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
+  let numTests = testParams.maxWorkgroupSize * 2;
+  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys, numTests)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")
@@ -123,7 +124,7 @@ function chartConfig(pageState, tooltipFilter) {
         axis: 'y',
         type: 'logarithmic',
         min: 0.1,
-        max: pageState.iterations.value,
+        max: pageState.iterations.value * 256 * 2,
         ticks: {
           callback: function (value, index, values) {
             var val = value;

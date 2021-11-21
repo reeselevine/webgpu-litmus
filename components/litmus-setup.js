@@ -161,6 +161,23 @@ function setShuffleIds(shuffleIds, testParams, numWorkgroups, workgroupSize) {
   shuffleIds.writeBuffer.unmap();
 }
 
+function setShuffledWorkgroups(shuffledWorkgroups, testParams, numWorkgroups) {
+  const shuffledWorkgroupsBuffer = shuffledWorkgroups.writeBuffer.getMappedRange();
+  const shuffledWorkgroupsArray = new Uint32Array(shuffledWorkgroupsBuffer);
+  for (let i = 0; i < numWorkgroups; i++) {
+    shuffledWorkgroupsArray[i] = i;
+  }
+  if (getRandomInt(100) < testParams.shufflePct) {
+    for (let i = numWorkgroups - 1; i > 0; i--) {
+      const x = getRandomInt(i + 1);
+      const temp = shuffledWorkgroupsArray[i];
+      shuffledWorkgroupsArray[i] = shuffledWorkgroupsArray[x];
+      shuffledWorkgroupsArray[x] = temp;
+    }
+  }
+  shuffledWorkgroups.writeBuffer.unmap();
+}
+
 function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
   const scratchLocationsArrayBuffer = scratchLocations.writeBuffer.getMappedRange();
   const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
@@ -265,22 +282,9 @@ function createBindGroupLayout(device) {
           type: "storage"
         }
       },
+
       {
         binding: 6,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: {
-          type: "storage"
-        }
-      },
-      {
-        binding: 7,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: {
-          type: "storage"
-        }
-      },
-      {
-        binding: 8,
         visibility: GPUShaderStage.COMPUTE,
         buffer: {
           type: "uniform"
@@ -299,53 +303,41 @@ function createBindGroup(device, bindGroupLayout, buffers) {
       {
         binding: 0,
         resource: {
-          buffer: buffers.testData.deviceBuffer
+          buffer: buffers.testLocations.deviceBuffer
         }
       },
       {
         binding: 1,
         resource: {
-          buffer: buffers.testData.deviceBuffer
+          buffer: buffers.results.deviceBuffer
         }
       },
       {
         binding: 2,
         resource: {
-          buffer: buffers.memLocations.deviceBuffer
+          buffer: buffers.shuffledWorkgroups.deviceBuffer
         }
       },
       {
         binding: 3,
         resource: {
-          buffer: buffers.results.deviceBuffer
+          buffer: buffers.barrier.deviceBuffer
         }
       },
       {
         binding: 4,
         resource: {
-          buffer: buffers.shuffleIds.deviceBuffer
+          buffer: buffers.scratchpad.deviceBuffer
         }
       },
       {
         binding: 5,
         resource: {
-          buffer: buffers.barrier.deviceBuffer
-        }
-      },
-      {
-        binding: 6,
-        resource: {
-          buffer: buffers.scratchpad.deviceBuffer
-        }
-      },
-      {
-        binding: 7,
-        resource: {
           buffer: buffers.scratchLocations.deviceBuffer
         }
       },
       {
-        binding: 8,
+        binding: 6,
         resource: {
           buffer: buffers.stressParams.deviceBuffer
         }
@@ -378,42 +370,36 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
   // Commands submission
   const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
-  let memLocations = new Array(testParams.numMemLocations);
+  let memSize = testParams.maxWorkgroupSize * 2 * 2;
 
   // interleave waiting for buffers to map with initializing
   // buffer values. This increases test throughput by about 2x. 
-  const p1 = map_buffer(buffers.testData);
+  const p1 = map_buffer(buffers.testLocations);
   const p2 = map_buffer(buffers.results);
-  const p3 = map_buffer(buffers.barrier);
-  const p4 = map_buffer(buffers.shuffleIds);
-  const p5 = map_buffer(buffers.memLocations);
-  const p6 = map_buffer(buffers.scratchLocations);
-
+  const p3 = map_buffer(buffers.shuffledWorkgroups);
+  const p4 = map_buffer(buffers.barrier);
+  const p5 = map_buffer(buffers.scratchLocations);
 
   await p1;
-  clearBuffer(buffers.testData, testParams.testMemorySize);
+  clearBuffer(buffers.testLocations, memSize);
 
   await p2;
-  clearBuffer(buffers.results, testParams.numOutputs);
+  clearBuffer(buffers.results, memSize);
 
   await p3;
   clearBuffer(buffers.barrier, 1);
 
   await p4;
-  setShuffleIds(buffers.shuffleIds, testParams, numWorkgroups, workgroupSize);
+  setShuffledWorkgroups(buffers.shuffledWorkgroups, testParams, numWorkgroups);
 
   await p5;
-  setMemLocations(buffers.memLocations, testParams, memLocations);
-
-  await p6;
   setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
 
   const commandEncoder = device.createCommandEncoder();
-  commandEncoder.copyBufferToBuffer(buffers.testData.writeBuffer, 0, buffers.testData.deviceBuffer, 0, testParams.testMemorySize * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.memLocations.writeBuffer, 0, buffers.memLocations.deviceBuffer, 0, testParams.numMemLocations * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, testParams.numOutputs * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.shuffleIds.writeBuffer, 0, buffers.shuffleIds.deviceBuffer, 0, testParams.maxWorkgroups * testParams.maxWorkgroupSize * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, memSize *  uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, memSize * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.barrier.writeBuffer, 0, buffers.barrier.deviceBuffer, 0, 1 * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.shuffledWorkgroups.writeBuffer, 0, buffers.shuffledWorkgroups.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchpad.writeBuffer, 0, buffers.scratchpad.deviceBuffer, 0, testParams.scratchMemorySize * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchLocations.writeBuffer, 0, buffers.scratchLocations.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, 7 * uint32ByteSize);
@@ -429,15 +415,15 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     0,
     buffers.results.readBuffer,
     0,
-    testParams.numOutputs * uint32ByteSize
+    memSize * uint32ByteSize
   );
 
   commandEncoder.copyBufferToBuffer(
-    buffers.testData.deviceBuffer,
+    buffers.testLocations.deviceBuffer,
     0,
-    buffers.testData.readBuffer,
+    buffers.testLocations.readBuffer,
     0,
-    testParams.testMemorySize * uint32ByteSize
+    memSize * uint32ByteSize
   );
 
   // Submit GPU commands.
@@ -446,17 +432,13 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 
   // Read buffer.
   await buffers.results.readBuffer.mapAsync(GPUMapMode.READ);
-  await buffers.testData.readBuffer.mapAsync(GPUMapMode.READ);
+  await buffers.testLocations.readBuffer.mapAsync(GPUMapMode.READ);
   const arrayBuffer = buffers.results.readBuffer.getMappedRange();
-  const memBuffer = buffers.testData.readBuffer.getMappedRange();
-  const memArray = new Uint32Array(memBuffer);
+  const memBuffer = buffers.testLocations.readBuffer.getMappedRange();
+  const memResult = new Uint32Array(memBuffer).slice(0);
   const result = new Uint32Array(arrayBuffer).slice(0);
-  const memResult = new Array(testParams.numMemLocations);
-  for (let i = 0; i < testParams.numMemLocations; i++) {
-    memResult[i] = memArray[memLocations[i]];
-  }
   buffers.results.readBuffer.unmap();
-  buffers.testData.readBuffer.unmap();
+  buffers.testLocations.readBuffer.unmap();
   return {
     readResult: result,
     memResult: memResult
@@ -470,10 +452,9 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     return;
   }
   const buffers = {
-    testData: createBuffer(device, testParams.testMemorySize, true, true),
-    memLocations: createBuffer(device, testParams.numMemLocations, false, true),
-    results: createBuffer(device, testParams.numOutputs, true, true),
-    shuffleIds: createBuffer(device, testParams.maxWorkgroups * testParams.maxWorkgroupSize, false, true),
+    testLocations: createBuffer(device, testParams.maxWorkgroupSize * 2 * 2, true, true),
+    results: createBuffer(device, testParams.maxWorkgroupSize * 2 * 2, true, true),
+    shuffledWorkgroups: createBuffer(device, testParams.maxWorkgroups, false, true),
     barrier: createBuffer(device, 1, false, true),
     scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),
     scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
@@ -493,10 +474,9 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
   await p0;
   clearBuffer(buffers.scratchpad, testParams.scratchMemorySize);
 
-  const p7 = map_buffer(buffers.stressParams);
-  await p7;
+  const p1 = map_buffer(buffers.stressParams);
+  await p1;
   setStressParams(buffers.stressParams, testParams);
-
 
   const start = Date.now();
   for (let i = 0; i < iterations; i++) {
