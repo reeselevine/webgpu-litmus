@@ -4,6 +4,7 @@ export const defaultTestParams = {
   maxWorkgroups: 4,
   minWorkgroupSize: 256,
   maxWorkgroupSize: 256,
+  testingWorkgroups: 2,
   shufflePct: 0,
   barrierPct: 0,
   numMemLocations: 2,
@@ -20,6 +21,8 @@ export const defaultTestParams = {
   stressLineSize: 64,
   stressTargetLines: 2,
   stressAssignmentStrategy: 0,
+  permuteFirst: 4099,
+  permuteSecond: 419,
   memoryAliases: {}
 }
 let currentIteration = 0;
@@ -30,6 +33,11 @@ function getRandomInt(max) {
 
 /** Used to set buffer sizes/clear buffers. */
 const uint32ByteSize = 4;
+
+/** Uniform buffer elements must align to a 16 byte boundary (see https://www.w3.org/TR/WGSL/#storage-class-layout-constraints). */
+const uniformBufferAlignment = 4;
+/** Number of individual stresss parameters. */
+const numStressParams = 10;
 
 /** Returns a random number in between the min and max values. */
 function getRandomInRange(min, max) {
@@ -220,20 +228,22 @@ function setStressParams(stressParams, testParams) {
     stressParamsArray[0] = 0;
   }
   if (getRandomInt(100) < testParams.memStressPct) {
-    stressParamsArray[1] = 1;
+    stressParamsArray[1*uniformBufferAlignment] = 1;
   } else {
-    stressParamsArray[1] = 0;
+    stressParamsArray[1*uniformBufferAlignment] = 0;
   }
-  stressParamsArray[2] = testParams.memStressIterations;
-  stressParamsArray[3] = testParams.memStressPattern;
+  stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
+  stressParamsArray[3*uniformBufferAlignment] = testParams.memStressPattern;
   if (getRandomInt(100) < testParams.preStressPct) {
-    stressParamsArray[4] = 1;
+    stressParamsArray[4*uniformBufferAlignment] = 1;
   } else {
-    stressParamsArray[4] = 0;
+    stressParamsArray[4*uniformBufferAlignment] = 0;
   }
-  stressParamsArray[5] = testParams.preStressIterations;
-  stressParamsArray[6] = testParams.preStressPattern;
-
+  stressParamsArray[5*uniformBufferAlignment] = testParams.preStressIterations;
+  stressParamsArray[6*uniformBufferAlignment] = testParams.preStressPattern;
+  stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
+  stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
+  stressParamsArray[9*uniformBufferAlignment] = testParams.testingWorkgroups;
   stressParams.writeBuffer.unmap();
 }
 
@@ -370,7 +380,9 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
   // Commands submission
   const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
-  let memSize = testParams.maxWorkgroupSize * 2 * 2;
+  let testingThreads = workgroupSize * testParams.testingWorkgroups;
+  let testLocationsSize = testingThreads * testParams.numMemLocations;
+  let resultsSize = testingThreads * testParams.numOutputs;
 
   // interleave waiting for buffers to map with initializing
   // buffer values. This increases test throughput by about 2x. 
@@ -381,10 +393,10 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   const p5 = map_buffer(buffers.scratchLocations);
 
   await p1;
-  clearBuffer(buffers.testLocations, memSize);
+  clearBuffer(buffers.testLocations, testLocationsSize);
 
   await p2;
-  clearBuffer(buffers.results, memSize);
+  clearBuffer(buffers.results, resultsSize);
 
   await p3;
   clearBuffer(buffers.barrier, 1);
@@ -396,13 +408,13 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
 
   const commandEncoder = device.createCommandEncoder();
-  commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, memSize *  uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, memSize * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, testLocationsSize * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.results.writeBuffer, 0, buffers.results.deviceBuffer, 0, resultsSize * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.barrier.writeBuffer, 0, buffers.barrier.deviceBuffer, 0, 1 * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.shuffledWorkgroups.writeBuffer, 0, buffers.shuffledWorkgroups.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchpad.writeBuffer, 0, buffers.scratchpad.deviceBuffer, 0, testParams.scratchMemorySize * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchLocations.writeBuffer, 0, buffers.scratchLocations.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, 7 * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, numStressParams * uniformBufferAlignment * uint32ByteSize);
 
   const passEncoder = commandEncoder.beginComputePass();
   passEncoder.setPipeline(computePipeline);
@@ -415,7 +427,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     0,
     buffers.results.readBuffer,
     0,
-    memSize * uint32ByteSize
+    resultsSize * uint32ByteSize
   );
 
   commandEncoder.copyBufferToBuffer(
@@ -423,7 +435,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
     0,
     buffers.testLocations.readBuffer,
     0,
-    memSize * uint32ByteSize
+    testLocationsSize * uint32ByteSize
   );
 
   // Submit GPU commands.
@@ -451,14 +463,15 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     alert("WebGPU not enabled or supported!")
     return;
   }
+  let testingThreads = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
   const buffers = {
-    testLocations: createBuffer(device, testParams.maxWorkgroupSize * 2 * 2, true, true),
-    results: createBuffer(device, testParams.maxWorkgroupSize * 2 * 2, true, true),
+    testLocations: createBuffer(device, testingThreads * testParams.numMemLocations, true, true),
+    results: createBuffer(device, testingThreads * testParams.numOutputs, true, true),
     shuffledWorkgroups: createBuffer(device, testParams.maxWorkgroups, false, true),
     barrier: createBuffer(device, 1, false, true),
     scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),
     scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
-    stressParams: createBuffer(device, 7 * 4, false, true, GPUBufferUsage.UNIFORM)
+    stressParams: createBuffer(device, numStressParams*uniformBufferAlignment, false, true, GPUBufferUsage.UNIFORM)
   }
 
   const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);

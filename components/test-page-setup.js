@@ -106,7 +106,7 @@ async function doTest(pageState, testParams, shaderCode, testState, keys) {
   );
 }
 
-function chartConfig(pageState, tooltipFilter) {
+function chartConfig(pageState, testParams, uiParams, tooltipFilter) {
   return {
     plugins: {
       title: {
@@ -124,7 +124,7 @@ function chartConfig(pageState, tooltipFilter) {
         axis: 'y',
         type: 'logarithmic',
         min: 0.1,
-        max: pageState.iterations.value * 256 * 2,
+        max: pageState.iterations.value * testParams.maxWorkgroupSize * testParams.testingWorkgroups,
         ticks: {
           callback: function (value, index, values) {
             var val = value;
@@ -347,7 +347,7 @@ export function makeTestPage(props) {
                   <div className="columns">
                     <Bar
                       data={props.chartData}
-                      options={chartConfig(pageState, props.tooltipFilter)}
+                      options={chartConfig(pageState, props.testParams, stressPanel.uiParams, props.tooltipFilter)}
                     />
                   </div>
                 </div>
