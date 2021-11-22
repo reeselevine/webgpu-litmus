@@ -4,7 +4,7 @@ export const defaultTestParams = {
   maxWorkgroups: 4,
   minWorkgroupSize: 256,
   maxWorkgroupSize: 256,
-  testingWorkgroups: 2,
+  testingWorkgroups: 256,
   shufflePct: 0,
   barrierPct: 0,
   numMemLocations: 2,
@@ -37,7 +37,7 @@ const uint32ByteSize = 4;
 /** Uniform buffer elements must align to a 16 byte boundary (see https://www.w3.org/TR/WGSL/#storage-class-layout-constraints). */
 const uniformBufferAlignment = 4;
 /** Number of individual stresss parameters. */
-const numStressParams = 10;
+const numStressParams = 11;
 
 /** Returns a random number in between the min and max values. */
 function getRandomInRange(min, max) {
@@ -244,6 +244,7 @@ function setStressParams(stressParams, testParams) {
   stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
   stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
   stressParamsArray[9*uniformBufferAlignment] = testParams.testingWorkgroups;
+  stressParamsArray[10*uniformBufferAlignment] = testParams.memStride;
   stressParams.writeBuffer.unmap();
 }
 
@@ -381,7 +382,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   // Commands submission
   const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
   let testingThreads = workgroupSize * testParams.testingWorkgroups;
-  let testLocationsSize = testingThreads * testParams.numMemLocations;
+  let testLocationsSize = testingThreads * testParams.numMemLocations * testParams.memStride;
   let resultsSize = testingThreads * testParams.numOutputs;
 
   // interleave waiting for buffers to map with initializing
@@ -465,7 +466,7 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
   }
   let testingThreads = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
   const buffers = {
-    testLocations: createBuffer(device, testingThreads * testParams.numMemLocations, true, true),
+    testLocations: createBuffer(device, testingThreads * testParams.numMemLocations * testParams.memStride, true, true),
     results: createBuffer(device, testingThreads * testParams.numOutputs, true, true),
     shuffledWorkgroups: createBuffer(device, testParams.maxWorkgroups, false, true),
     barrier: createBuffer(device, 1, false, true),
