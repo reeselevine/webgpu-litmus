@@ -96,7 +96,7 @@ async function doTest(pageState, testParams, shaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
   let numTests = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
-  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys, numTests)).then(
+  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys, numTests, testParams)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")

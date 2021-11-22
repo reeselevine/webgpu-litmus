@@ -326,33 +326,35 @@ export function clearState(state, keys) {
   }
 }
 
-export function handleResult(state, keys, numTests) {
+export function handleResult(state, keys, numTests, testParams) {
   return function (result, memResult) {
     for (let i = 0; i < numTests; i++) {
       for (const key of keys) {
-        if (state[key].resultHandler(result, memResult, i)) {
+        if (state[key].resultHandler(result.slice(i*2, i*2 + testParams.numOutputs + 1), memResult)) {
           state[key].internalState = state[key].internalState + 1;
-          state[key].throttledUpdate(state[key].internalState);
           break;
         }
       }
+    }
+    for (const key of keys) {
+      state[key].throttledUpdate(state[key].internalState);
     }
   }
 }
 
 // Result handlers common to many litmus tests
 export const commonHandlers = {
-  bothOne: function (result, memResult, testNum) {
-    return result[testNum * 2] == 1 && result[testNum * 2 + 1] == 1;
+  bothOne: function (result, memResult) {
+    return result[0] == 1 && result[1] == 1;
   },
-  bothZero: function (result, memResult, testNum) {
-    return result[testNum * 2] == 0 && result[testNum * 2 + 1] == 0;
+  bothZero: function (result, memResult) {
+    return result[0] == 0 && result[1] == 0;
   },
-  zeroOne: function (result, memResult, testNum) {
-    return result[testNum * 2] == 0 && result[testNum * 2 + 1] == 1;
+  zeroOne: function (result, memResult) {
+    return result[0] == 0 && result[1] == 1;
   },
-  oneZero: function (result, memResult, testNum) {
-    return result[testNum * 2] == 1 && result[testNum * 2 + 1] == 0;
+  oneZero: function (result, memResult) {
+    return result[0] == 1 && result[1] == 0;
   },
   zero: function(result, memResult) {
     return result[0] == 0;
