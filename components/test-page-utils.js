@@ -328,16 +328,10 @@ export function clearState(state, keys) {
 
 export function handleResult(state, keys, numTests, testParams) {
   return function (result, memResult) {
-    for (let i = 0; i < numTests; i++) {
-      for (const key of keys) {
-        if (state[key].resultHandler(result.slice(i*2, i*2 + testParams.numOutputs + 1), memResult)) {
-          state[key].internalState = state[key].internalState + 1;
-          break;
-        }
-      }
-    }
-    for (const key of keys) {
-      state[key].throttledUpdate(state[key].internalState);
+    for (let i = 0; i < keys.length; i++) {
+      state[keys[i]].internalState = state[keys[i]].internalState + result[i];
+      state[keys[i]].throttledUpdate(state[keys[i]].internalState);
+
     }
   }
 }

@@ -21,7 +21,7 @@ export const defaultTestParams = {
   stressLineSize: 64,
   stressTargetLines: 2,
   stressAssignmentStrategy: 0,
-  permuteFirst: 4099,
+  permuteFirst: 109,
   permuteSecond: 419,
   memoryAliases: {}
 }
@@ -383,7 +383,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
   let testingThreads = workgroupSize * testParams.testingWorkgroups;
   let testLocationsSize = testingThreads * testParams.numMemLocations * testParams.memStride;
-  let resultsSize = testingThreads * testParams.numOutputs;
+  let resultsSize = 4;
 
   // interleave waiting for buffers to map with initializing
   // buffer values. This increases test throughput by about 2x. 
@@ -450,6 +450,7 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   const memBuffer = buffers.testLocations.readBuffer.getMappedRange();
   const memResult = new Uint32Array(memBuffer).slice(0);
   const result = new Uint32Array(arrayBuffer).slice(0);
+  console.log(memResult);
   buffers.results.readBuffer.unmap();
   buffers.testLocations.readBuffer.unmap();
   return {
@@ -467,7 +468,7 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
   let testingThreads = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
   const buffers = {
     testLocations: createBuffer(device, testingThreads * testParams.numMemLocations * testParams.memStride, true, true),
-    results: createBuffer(device, testingThreads * testParams.numOutputs, true, true),
+    results: createBuffer(device, 4, true, true),
     shuffledWorkgroups: createBuffer(device, testParams.maxWorkgroups, false, true),
     barrier: createBuffer(device, 1, false, true),
     scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),

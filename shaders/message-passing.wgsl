@@ -1,19 +1,8 @@
-struct TestData {
-  x: atomic<u32>;
-  y: atomic<u32>;
-};
-
-struct TestResult {
-  x: u32;
-  y: u32;
-};
-
-[[block]] struct TestLocations {
-  value: [[stride(8)]] array<TestData>;
-};
-
 [[block]] struct TestResults {
-  value: [[stride(8)]] array<TestResult>;
+  seq0: atomic<u32>;
+  seq1: atomic<u32>;
+  interleaved: atomic<u32>;
+  weak: atomic<u32>;
 };
 
 [[block]] struct AtomicMemory {
@@ -37,7 +26,7 @@ struct TestResult {
   [[size(16)]] mem_stride: u32;
 };
 
-[[group(0), binding(0)]] var<storage, read_write> test_locations : TestLocations;
+[[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
 [[group(0), binding(1)]] var<storage, read_write> results : TestResults;
 [[group(0), binding(2)]] var<storage, read_write> shuffled_workgroups : Memory;
 [[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
@@ -110,6 +99,10 @@ fn permute_id(id: u32, factor: u32, mask: u32) -> u32 {
     return (id * factor) % mask;
 }
 
+fn stripe_workgroup(workgroup_id: u32, local_id: u32, testing_workgroups: u32) -> u32 {
+  return (workgroup_id + 1u + local_id % (testing_workgroups - 1u)) % testing_workgroups;
+}
+
 let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main(
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>, 
@@ -121,7 +114,9 @@ let workgroupXSize = 256;
     let total_ids = u32(workgroupXSize) * stress_params.testing_workgroups;
     let x_first = global_id;
     let y_first = permute_id(global_id, stress_params.permute_second, total_ids);
-    let x_second = permute_id(global_id, stress_params.permute_first, total_ids);
+    let new_workgroup = stripe_workgroup(shuffled_workgroup, local_invocation_id[0], stress_params.testing_workgroups);
+    let new_local_id = permute_id(local_invocation_id[0], stress_params.permute_first, u32(workgroupXSize));
+    let x_second = new_workgroup * u32(workgroupXSize) + new_local_id;
     let y_second = permute_id(x_second, stress_params.permute_second, total_ids);
     if (stress_params.pre_stress == 1u) {
       do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, workgroup_id[0]);
@@ -129,14 +124,19 @@ let workgroupXSize = 256;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    atomicStore(&test_locations.value[y_first*stress_params.mem_stride].y, 1u);
-    atomicStore(&test_locations.value[x_first*stress_params.mem_stride].x, 1u);
-    let r0 = atomicLoad(&test_locations.value[x_second*stress_params.mem_stride].x);
-    let r1 = atomicLoad(&test_locations.value[y_second*stress_params.mem_stride].y);
-    var result: TestResult;
-    result.x = r0;
-    result.y = r1;
-    results.value[global_id] = result;
+    atomicStore(&test_locations.value[y_first*stress_params.mem_stride*2u + stress_params.mem_stride], 1u);
+    atomicStore(&test_locations.value[x_first*stress_params.mem_stride*2u], 1u);
+    let r0 = atomicLoad(&test_locations.value[x_second*stress_params.mem_stride*2u]);
+    let r1 = atomicLoad(&test_locations.value[y_second*stress_params.mem_stride*2u + stress_params.mem_stride]);
+    if (r0 == 0u && r1 == 0u) {
+      atomicAdd(&results.seq0, 1u);
+    } elseif (r0 == 1u && r1 == 1u) {
+      atomicAdd(&results.seq1, 1u);
+    } elseif (r0 == 0u && r1 == 1u) {
+      atomicAdd(&results.interleaved, 1u);
+    } elseif (r0 == 1u && r1 == 0u) {
+      atomicAdd(&results.weak, 1u);
+    }
   } elseif (stress_params.mem_stress == 1u) {  
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);  
   }
