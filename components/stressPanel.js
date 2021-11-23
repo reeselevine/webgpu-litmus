@@ -109,12 +109,13 @@ function DropdownStressParam(props) {
 const noStressConfig = {
   minWorkgroups: 4,
   maxWorkgroups: 4,
+  testingWorkgroups: 2,
   shufflePct: 0,
   barrierPct: 0,
   memStressPct: 0,
   testMemorySize: 2048,
   scratchMemorySize: 2048,
-  memStride: 64,
+  memStride: 1,
   memStressIterations: 1024,
   preStressIterations: 128,
   stressLineSize: 64,
@@ -128,6 +129,7 @@ const noStressConfig = {
 const someStressConfig = {
   minWorkgroups: 1024,
   maxWorkgroups: 1024,
+  testingWorkgroups: 256,
   shufflePct: 100,
   barrierPct: 100,
   memStressPct: 0,
@@ -147,6 +149,7 @@ const someStressConfig = {
 const allStressConfig = {
   minWorkgroups: 1024,
   maxWorkgroups: 1024,
+  testingWorkgroups: 256,
   shufflePct: 100,
   barrierPct: 100,
   memStressPct: 100,
@@ -178,6 +181,7 @@ export function getStressPanel(params, pageState) {
   const uiParams = {
     minWorkgroups : buildIntStressParam("Minimum Workgroups", "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "minWorkgroups", params, pageState, 4, 1024),
     maxWorkgroups : buildIntStressParam("Maximum Workgroups",  "Each stress iteration is launched with a random number of workgroups between Minimum Workgroups and Maximum Workgroups (values should be between 4 and 1024)", "maxWorkgroups", params, pageState, 4, 1024),
+    testingWorkgroups : buildIntStressParam("Testing Workgroups", "The number of workgroups that will execute testing instructions. Must be less than or equal to the number of running workgroups", "testingWorkgroups", params, pageState, 2, 1024),
     shufflePct : buildIntStressParam("Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","shufflePct", params, pageState, 0, 100),
     barrierPct : buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)","barrierPct", params, pageState, 0, 100),
     testMemorySize : buildIntStressParam("Test Memory Size", "The size of the memory buffer that contains the global testing locations", "testMemorySize", params, pageState, 256, 523776),
@@ -207,6 +211,7 @@ export function getStressPanel(params, pageState) {
           <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
             {uiParams.minWorkgroups.jsx}
             {uiParams.maxWorkgroups.jsx}
+            {uiParams.testingWorkgroups.jsx}
             {uiParams.shufflePct.jsx}
             {uiParams.barrierPct.jsx}
             {uiParams.testMemorySize.jsx}
