@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { runLitmusTest, reportTime, getCurrentIteration, defaultTestParams } from './litmus-setup.js'
+import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
@@ -167,10 +167,6 @@ function VariantOptions(props) {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
         props.pageState.activeVariant.update(e.target.value);
-        if (e.target.value.includes("workgroup")) {
-          props.uiParams.testMemorySize.state.update(workgroupMemorySize);
-          props.testParams['testMemorySize'] = workgroupMemorySize;
-        }
       }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>
@@ -194,6 +190,8 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
       maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
       numOutputs: testParams.numOutputs,
+      permuteFirst: testParams.permuteFirst,
+      permuteSecond: testParams.permuteSecond,
       memoryAliases: testParams.memoryAliases
     };
     await doTest(pageState, params, pageState.activeShader.value, testState, keys);

@@ -1,14 +1,12 @@
 /** Default test parameters */
 export const defaultTestParams = {
-  minWorkgroups: 4,
+  testingWorkgroups: 2,
   maxWorkgroups: 4,
   minWorkgroupSize: 256,
   maxWorkgroupSize: 256,
-  testingWorkgroups: 2,
   shufflePct: 0,
   barrierPct: 0,
   numMemLocations: 2,
-  testMemorySize: 2048,
   numOutputs: 2,
   scratchMemorySize: 2048,
   memStride: 1,
@@ -110,63 +108,6 @@ function clearBuffer(buffer, bufferSize) {
   const arrayBuffer = buffer.writeBuffer.getMappedRange();
   new Uint32Array(arrayBuffer).fill(0, 0, bufferSize);
   buffer.writeBuffer.unmap();
-}
-
-function setMemLocations(memLocations, testParams, referenceArray) {
-  const memLocationsArrayBuffer = memLocations.writeBuffer.getMappedRange();
-  const memLocationsArray = new Uint32Array(memLocationsArrayBuffer);
-  const usedRegions = new Set();
-  const locations = {};
-  const numRegions = testParams.testMemorySize / testParams.memStride;
-  for (let i = 0; i < testParams.numMemLocations; i++) {
-    if (testParams.memoryAliases[i] !== undefined) {
-      memLocationsArray[i] = locations[testParams.memoryAliases[i]];
-      referenceArray[i] = memLocationsArray[i];
-    } else {
-      let region = getRandomInt(numRegions);
-      while (usedRegions.has(region)) {
-        region = getRandomInt(numRegions);
-      }
-      const locInRegion = getRandomInt(testParams.memStride);
-      memLocationsArray[i] = region * testParams.memStride + locInRegion;
-      locations[i] = region * testParams.memStride + locInRegion;
-      usedRegions.add(region);
-    }
-    referenceArray[i] = memLocationsArray[i];
-
-  }
-  memLocations.writeBuffer.unmap();
-}
-
-function setShuffleIds(shuffleIds, testParams, numWorkgroups, workgroupSize) {
-  const shuffleIdsArrayBuffer = shuffleIds.writeBuffer.getMappedRange();
-  const shuffleIdsArray = new Uint32Array(shuffleIdsArrayBuffer);
-  for (let i = 0; i < testParams.maxWorkgroups * testParams.maxWorkgroupSize; i++) {
-    shuffleIdsArray[i] = i;
-  }
-  if (getRandomInt(100) < testParams.shufflePct) {
-    for (let i = numWorkgroups - 1; i >= 0; i--) {
-      const x = getRandomInt(i + 1);
-      if (workgroupSize > 1) {
-        for (let j = 0; j < workgroupSize; j++) {
-          const temp = shuffleIdsArray[i * workgroupSize + j]
-          shuffleIdsArray[i * workgroupSize + j] = shuffleIdsArray[x * workgroupSize + j];
-          shuffleIdsArray[x * workgroupSize + j] = temp;
-        }
-        for (let j = workgroupSize - 1; j > 0; j--) {
-          const y = getRandomInt(j + 1);
-          const temp = shuffleIdsArray[i * workgroupSize + y];
-          shuffleIdsArray[i * workgroupSize + y] = shuffleIdsArray[i * workgroupSize + j];
-          shuffleIdsArray[i * workgroupSize + j] = temp;
-        }
-      } else {
-        const temp = shuffleIdsArray[i];
-        shuffleIdsArray[i] = shuffleIdsArray[x];
-        shuffleIdsArray[x] = temp;
-      }
-    }
-  }
-  shuffleIds.writeBuffer.unmap();
 }
 
 function setShuffledWorkgroups(shuffledWorkgroups, testParams, numWorkgroups) {
@@ -380,7 +321,7 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 
 async function runTestIteration(device, computePipeline, bindGroup, buffers, testParams, workgroupSize) {
   // Commands submission
-  const numWorkgroups = getRandomInRange(testParams.minWorkgroups, testParams.maxWorkgroups);
+  const numWorkgroups = getRandomInRange(testParams.testingWorkgroups, testParams.maxWorkgroups);
   let testingThreads = workgroupSize * testParams.testingWorkgroups;
   let testLocationsSize = testingThreads * testParams.numMemLocations * testParams.memStride;
   let resultsSize = 4;
@@ -395,16 +336,12 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
 
   await p1;
   clearBuffer(buffers.testLocations, testLocationsSize);
-
   await p2;
   clearBuffer(buffers.results, resultsSize);
-
   await p3;
   clearBuffer(buffers.barrier, 1);
-
   await p4;
   setShuffledWorkgroups(buffers.shuffledWorkgroups, testParams, numWorkgroups);
-
   await p5;
   setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
 
@@ -450,7 +387,6 @@ async function runTestIteration(device, computePipeline, bindGroup, buffers, tes
   const memBuffer = buffers.testLocations.readBuffer.getMappedRange();
   const memResult = new Uint32Array(memBuffer).slice(0);
   const result = new Uint32Array(arrayBuffer).slice(0);
-  console.log(memResult);
   buffers.results.readBuffer.unmap();
   buffers.testLocations.readBuffer.unmap();
   return {
@@ -465,7 +401,8 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     alert("WebGPU not enabled or supported!")
     return;
   }
-  let testingThreads = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
+  const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);
+  let testingThreads = workgroupSize * testParams.testingWorkgroups;
   const buffers = {
     testLocations: createBuffer(device, testingThreads * testParams.numMemLocations * testParams.memStride, true, true),
     results: createBuffer(device, 4, true, true),
@@ -475,8 +412,6 @@ export async function runLitmusTest(shaderCode, testParams, iterations, handleRe
     scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
     stressParams: createBuffer(device, numStressParams*uniformBufferAlignment, false, true, GPUBufferUsage.UNIFORM)
   }
-
-  const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);
 
   const bindGroupLayout = createBindGroupLayout(device);
   const bindGroup = createBindGroup(device, bindGroupLayout, buffers);

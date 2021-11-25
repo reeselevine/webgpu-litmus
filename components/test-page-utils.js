@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import _ from 'lodash'
+import _, { round } from 'lodash'
 import { makeTestPage } from './test-page-setup';
 
 export const workgroupMemorySize = 2048;
@@ -604,20 +604,24 @@ function randomGenerator(min, max, generator){
   return Math.floor(generator() * (max - min + 1) + min);
 }
 
+// Rounds a percentage to the closest lower multiple of 5, to provide a smaller search space.
+function roundedPercentage(generator) {
+  return Math.floor(randomGenerator(0, 100, generator) / 5) * 5;
+}
+
 export function randomConfig(generator) {
-  let maxWorkgroups =  randomGenerator(4,1024, generator);
-  let minWorkgroups = randomGenerator(4, maxWorkgroups, generator);
+  let testingWorkgroups = randomGenerator(2, 1024, generator);
+  let maxWorkgroups =  randomGenerator(testingWorkgroups, 1024, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
-  let memStride = Math.pow(2, randomGenerator(1, 9, generator));
+  let memStride = Math.pow(2, randomGenerator(0, 5, generator));
   return {
-    minWorkgroups: minWorkgroups,
+    testingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
-    shufflePct: randomGenerator(0, 100, generator),
-    barrierPct: randomGenerator(0, 100, generator),
-    memStressPct: randomGenerator(0, 100, generator),
-    preStressPct: randomGenerator(0, 100, generator),
-    testMemorySize: memStride * 128,
+    shufflePct: roundedPercentage(generator),
+    barrierPct: roundedPercentage(generator),
+    memStressPct: roundedPercentage(generator),
+    preStressPct: roundedPercentage(generator),
     scratchMemorySize: 32 * stressLineSize * stressTargetLines,
     memStride: memStride,
     stressLineSize: stressLineSize,

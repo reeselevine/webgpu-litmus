@@ -106,8 +106,7 @@ fn stripe_workgroup(workgroup_id: u32, local_id: u32, testing_workgroups: u32) -
 let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main(
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>, 
-  [[builtin(workgroup_id)]] workgroup_id: vec3<u32>,
-  [[builtin(num_workgroups)]] num_workgroups: vec3<u32>) {
+  [[builtin(workgroup_id)]] workgroup_id: vec3<u32>) {
   let shuffled_workgroup = shuffled_workgroups.value[workgroup_id[0]];
   if (shuffled_workgroup < stress_params.testing_workgroups) {
     let global_id = shuffled_workgroup * u32(workgroupXSize) + local_invocation_id[0];
