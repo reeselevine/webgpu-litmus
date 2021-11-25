@@ -55,7 +55,6 @@ async function getDevice() {
     );
     return;
   }
-
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) {
     console.log("Failed to get GPU adapter.");

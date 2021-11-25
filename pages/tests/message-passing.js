@@ -2,7 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import messagePassing from '../../shaders/message-passing.wgsl'
-import barrierMessagePassing from '../../shaders/barrier-message-passing.wgsl'
+import barrierMessagePassing from '../../shaders/message-passing-barrier.wgsl'
 import barrier1MessagePassing from '../../shaders/barrier1-message-passing.wgsl'
 import barrier2MessagePassing from '../../shaders/barrier2-message-passing.wgsl'
 import barrierMessagePassingNA from '../../shaders/barrier-message-passing-na.wgsl';
