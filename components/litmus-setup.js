@@ -21,7 +21,7 @@ export const defaultTestParams = {
   stressAssignmentStrategy: 0,
   permuteFirst: 109,
   permuteSecond: 419,
-  memoryAliases: {}
+  aliasedMemory: false
 }
 let currentIteration = 0;
 let duration = 0;
@@ -35,7 +35,7 @@ const uint32ByteSize = 4;
 /** Uniform buffer elements must align to a 16 byte boundary (see https://www.w3.org/TR/WGSL/#storage-class-layout-constraints). */
 const uniformBufferAlignment = 4;
 /** Number of individual stresss parameters. */
-const numStressParams = 11;
+const numStressParams = 12;
 
 /** Returns a random number in between the min and max values. */
 function getRandomInRange(min, max) {
@@ -185,6 +185,11 @@ function setStressParams(stressParams, testParams) {
   stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
   stressParamsArray[9*uniformBufferAlignment] = testParams.testingWorkgroups;
   stressParamsArray[10*uniformBufferAlignment] = testParams.memStride;
+  if (testParams.aliasedMemory) {
+    stressParamsArray[11*uniformBufferAlignment] = 0;
+  } else {
+    stressParamsArray[11*uniformBufferAlignment] = testParams.memStride;
+  }
   stressParams.writeBuffer.unmap();
 }
 

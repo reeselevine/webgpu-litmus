@@ -24,6 +24,7 @@
   [[size(16)]] permute_second: u32;
   [[size(16)]] testing_workgroups: u32;
   [[size(16)]] mem_stride: u32;
+  [[size(16)]] location_offset: u32;
 };
 
 [[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
@@ -123,10 +124,11 @@ let workgroupXSize = 256;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    atomicStore(&test_locations.value[y_first*stress_params.mem_stride*2u + stress_params.mem_stride], 1u);
+    atomicStore(&test_locations.value[y_first*stress_params.mem_stride*2u + stress_params.location_offset], 1u);
     atomicStore(&test_locations.value[x_first*stress_params.mem_stride*2u], 1u);
     let r0 = atomicLoad(&test_locations.value[x_second*stress_params.mem_stride*2u]);
-    let r1 = atomicLoad(&test_locations.value[y_second*stress_params.mem_stride*2u + stress_params.mem_stride]);
+    let r1 = atomicLoad(&test_locations.value[y_second*stress_params.mem_stride*2u + stress_params.location_offset]);
+    storageBarrier();
     if (r0 == 0u && r1 == 0u) {
       atomicAdd(&results.seq0, 1u);
     } elseif (r0 == 1u && r1 == 1u) {
