@@ -1,8 +1,10 @@
-[[block]] struct TestResults {
-  seq0: atomic<u32>;
-  seq1: atomic<u32>;
-  interleaved: atomic<u32>;
-  weak: atomic<u32>;
+struct ReadResult {
+  r0: u32;
+  r1: u32;
+};
+
+[[block]] struct ReadResults {
+  value: array<ReadResult>;
 };
 
 [[block]] struct AtomicMemory {
@@ -29,7 +31,7 @@
 };
 
 [[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
-[[group(0), binding(1)]] var<storage, read_write> results : TestResults;
+[[group(0), binding(1)]] var<storage, read_write> results : ReadResults;
 [[group(0), binding(2)]] var<storage, read_write> shuffled_workgroups : Memory;
 [[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
 [[group(0), binding(4)]] var<storage, read_write> scratchpad : Memory;
@@ -114,8 +116,7 @@ let workgroupXSize = 256;
     let total_ids = u32(workgroupXSize) * stress_params.testing_workgroups;
     let id_0 = shuffled_workgroup * u32(workgroupXSize) + local_invocation_id[0];
     let new_workgroup = stripe_workgroup(shuffled_workgroup, local_invocation_id[0]);
-    let local_id_1 = permute_id(local_invocation_id[0], stress_params.permute_first, u32(workgroupXSize));
-    let id_1 = new_workgroup * u32(workgroupXSize) + local_id_1;
+    let id_1 = new_workgroup * u32(workgroupXSize) + permute_id(local_invocation_id[0], stress_params.permute_first, u32(workgroupXSize));;
     let x_0 = &test_locations.value[id_0 * stress_params.mem_stride * 2u];
     let y_0 = &test_locations.value[permute_id(id_0, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset];
     let y_1 = &test_locations.value[permute_id(id_1, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset];
@@ -131,15 +132,8 @@ let workgroupXSize = 256;
     let r0 = atomicLoad(y_1);
     let r1 = atomicLoad(x_1);
     storageBarrier();
-    if ((r0 == 0u && r1 == 0u)) {
-      atomicAdd(&results.seq0, 1u);
-    } elseif ((r0 == 1u && r1 == 1u)) {
-      atomicAdd(&results.seq1, 1u);
-    } elseif ((r0 == 0u && r1 == 1u)) {
-      atomicAdd(&results.interleaved, 1u);
-    } elseif ((r0 == 1u && r1 == 0u)) {
-      atomicAdd(&results.weak, 1u);
-    }
+    results.value[id_1].r0 = r0;
+    results.value[id_1].r1 = r1;
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

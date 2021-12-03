@@ -7,6 +7,7 @@ import barrier1MessagePassing from '../../shaders/barrier1-message-passing.wgsl'
 import barrier2MessagePassing from '../../shaders/barrier2-message-passing.wgsl'
 import barrierMessagePassingNA from '../../shaders/barrier-message-passing-na.wgsl';
 import barrierMessagePassingNARacy from '../../shaders/barrier-message-passing-na-racy.wgsl';
+import messagePassingResults from '../../shaders/message-passing-results.wgsl';
 
 const thread0B = `0.1: atomicStore(x, 1)
 0.2: storageBarrier()
@@ -89,6 +90,7 @@ export default function MessagePassing() {
       testDescription: "The message passing litmus test checks to see if two stores in one thread can be re-ordered according to loads on a second thread. This test also includes variants using WebGPU's acquire/release workgroup control barrier to synchronize across testing threads and disallow the weak behavior.",
       testParams: defaultTestParams,
       shaderCode: messagePassing,
+      resultShaderCode: messagePassingResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

@@ -20,7 +20,8 @@ const variants = {
 }
 
 export default function CoRW1() {
-  testParams.memoryAliases[1] = 0;
+  testParams.aliasedMemory = true;
+  testParams.permuteSecond = 1;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 1"/>,
     code: variants.default.pseudo

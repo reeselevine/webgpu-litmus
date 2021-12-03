@@ -32,7 +32,8 @@ const variants = {
 }
 
 export default function CoWW() {
-  testParams.memoryAliases[1] = 0;
+  testParams.aliasedMemory = true;
+  testParams.permuteSecond = 1;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="*x == 1"/>,
     code: variants.default.pseudo

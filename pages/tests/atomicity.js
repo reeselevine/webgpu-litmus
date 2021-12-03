@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { atomicityHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { atomicityHandlers, makeAtomicityLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import atom from '../../shaders/atomicity.wgsl';
 import atom_workgroup from '../../shaders/atomicity-workgroup.wgsl';
@@ -51,5 +51,5 @@ export default function Atomicity() {
     pseudoCode: pseudoCode,
     variants: variants
   };
-  return makeTwoOutputLitmusTestPage(props);
+  return makeAtomicityLitmusTestPage(props);
 }

@@ -50,15 +50,24 @@ function buildOneOutputStaticTuningRow(testState) {
   );
 }
 
-export function makeTwoOutputLitmusTestPage(props) {
+function _makeTwoOutputLitmusTestPage(props) {
   props.testState = getTwoOutputState(props.stateConfig);
   props.chartData = twoOutputChartData(props.testState);
-  props.keys = ["seq0", "seq1", "interleaved", "weak"];
   props.tooltipFilter = twoOutputTooltipFilter;
   props.tuningHeader = <TwoOutputTuningHeader testState={props.testState}/>;
   props.dynamicRowOutputs = <TwoOutputDynamicTuningRow testState={props.testState}/>;
   props.buildStaticRowOutputs = buildTwoOutputStaticTuningRow;
   return makeTestPage(props);
+}
+
+export function makeTwoOutputLitmusTestPage(props) {
+  props.keys = ["seq0", "seq1", "interleaved", "weak"];
+  return _makeTwoOutputLitmusTestPage(props);
+}
+
+export function makeAtomicityLitmusTestPage(props) {
+  props.keys = ["seq0", "seq1", "weak"];
+  return _makeTwoOutputLitmusTestPage(props);
 }
 
 function TwoOutputTuningHeader(props) {
@@ -326,12 +335,11 @@ export function clearState(state, keys) {
   }
 }
 
-export function handleResult(state, keys, numTests, testParams) {
-  return function (result, memResult) {
+export function handleResult(state, keys) {
+  return function (result) {
     for (let i = 0; i < keys.length; i++) {
       state[keys[i]].internalState = state[keys[i]].internalState + result[i];
       state[keys[i]].throttledUpdate(state[keys[i]].internalState);
-
     }
   }
 }

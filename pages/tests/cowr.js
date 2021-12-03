@@ -68,7 +68,8 @@ const variants = {
 }
 
 export default function CoWR() {
-  testParams.memoryAliases[1] = 0;
+  testParams.aliasedMemory = true;
+  testParams.permuteSecond = 1;
   const thread0 = `0.1: atomicStore(x, 1)
 0.2: let r0 = atomicLoad(x)`
   const pseudoCode = {
