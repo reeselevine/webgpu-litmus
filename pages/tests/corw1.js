@@ -3,6 +3,7 @@ import { coRW1Handlers, makeOneOutputLitmusTestPage } from '../../components/tes
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coRW1 from '../../shaders/corw1.wgsl';
 import coRW1_workgroup from '../../shaders/corw1-workgroup.wgsl';
+import coRW1Results from '../../shaders/corw1-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -43,6 +44,7 @@ export default function CoRW1() {
     testDescription: "The CoRW1 litmus test checks SC-per-location by ensuring a read and a write to the same address cannot be re-ordered on one thread.",
     testParams: testParams,
     shaderCode: coRW1,
+    resultShaderCode: coRW1Results,
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants

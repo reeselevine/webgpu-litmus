@@ -6,6 +6,7 @@ import barrierLoadBuffer from '../../shaders/barrier-load-buffer.wgsl';
 import barrier1LoadBuffer from '../../shaders/barrier1-load-buffer.wgsl';
 import barrier2LoadBuffer from '../../shaders/barrier2-load-buffer.wgsl';
 import barrierLoadBufferNA from '../../shaders/barrier-load-buffer-na.wgsl';
+import loadBufferResults from '../../shaders/load-buffer-results.wgsl'
 
 const thread0B = `0.1: let r0 = atomicLoad(y)
 0.2: storageBarrier()
@@ -79,6 +80,7 @@ export default function LoadBuffer() {
       testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads. Variants using the release/acquire workgroup control barrier are also included.",
       testParams: defaultTestParams,
       shaderCode: loadBuffer,
+      resultShaderCode: loadBufferResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

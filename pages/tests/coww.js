@@ -5,6 +5,7 @@ import coWW from '../../shaders/coww.wgsl';
 import coWW_RMW from '../../shaders/coww-rmw.wgsl';
 import coWW_workgroup from '../../shaders/coww-workgroup.wgsl';
 import coWW_RMW_workgroup from '../../shaders/coww-rmw-workgroup.wgsl';
+import coWWResults from '../../shaders/coww-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -55,6 +56,7 @@ export default function CoWW() {
     testDescription: "The CoWW litmus test checks SC-per-location by ensuring two writes to the same address on the same thread cannot be re-ordered.",
     testParams: testParams,
     shaderCode: coWW,
+    resultShaderCode: coWWResults,
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants

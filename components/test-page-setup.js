@@ -192,7 +192,7 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
       numOutputs: testParams.numOutputs,
       permuteFirst: testParams.permuteFirst,
       permuteSecond: testParams.permuteSecond,
-      memoryAliases: testParams.memoryAliases
+      aliasedMemory: testParams.aliasedMemory
     };
     await doTest(pageState, params, pageState.activeShader.value, resultShaderCode, testState, keys);
     let config = {

@@ -7,6 +7,7 @@ import coRR_workgroup from '../../shaders/corr-workgroup.wgsl';
 import coRR_RMW_workgroup from '../../shaders/corr-rmw-workgroup.wgsl';
 import coRR_RMW1 from '../../shaders/corr-rmw1.wgsl';
 import coRR_RMW2 from '../../shaders/corr-rmw2.wgsl';
+import coRRResults from '../../shaders/corr-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -76,6 +77,7 @@ export default function CoRR() {
       testDescription: "The CoRR litmus test checks SC-per-location by ensuring subsequent reads of the same value cannot be re-ordered. Variants using rmw instructions are included.",
       testParams: testParams,
       shaderCode: coRR,
+      resultShaderCode: coRRResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

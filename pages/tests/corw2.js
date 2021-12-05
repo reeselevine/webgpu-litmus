@@ -5,6 +5,7 @@ import coRW2 from '../../shaders/corw2.wgsl';
 import coRW2_RMW from '../../shaders/corw2-rmw.wgsl';
 import coRW2_workgroup from '../../shaders/corw2-workgroup.wgsl';
 import coRW2_RMW_workgroup from '../../shaders/corw2-rmw-workgroup.wgsl';
+import coRW2Results from '../../shaders/corw2-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -64,6 +65,7 @@ export default function CoRW2() {
     testDescription: "The CoRW2 litmus test checks SC-per-location by ensuring that if a write from one thread is visible to a read on another thread, any subsequent writes are not re-ordered. Variants using rmw instructions are included.",
     testParams: testParams,
     shaderCode: coRW2,
+    resultShaderCode: coRW2Results,
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants

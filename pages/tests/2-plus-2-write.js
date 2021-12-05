@@ -2,6 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { twoPlusTwoWriteHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import twoPlusTwoWrite from '../../shaders/2+2-write.wgsl'
+import twoPlusTwoWriteResults from '../../shaders/2+2-write-results.wgsl'
 
 const thread0NB = `0.1: atomicStore(x, 2)
 0.2: atomicStore(y, 1)`
@@ -46,6 +47,7 @@ export default function TwoPlusTwoWrite() {
       testDescription: "The 2+2 write litmus test checks to see if two stores in two threads can both be re-ordered.",
       testParams: defaultTestParams,
       shaderCode: twoPlusTwoWrite,
+      resultShaderCode: twoPlusTwoWriteResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode
   }

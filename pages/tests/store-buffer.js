@@ -3,6 +3,7 @@ import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/te
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from '../../shaders/store-buffer.wgsl'
 import storeBufferRMW from '../../shaders/store-buffer-rmw.wgsl'
+import storeBufferResults from '../../shaders/store-buffer-results.wgsl'
 
 const variants = {
   default: {
@@ -51,6 +52,7 @@ export default function StoreBuffer() {
       testDescription: "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads. A release/acquire barrier is not enough to disallow this behavior.",
       testParams: defaultTestParams,
       shaderCode: storeBuffer,
+      resultShaderCode: storeBufferResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

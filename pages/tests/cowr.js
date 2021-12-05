@@ -11,6 +11,7 @@ import coWR_RMW3 from '../../shaders/cowr-rmw3.wgsl';
 import coWR_RMW4 from '../../shaders/cowr-rmw4.wgsl';
 import coWR_RMW5 from '../../shaders/cowr-rmw5.wgsl';
 import coWR_RMW6 from '../../shaders/cowr-rmw6.wgsl';
+import coWRResults from '../../shaders/cowr-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
@@ -101,6 +102,7 @@ export default function CoWR() {
     testDescription: "The CoWR litmus test checks SC-per-location by ensuring that if a read observes a write from another thread, any prior writes to the same address are not re-ordered beyond the read. Variants using rmw instructions are included.",
     testParams: testParams,
     shaderCode: coWR,
+    resultShaderCode: coWRResults,
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants

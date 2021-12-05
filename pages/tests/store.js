@@ -6,6 +6,7 @@ import barrierStore from '../../shaders/barrier-store.wgsl'
 import barrier1Store from '../../shaders/barrier1-store.wgsl'
 import barrier2Store from '../../shaders/barrier2-store.wgsl'
 import barrierStoreNA from '../../shaders/barrier-store-na.wgsl';
+import storeResults from '../../shaders/store-results.wgsl';
 
 const thread0B = `0.1: atomicStore(x, 2)
 0.2: storageBarrier()
@@ -79,6 +80,7 @@ export default function Store() {
       testDescription: "The store litmus test checks to see if two stores in one thread can be re-ordered according to a store and a load on a second thread. Variants using the release/acquire workgroup control barrier are also included.",
       testParams: defaultTestParams,
       shaderCode: store,
+      resultShaderCode: storeResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

@@ -1,14 +1,18 @@
-[[block]] struct TestResults {
-  seq: atomic<u32>;
-  weak: atomic<u32>;
+[[block]] struct Memory {
+  value: array<u32>;
 };
 
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
 };
 
-[[block]] struct Memory {
-  value: array<u32>;
+struct ReadResult {
+  r0: atomic<u32>;
+  r1: atomic<u32>;
+};
+
+[[block]] struct ReadResults {
+  value: array<ReadResult>;
 };
 
 [[block]] struct StressParamsMemory {
@@ -27,7 +31,7 @@
 };
 
 [[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
-[[group(0), binding(1)]] var<storage, read_write> results : TestResults;
+[[group(0), binding(1)]] var<storage, read_write> results : ReadResults;
 [[group(0), binding(2)]] var<storage, read_write> shuffled_workgroups : Memory;
 [[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
 [[group(0), binding(4)]] var<storage, read_write> scratchpad : Memory;
@@ -121,12 +125,7 @@ let workgroupXSize = 256;
     }
     let r0 = atomicLoad(x_0);
     atomicStore(y_0, 1u);
-    storageBarrier();
-    if (r0 == 0u) {
-      atomicAdd(&results.seq, 1u);
-    } elseif (r0 == 1u) {
-      atomicAdd(&results.weak, 1u);
-    }
+    atomicStore(&results.value[id_0].r0, r0);
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

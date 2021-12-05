@@ -2,6 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { readHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import read from '../../shaders/read.wgsl'
+import readResults from '../../shaders/read-results.wgsl'
 
 const thread0NB = `0.1: atomicStore(x, 1)
 0.2: atomicStore(y, 1)`
@@ -46,6 +47,7 @@ export default function Read() {
       testDescription: "The read litmus test checks to see if two stores in one thread can be re-ordered according to a store and a load on a second thread",
       testParams: defaultTestParams,
       shaderCode: read,
+      resultShaderCode: readResults,
       stateConfig: stateConfig,
       pseudoCode: pseudoCode
   }
