@@ -1,18 +1,18 @@
-struct ReadResult {
-  r0: u32;
-  r1: u32;
-};
-
-[[block]] struct ReadResults {
-  value: array<ReadResult>;
+[[block]] struct Memory {
+  value: array<u32>;
 };
 
 [[block]] struct AtomicMemory {
   value: array<atomic<u32>>;
 };
 
-[[block]] struct Memory {
-  value: array<u32>;
+struct ReadResult {
+  r0: atomic<u32>;
+  r1: atomic<u32>;
+};
+
+[[block]] struct ReadResults {
+  value: array<ReadResult>;
 };
 
 [[block]] struct StressParamsMemory {
@@ -131,9 +131,8 @@ let workgroupXSize = 256;
     atomicStore(y_0, 1u);
     let r0 = atomicLoad(y_1);
     let r1 = atomicLoad(x_1);
-    storageBarrier();
-    results.value[id_1].r0 = r0;
-    results.value[id_1].r1 = r1;
+    atomicStore(&results.value[id_1].r0, r0);
+    atomicStore(&results.value[id_1].r1, r1);
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

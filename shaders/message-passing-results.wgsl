@@ -1,21 +1,21 @@
-[[block]] struct AtomicMemory {
-  value: array<atomic<u32>>;
-};
-
-struct ReadResult {
-  r0: u32;
-  r1: u32;
-};
-
-[[block]] struct ReadResults {
-  value: array<ReadResult>;
-};
-
 [[block]] struct TestResults {
   seq0: atomic<u32>;
   seq1: atomic<u32>;
   interleaved: atomic<u32>;
   weak: atomic<u32>;
+};
+
+[[block]] struct AtomicMemory {
+  value: array<atomic<u32>>;
+};
+
+struct ReadResult {
+  r0: atomic<u32>;
+  r1: atomic<u32>;
+};
+
+[[block]] struct ReadResults {
+  value: array<ReadResult>;
 };
 
 [[block]] struct StressParamsMemory {
@@ -43,8 +43,8 @@ let workgroupXSize = 256;
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
-  let r0 = read_results.value[id_0].r0;
-  let r1 = read_results.value[id_0].r1;
+  let r0 = atomicLoad(&read_results.value[id_0].r0);
+  let r1 = atomicLoad(&read_results.value[id_0].r1);
   if ((r0 == 0u && r1 == 0u)) {
     atomicAdd(&test_results.seq0, 1u);
   } elseif ((r0 == 1u && r1 == 1u)) {
