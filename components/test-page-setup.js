@@ -15,7 +15,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
-  const [activeVariant, setActiveVariant] = useState("default");
+  const [workgroupVariant, setWorkgroupVariant] = useState(false);
   const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,9 +49,9 @@ function getPageState(props) {
       value: activeShader,
       update: setActiveShader
     },
-    activeVariant: {
-      value: activeVariant,
-      update: setActiveVariant
+    workgroupVariant: {
+      value: workgroupVariant,
+      update: setWorkgroupVariant
     },
     modeActive: {
       value: mode,
@@ -95,8 +95,13 @@ function getPageState(props) {
 async function doTest(pageState, testParams, shaderCode, resultShaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
-  let numTests = testParams.maxWorkgroupSize * testParams.testingWorkgroups;
-  await runLitmusTest(shaderCode, resultShaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
+  var resultShader;
+  if (pageState.workgroupVariant.value) {
+    resultShader = resultShaderCode.workgroup;
+  } else {
+    resultShader = resultShaderCode.default;
+  }
+  await runLitmusTest(shaderCode, resultShader, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")
@@ -166,7 +171,7 @@ function VariantOptions(props) {
       <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
-        props.pageState.activeVariant.update(e.target.value);
+        props.pageState.workgroupVariant.update(props.variants[e.target.value].workgroup);
       }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>

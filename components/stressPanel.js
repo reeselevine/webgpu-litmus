@@ -11,7 +11,7 @@ function validateWrapper(name, paramName, val, min, max) {
     if (isNaN(parseInt(e.target.value)) || val < min || val > max) {
       alert(name + " value is invalid. The value should be in between " + min + " and " + max);
       return false;
-    } else if ((paramName == "memStride" || paramName == "stressLineSize") && !powOf2(e.target.value)) {
+    } else if (paramName == "stressLineSize" && !powOf2(e.target.value)) {
       alert(name + " value is invalid. The value should be power of 2");
       return false;
     } else {
@@ -183,7 +183,7 @@ export function getStressPanel(params, pageState) {
     maxWorkgroups: buildIntStressParam("Maximum Workgroups", "Each stress iteration is launched with a random number of workgroups between testing workgroups and Maximum Workgroups (values should be between 4 and 1024)", "maxWorkgroups", params, pageState, 4, 1024),
     shufflePct: buildIntStressParam("Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)", "shufflePct", params, pageState, 0, 100),
     barrierPct: buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)", "barrierPct", params, pageState, 0, 100),
-    memStride: buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 128)", "memStride", params, pageState, 1, 512),
+    memStride: buildIntStressParam("Memory Stride", "The testing locations in the litmus test are guaranteed to be seperated by at least this many 32-bit words (values should be between 1 and 7)", "memStride", params, pageState, 1, 7),
     memStressPct: buildIntStressParam("Memory Stress Percentage", "The percentage of iterations in which all non-testing threads repeatedly access the scratch memory to cause memory stress (values should be between 0 and 100)", "memStressPct", params, pageState, 0, 100),
     memStressIterations: buildIntStressParam("Memory Stress Loops", "How many times the non-testing threads loop on their memory stress access pattern (values should be between 0 and 1024)", "memStressIterations", params, pageState, 0, 1024),
     preStressPct: buildIntStressParam("Pre-Stress Percentage", "The percent of iterations in which the testing threads access the scratch memory region before executing their part of the litmus test (values should be between 0 and 100)", "preStressPct", params, pageState, 0, 100),

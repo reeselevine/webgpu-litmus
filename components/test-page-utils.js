@@ -622,7 +622,7 @@ export function randomConfig(generator) {
   let maxWorkgroups =  randomGenerator(testingWorkgroups, 1024, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
-  let memStride = Math.pow(2, randomGenerator(0, 5, generator));
+  let memStride = randomGenerator(1, 7, generator);
   return {
     testingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
