@@ -52,10 +52,10 @@ let workgroupXSize = 256;
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
   let total_ids = u32(workgroupXSize) * stress_params.testing_workgroups;
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
-  let x_0 = &test_locations.value[id_0 * stress_params.mem_stride * 2u];
-  let mem_x_0 = atomicLoad(x_0);
-  let y_0 = &test_locations.value[permute_id(id_0, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset];
-  let mem_y_0 = atomicLoad(y_0);
+  let x_0 = (id_0) * stress_params.mem_stride * 2u;
+  let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
+  let y_0 = (permute_id(id_0, stress_params.permute_second, total_ids)) * stress_params.mem_stride * 2u + stress_params.location_offset;
+  let mem_y_0 = atomicLoad(&test_locations.value[y_0]);
   if ((mem_x_0 == 1u && mem_y_0 == 2u)) {
     atomicAdd(&test_results.seq0, 1u);
   } elseif ((mem_x_0 == 2u && mem_y_0 == 1u)) {

@@ -1,8 +1,11 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { twoPlusTwoWriteHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
-import twoPlusTwoWrite from '../../shaders/2+2-write.wgsl'
-import twoPlusTwoWriteResults from '../../shaders/2+2-write-results.wgsl'
+import twoPlusTwoWrite from '../../shaders/2+2w/2+2-write.wgsl'
+import twoPlusTwoWriteWorkgroup from '../../shaders/2+2w/2+2-write-workgroup.wgsl'
+import twoPlusTwoWriteStorageWorkgroup from '../../shaders/2+2w/2+2-write-storage-workgroup.wgsl'
+import twoPlusTwoWriteResults from '../../shaders/2+2w/2+2-write-results.wgsl'
+import twoPlusTwoWriteWorkgroupResults from '../../shaders/2+2w/2+2-write-workgroup-results.wgsl'
 
 const thread0NB = `0.1: atomicStore(x, 2)
 0.2: atomicStore(y, 1)`
@@ -13,7 +16,18 @@ const thread1NB = `1.1: atomicStore(y, 2)
 const variants = {
   default: {
     pseudo: buildPseudoCode([thread0NB, thread1NB]),
-    shader: twoPlusTwoWrite 
+    shader: twoPlusTwoWrite,
+    workgroup: false
+  },
+  workgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: twoPlusTwoWriteWorkgroup,
+    workgroup: true
+  },
+  storageWorkgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: twoPlusTwoWriteStorageWorkgroup,
+    workgroup: true
   }
 }
 
@@ -47,8 +61,12 @@ export default function TwoPlusTwoWrite() {
       testDescription: "The 2+2 write litmus test checks to see if two stores in two threads can both be re-ordered.",
       testParams: defaultTestParams,
       shaderCode: twoPlusTwoWrite,
-      resultShaderCode: twoPlusTwoWriteResults,
+      resultShaderCode: {
+        default: twoPlusTwoWriteResults,
+        workgroup: twoPlusTwoWriteWorkgroupResults
+      },
       stateConfig: stateConfig,
+      variants: variants,
       pseudoCode: pseudoCode
   }
 

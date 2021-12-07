@@ -50,18 +50,17 @@ let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main(
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
-  let total_ids = u32(workgroupXSize) * stress_params.testing_workgroups;
+  let total_ids = u32(workgroupXSize);
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
   let r0 = atomicLoad(&read_results.value[id_0].r0);
-  let y_0 = &test_locations.value[permute_id(id_0, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset];
-  let mem_y_0 = atomicLoad(y_0);
-  if ((r0 == 1u && mem_y_0 == 2u)) {
+  let r1 = atomicLoad(&read_results.value[id_0].r1);
+  if ((r0 == 1u && r1 == 0u)) {
     atomicAdd(&test_results.seq0, 1u);
-  } elseif ((r0 == 0u && mem_y_0 == 1u)) {
+  } elseif ((r0 == 0u && r1 == 1u)) {
     atomicAdd(&test_results.seq1, 1u);
-  } elseif ((r0 == 1u && mem_y_0 == 1u)) {
+  } elseif ((r0 == 1u && r1 == 1u)) {
     atomicAdd(&test_results.interleaved, 1u);
-  } elseif ((r0 == 0u && mem_y_0 == 2u)) {
+  } elseif ((r0 == 0u && r1 == 0u)) {
     atomicAdd(&test_results.weak, 1u);
   }
 }
