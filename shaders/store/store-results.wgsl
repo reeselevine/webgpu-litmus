@@ -38,14 +38,23 @@ struct ReadResult {
 [[group(0), binding(2)]] var<storage, read_write> test_results : TestResults;
 [[group(0), binding(3)]] var<uniform> stress_params : StressParamsMemory;
 
+fn permute_id(id: u32, factor: u32, mask: u32) -> u32 {
+  return (id * factor) % mask;
+}
+
+fn stripe_workgroup(workgroup_id: u32, local_id: u32) -> u32 {
+  return (workgroup_id + 1u + local_id % (stress_params.testing_workgroups - 1u)) % stress_params.testing_workgroups;
+}
+
 let workgroupXSize = 256;
 [[stage(compute), workgroup_size(workgroupXSize)]] fn main(
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
+  let total_ids = u32(workgroupXSize) * stress_params.testing_workgroups;
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
   let r0 = atomicLoad(&read_results.value[id_0].r0);
-  let x_0 = &test_locations.value[id_0 * stress_params.mem_stride * 2u];
-  let mem_x_0 = atomicLoad(x_0);
+  let x_0 = (id_0) * stress_params.mem_stride * 2u;
+  let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
   if ((r0 == 1u && mem_x_0 == 1u)) {
     atomicAdd(&test_results.seq0, 1u);
   } elseif ((r0 == 0u && mem_x_0 == 2u)) {
