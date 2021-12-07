@@ -1,70 +1,34 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { coWRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
-import coWR from '../../shaders/cowr.wgsl';
-import coWR_RMW from '../../shaders/cowr-rmw.wgsl';
-import coWR_workgroup from '../../shaders/cowr-workgroup.wgsl';
-import coWR_RMW_workgroup from '../../shaders/cowr-rmw-workgroup.wgsl';
-import coWR_RMW1 from '../../shaders/cowr-rmw1.wgsl';
-import coWR_RMW2 from '../../shaders/cowr-rmw2.wgsl';
-import coWR_RMW3 from '../../shaders/cowr-rmw3.wgsl';
-import coWR_RMW4 from '../../shaders/cowr-rmw4.wgsl';
-import coWR_RMW5 from '../../shaders/cowr-rmw5.wgsl';
-import coWR_RMW6 from '../../shaders/cowr-rmw6.wgsl';
-import coWRResults from '../../shaders/cowr-results.wgsl';
+import coWR from '../../shaders/cowr/cowr.wgsl'
+import coWRWorkgroup from '../../shaders/cowr/cowr-workgroup.wgsl'
+import coWRStorageWorkgroup from '../../shaders/cowr/cowr-storage-workgroup.wgsl'
+import coWRResults from '../../shaders/cowr/cowr-results.wgsl'
+import coWRWorkgroupResults from '../../shaders/cowr/cowr-workgroup-results.wgsl'
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
+const thread0 = `0.1: atomicStore(x, 1)
+0.2: let r0 = atomicLoad(x)`;
+
+const thread1 = "1.1: atomicStore(x, 2)";
+
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicLoad(x)`, "1.1: atomicStore(x, 2)"]),
-    shader: coWR
-  },
-  rmw: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
-0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coWR_RMW
+    pseudo: buildPseudoCode([thread0, thread1]),
+    shader: coWR,
+    workgroup: false
   },
   workgroup: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicLoad(x)`, "1.1: atomicStore(x, 2)"], true),
-    shader: coWR_workgroup
+    pseudo: buildPseudoCode([thread0, thread1], true),
+    shader: coWRWorkgroup,
+    workgroup: true
   },
-  workgroup_rmw: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
-0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicExchange(x, 2)"], true),
-    shader: coWR_RMW_workgroup
-  },
-  rmw1: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
-0.2: let r0 = atomicLoad(x)`, "1.1: atomicStore(x, 2)"]),
-    shader: coWR_RMW1
-  },
-  rmw2: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicStore(x, 2)"]),
-    shader: coWR_RMW2
-  },
-  rmw3: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicLoad(x)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coWR_RMW3
-  },
-  rmw4: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
-0.2: let r0 = atomicLoad(x)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coWR_RMW4
-  },
-  rmw5: {
-    pseudo: buildPseudoCode([`0.1: atomicExchange(x, 1)
-0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicStore(x, 2)"]),
-    shader: coWR_RMW5
-  },
-  rmw6: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicAdd(x, 0)`, "1.1: atomicExchange(x, 2)"]),
-    shader: coWR_RMW6
+  storageWorkgroup: {
+    pseudo: buildPseudoCode([thread0, thread1], true),
+    shader: coWRStorageWorkgroup,
+    workgroup: true
   }
 }
 
@@ -102,7 +66,10 @@ export default function CoWR() {
     testDescription: "The CoWR litmus test checks SC-per-location by ensuring that if a read observes a write from another thread, any prior writes to the same address are not re-ordered beyond the read. Variants using rmw instructions are included.",
     testParams: testParams,
     shaderCode: coWR,
-    resultShaderCode: coWRResults,
+    resultShaderCode: {
+      default: coWRResults,
+      workgroup: coWRWorkgroupResults
+    },
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants
