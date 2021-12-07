@@ -1,12 +1,14 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
-import loadBuffer from '../../shaders/load-buffer.wgsl'
-import barrierLoadBuffer from '../../shaders/barrier-load-buffer.wgsl';
-import barrier1LoadBuffer from '../../shaders/barrier1-load-buffer.wgsl';
-import barrier2LoadBuffer from '../../shaders/barrier2-load-buffer.wgsl';
-import barrierLoadBufferNA from '../../shaders/barrier-load-buffer-na.wgsl';
-import loadBufferResults from '../../shaders/load-buffer-results.wgsl'
+import loadBuffer from '../../shaders/lb/load-buffer.wgsl'
+import barrierLoadBuffer from '../../shaders/lb/load-buffer-barrier.wgsl'
+import workgroupLoadBuffer from '../../shaders/lb/load-buffer-workgroup.wgsl';
+import storageWorkgroupLoadBuffer from '../../shaders/lb/load-buffer-storage-workgroup.wgsl';
+import barrierWorkgroupLoadBuffer from '../../shaders/lb/load-buffer-workgroup-barrier.wgsl';
+import barrierStorageWorkgroupLoadBuffer from '../../shaders/lb/load-buffer-storage-workgroup-barrier.wgsl';
+import loadBufferResults from '../../shaders/lb/load-buffer-results.wgsl';
+import loadBufferWorkgroupResults from '../../shaders/lb/load-buffer-workgroup-results.wgsl';
 
 const thread0B = `0.1: let r0 = atomicLoad(y)
 0.2: storageBarrier()
@@ -14,6 +16,14 @@ const thread0B = `0.1: let r0 = atomicLoad(y)
 
 const thread1B = `1.1: let r1 = atomicLoad(x)
 1.2: storageBarrier()
+1.3: atomicStore(y, 1)`;
+
+const thread0WB = `0.1: let r0 = atomicLoad(y)
+0.2: workgroupBarrier()
+0.3: atomicStore(x, 1)`;
+
+const thread1WB = `1.1: let r1 = atomicLoad(x)
+1.2: workgroupBarrier()
 1.3: atomicStore(y, 1)`;
 
 const thread0NB = `0.1: let r0 = atomicLoad(y)
@@ -25,29 +35,35 @@ const thread1NB = `1.1: let r0 = atomicLoad(x)
 const variants = {
   default: {
     pseudo: buildPseudoCode([thread0NB, thread1NB]),
-    shader: loadBuffer
+    shader: loadBuffer,
+    workgroup: false
   },
   barrier: {
     pseudo: buildPseudoCode([thread0B, thread1B]),
-    shader: barrierLoadBuffer
+    shader: barrierLoadBuffer,
+    workgroup: false
   },
-  barrier1: {
-    pseudo: buildPseudoCode([thread0B, thread1NB]),
-    shader: barrier1LoadBuffer
+  workgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: workgroupLoadBuffer,
+    workgroup: true
   },
-  barrier2: {
-    pseudo: buildPseudoCode([thread0NB, thread1B]),
-    shader: barrier2LoadBuffer
+  workgroupBarrier: {
+    pseudo: buildPseudoCode([thread0WB, thread1WB], true),
+    shader: barrierWorkgroupLoadBuffer,
+    workgroup: true
   },
-  nonatomic: {
-    pseudo: buildPseudoCode([`0.1: let r0 = *y
-0.2: storageBarrier()
-0.3: atomicStore(x, 1)`, `1.1: let r1 = atomicLoad(x)
-1.2: storageBarrier()
-1.3: if r1 == 1:
-1.4:   *y = 1`]),
-    shader: barrierLoadBufferNA
-  }
+  storageWorkgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: storageWorkgroupLoadBuffer,
+    workgroup: true
+  },
+  storageWorkgroupBarrier: {
+    pseudo: buildPseudoCode([thread0B, thread1B], true),
+    shader: barrierStorageWorkgroupLoadBuffer,
+    workgroup: true
+  },
+
 }
 
 export default function LoadBuffer() {
@@ -80,7 +96,10 @@ export default function LoadBuffer() {
       testDescription: "The load buffer litmus test checks to see if loads can be buffered and re-ordered on different threads. Variants using the release/acquire workgroup control barrier are also included.",
       testParams: defaultTestParams,
       shaderCode: loadBuffer,
-      resultShaderCode: loadBufferResults,
+      resultShaderCode: {
+        default: loadBufferResults,
+        workgroup: loadBufferWorkgroupResults
+      },
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants
