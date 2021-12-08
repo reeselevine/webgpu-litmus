@@ -1,35 +1,33 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { barrierStoreLoadHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
-import barrierSL from '../../shaders/barrier-store-load.wgsl';
-import barrierWorkgroupSL from '../../shaders/barrier-store-load-workgroup.wgsl';
+import barrierSLWorkgroup from '../../shaders/barrier-sl/barrier-store-load-workgroup.wgsl';
+import barrierSLStorageWorkgroup from '../../shaders/barrier-sl/barrier-store-load-storage-workgroup.wgsl';
+import barrierSLResults from '../../shaders/barrier-sl/barrier-store-load-workgroup-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const variants = {
+  default: {
+    pseudo: buildPseudoCode([`0.1: *x = 1
+0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
+1.2: let r0 = x`], true),
+    shader: barrierSLWorkgroup,
+    workgroup: true
+  },
   storage: {
     pseudo: buildPseudoCode([`0.1: *x = 1
 0.2: storageBarrier()`, `1.1: storageBarrier()
 1.2: let r0 = x`], true),
-    shader: barrierSL
-  },
-  workgroup: {
-    pseudo: buildPseudoCode([`0.1: *x = 1
-0.2: workgroupBarrier()`, `1.1: workgroupBarrier()
-1.2: let r0 = x`], true),
-    shader: barrierWorkgroupSL
+    shader: barrierSLStorageWorkgroup,
+    workgroup: true
   }
 }
 
 export default function BarrierStoreLoad() {
-  testParams.memoryAliases[1] = 0;
-  testParams.numMemLocations = 2;
-  testParams.numOutputs = 1;
-  testParams.minWorkgroupSize = 256;
-  testParams.maxWorkgroupSize = 256;
   const pseudoCode = {
     setup: <TestSetupPseudoCode init="*x = 0" finalState="r0 == 0"/>,
-    code: variants.storage.pseudo
+    code: variants.default.pseudo
   };
 
   const stateConfig = {
@@ -47,7 +45,10 @@ export default function BarrierStoreLoad() {
     testName: "Barrier Store Load",
     testDescription: "The barrier store load test checks to see if WebGPU's barriers correctly synchronize a store before the barrier on one thread and a load on another thread after the barrier.",
     testParams: testParams,
-    shaderCode: barrierSL,
+    shaderCode: barrierSLWorkgroup,
+    resultShaderCode: {
+      workgroup: barrierSLResults
+    },
     stateConfig: stateConfig,
     pseudoCode: pseudoCode,
     variants: variants

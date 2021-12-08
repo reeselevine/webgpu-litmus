@@ -15,7 +15,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
-  const [workgroupVariant, setWorkgroupVariant] = useState(false);
+  const [workgroupVariant, setWorkgroupVariant] = useState(props.variants.default.workgroup);
   const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
