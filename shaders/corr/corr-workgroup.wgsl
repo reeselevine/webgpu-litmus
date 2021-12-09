@@ -128,11 +128,10 @@ let workgroupXSize = 256;
       spin(u32(workgroupXSize));
     }
     atomicStore(&wg_test_locations[x_0], 1u);
-    let r1 = atomicLoad(&wg_test_locations[y_1]);
     let r0 = atomicLoad(&wg_test_locations[x_1]);
-    workgroupBarrier();
-    atomicStore(&results.value[shuffled_workgroup * u32(workgroupXSize) + id_1].r0, r0);
+    let r1 = atomicLoad(&wg_test_locations[y_1]);
     atomicStore(&results.value[shuffled_workgroup * u32(workgroupXSize) + id_1].r1, r1);
+    atomicStore(&results.value[shuffled_workgroup * u32(workgroupXSize) + id_1].r0, r0);
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

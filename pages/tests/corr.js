@@ -4,6 +4,10 @@ import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudo
 import coRR from '../../shaders/corr/corr.wgsl'
 import coRRWorkgroup from '../../shaders/corr/corr-workgroup.wgsl'
 import coRRStorageWorkgroup from '../../shaders/corr/corr-storage-workgroup.wgsl'
+import coRRNB from '../../shaders/corr/corr-nb.wgsl'
+import coRRWorkgroupNB from '../../shaders/corr/corr-workgroup-nb.wgsl'
+import coRRStorageWorkgroupNB from '../../shaders/corr/corr-storage-workgroup-nb.wgsl'
+
 import coRRResults from '../../shaders/corr/corr-results.wgsl'
 import coRRWorkgroupResults from '../../shaders/corr/corr-workgroup-results.wgsl'
 
@@ -28,7 +32,23 @@ const variants = {
     pseudo: buildPseudoCode([thread0, thread1], true),
     shader: coRRStorageWorkgroup,
     workgroup: true
+  },
+  defaultNoBug: {
+    pseudo: buildPseudoCode([thread0, thread1]),
+    shader: coRRNB,
+    workgroup: false
+  },
+  workgroupNoBug: {
+    pseudo: buildPseudoCode([thread0, thread1], true),
+    shader: coRRWorkgroupNB,
+    workgroup: true
+  },
+  storageWorkgroupNoBug: {
+    pseudo: buildPseudoCode([thread0, thread1], true),
+    shader: coRRStorageWorkgroupNB,
+    workgroup: true
   }
+
 }
 
 export default function CoRR() {
