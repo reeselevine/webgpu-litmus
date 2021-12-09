@@ -56,12 +56,12 @@ let workgroupXSize = 256;
   let x_0 = (id_0) * stress_params.mem_stride * 2u;
   let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
   if ((r0 == 1u && mem_x_0 == 1u)) {
-    atomicAdd(&test_results.seq0, 1u);
+    let unused = atomicAdd(&test_results.seq0, 1u);
   } elseif ((r0 == 0u && mem_x_0 == 2u)) {
-    atomicAdd(&test_results.seq1, 1u);
+    let unused = atomicAdd(&test_results.seq1, 1u);
   } elseif ((r0 == 0u && mem_x_0 == 1u)) {
-    atomicAdd(&test_results.interleaved, 1u);
+    let unused = atomicAdd(&test_results.interleaved, 1u);
   } elseif ((r0 == 1u && mem_x_0 == 2u)) {
-    atomicAdd(&test_results.weak, 1u);
+    let unused = atomicAdd(&test_results.weak, 1u);
   }
 }

@@ -53,8 +53,8 @@ let workgroupXSize = 256;
   let x_0 = (id_0) * stress_params.mem_stride * 2u;
   let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
   if (mem_x_0 == 2u) {
-    atomicAdd(&test_results.seq, 1u);
+    let unused = atomicAdd(&test_results.seq, 1u);
   } elseif (mem_x_0 == 1u) {
-    atomicAdd(&test_results.weak, 1u);
+    let unused = atomicAdd(&test_results.weak, 1u);
   }
 }

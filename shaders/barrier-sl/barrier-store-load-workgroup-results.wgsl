@@ -52,8 +52,8 @@ let workgroupXSize = 256;
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
   let r0 = atomicLoad(&read_results.value[id_0].r0);
   if (r0 == 1u) {
-    atomicAdd(&test_results.seq, 1u);
+    let unused = atomicAdd(&test_results.seq, 1u);
   } elseif (r0 == 0u) {
-    atomicAdd(&test_results.weak, 1u);
+    let unused = atomicAdd(&test_results.weak, 1u);
   }
 }

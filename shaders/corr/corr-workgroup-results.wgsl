@@ -55,12 +55,12 @@ let workgroupXSize = 256;
   let r0 = atomicLoad(&read_results.value[id_0].r0);
   let r1 = atomicLoad(&read_results.value[id_0].r1);
   if ((r0 == 0u && r1 == 0u)) {
-    atomicAdd(&test_results.seq0, 1u);
+    let unused = atomicAdd(&test_results.seq0, 1u);
   } elseif ((r0 == 1u && r1 == 1u)) {
-    atomicAdd(&test_results.seq1, 1u);
+    let unused = atomicAdd(&test_results.seq1, 1u);
   } elseif ((r0 == 0u && r1 == 1u)) {
-    atomicAdd(&test_results.interleaved, 1u);
+    let unused = atomicAdd(&test_results.interleaved, 1u);
   } elseif ((r0 == 1u && r1 == 0u)) {
-    atomicAdd(&test_results.weak, 1u);
+    let unused = atomicAdd(&test_results.weak, 1u);
   }
 }
