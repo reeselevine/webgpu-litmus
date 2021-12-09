@@ -126,8 +126,8 @@ let workgroupXSize = 256;
       spin(u32(workgroupXSize));
     }
     atomicStore(&test_locations.value[x_0], 1u);
-    let r0 = atomicLoad(&test_locations.value[x_1]);
     let r1 = atomicLoad(&test_locations.value[y_1]);
+    let r0 = atomicLoad(&test_locations.value[x_1]);
     workgroupBarrier();
     atomicStore(&results.value[shuffled_workgroup * u32(workgroupXSize) + id_1].r0, r0);
     atomicStore(&results.value[shuffled_workgroup * u32(workgroupXSize) + id_1].r1, r1);

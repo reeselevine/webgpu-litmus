@@ -402,7 +402,6 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const memArrayBuffer = buffers.testLocations.readBuffer.getMappedRange();
   //console.log(new Uint32Array(memArrayBuffer).slice(0));
   buffers.testLocations.readBuffer.unmap();
-
   return result;
 }
 

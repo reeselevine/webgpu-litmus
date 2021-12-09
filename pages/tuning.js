@@ -452,8 +452,8 @@ function getTestSelector(pageState) {
   let corw2Name = "CoRW2";
   let corw2Tests = [
     buildTest(corw2Name, "Default", coRW2, coRW2Results, pageState, defaultKeys, coherenceOverrides),
-    buildTest(corw2Name, "Workgroup (workgroup memory)", coRW2, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides),
-    buildTest(corw2Name, "Workgroup (storage memory)", coRW2, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides)
+    buildTest(corw2Name, "Workgroup (workgroup memory)", coRW2Workgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corw2Name, "Workgroup (storage memory)", coRW2StorageWorkgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
   const coRW2Jsx = <SelectorTest key="corw2" testName={corw2Name} tests={corw2Tests} />;
   let coherenceJsx = [coRRJsx, coWWJsx, coWRJsx, coRW1Jsx, coRW2Jsx];
