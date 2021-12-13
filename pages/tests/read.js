@@ -6,12 +6,20 @@ import readWorkgroup from '../../shaders/read/read-workgroup.wgsl'
 import readStorageWorkgroup from '../../shaders/read/read-storage-workgroup.wgsl'
 import readResults from '../../shaders/read/read-results.wgsl'
 import readWorkgroupResults from '../../shaders/read/read-workgroup-results.wgsl'
+import readRMWBarrier from '../../shaders/read/read-rmw-barrier.wgsl'
+import readWorkgroupRMWBarrier from '../../shaders/read/read-workgroup-rmw-barrier.wgsl'
+import readStorageWorkgroupRMWBarrier from '../../shaders/read/read-storage-workgroup-rmw-barrier.wgsl'
 
 const thread0NB = `0.1: atomicStore(x, 1)
 0.2: atomicStore(y, 1)`
-
 const thread1NB = `1.1: atomicStore(y, 2)
 1.2: let r0 = atomicLoad(x)`
+const thread0B = `0.1: atomicStore(x, 1)
+0.2: storageBarrier()
+0.3: atomicExchange(y, 1)`
+const thread1B = `1.1: atomicExchange(y, 2)
+1.2: storageBarrier()
+1.3: let r0 = atomicLoad(x)`
 
 const variants = {
   default: {
@@ -27,6 +35,21 @@ const variants = {
   storageWorkgroup: {
     pseudo: buildPseudoCode([thread0NB, thread1NB], true),
     shader: readStorageWorkgroup,
+    workgroup: true
+  },
+  rmwBarrier: {
+    pseudo: buildPseudoCode([thread0B, thread1B]),
+    shader: readRMWBarrier,
+    workgroup: false
+  },
+  workgroupRmwBarrier: {
+    pseudo: buildPseudoCode([thread0B, thread1B], true),
+    shader: readWorkgroupRMWBarrier,
+    workgroup: true
+  },
+  storageWorkgroupRmwBarrier: {
+    pseudo: buildPseudoCode([thread0B, thread1B], true),
+    shader: readStorageWorkgroupRMWBarrier,
     workgroup: true
   }
 }

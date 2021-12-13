@@ -2,6 +2,7 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { coRW2Handlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRW2 from '../../shaders/corw2/corw2.wgsl'
+import coRW2RMW from '../../shaders/corw2/corw2-rmw.wgsl'
 import coRW2Workgroup from '../../shaders/corw2/corw2-workgroup.wgsl'
 import coRW2StorageWorkgroup from '../../shaders/corw2/corw2-storage-workgroup.wgsl'
 import coRW2Results from '../../shaders/corw2/corw2-results.wgsl'
@@ -11,13 +12,18 @@ const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 
 const thread0 = `0.1: let r0 = atomicLoad(x)
 0.2: atomicStore(x, 1)`;
-
 const thread1 = "1.1: atomicStore(x, 2)";
+const thread1RMW = "1.1: atomicExchange(x, 2)";
 
 const variants = {
   default: {
     pseudo: buildPseudoCode([thread0, thread1]),
     shader: coRW2,
+    workgroup: false
+  },
+  rmw: {
+    pseudo: buildPseudoCode([thread0, thread1RMW]),
+    shader: coRW2RMW,
     workgroup: false
   },
   workgroup: {
