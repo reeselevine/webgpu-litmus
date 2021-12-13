@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import _ from 'lodash'
+import _, { round } from 'lodash'
 import { makeTestPage } from './test-page-setup';
 
 export const workgroupMemorySize = 2048;
@@ -50,15 +50,24 @@ function buildOneOutputStaticTuningRow(testState) {
   );
 }
 
-export function makeTwoOutputLitmusTestPage(props) {
+function _makeTwoOutputLitmusTestPage(props) {
   props.testState = getTwoOutputState(props.stateConfig);
   props.chartData = twoOutputChartData(props.testState);
-  props.keys = ["seq0", "seq1", "interleaved", "weak"];
   props.tooltipFilter = twoOutputTooltipFilter;
   props.tuningHeader = <TwoOutputTuningHeader testState={props.testState}/>;
   props.dynamicRowOutputs = <TwoOutputDynamicTuningRow testState={props.testState}/>;
   props.buildStaticRowOutputs = buildTwoOutputStaticTuningRow;
   return makeTestPage(props);
+}
+
+export function makeTwoOutputLitmusTestPage(props) {
+  props.keys = ["seq0", "seq1", "interleaved", "weak"];
+  return _makeTwoOutputLitmusTestPage(props);
+}
+
+export function makeAtomicityLitmusTestPage(props) {
+  props.keys = ["seq0", "seq1", "weak"];
+  return _makeTwoOutputLitmusTestPage(props);
 }
 
 function TwoOutputTuningHeader(props) {
@@ -327,16 +336,10 @@ export function clearState(state, keys) {
 }
 
 export function handleResult(state, keys) {
-  return function (result, memResult) {
-    if (state.weak.resultHandler(result, memResult)) {
-      console.log(result);
-    }
-    for (const key of keys) {
-      if (state[key].resultHandler(result, memResult)) {
-        state[key].internalState = state[key].internalState + 1;
-        state[key].throttledUpdate(state[key].internalState);
-        break;
-      }
+  return function (result) {
+    for (let i = 0; i < keys.length; i++) {
+      state[keys[i]].internalState = state[keys[i]].internalState + result[i];
+      state[keys[i]].throttledUpdate(state[keys[i]].internalState);
     }
   }
 }
@@ -609,20 +612,24 @@ function randomGenerator(min, max, generator){
   return Math.floor(generator() * (max - min + 1) + min);
 }
 
+// Rounds a percentage to the closest lower multiple of 5, to provide a smaller search space.
+function roundedPercentage(generator) {
+  return Math.floor(randomGenerator(0, 100, generator) / 5) * 5;
+}
+
 export function randomConfig(generator) {
-  let maxWorkgroups =  randomGenerator(4,1024, generator);
-  let minWorkgroups = randomGenerator(4, maxWorkgroups, generator);
+  let testingWorkgroups = randomGenerator(2, 1024, generator);
+  let maxWorkgroups =  randomGenerator(testingWorkgroups, 1024, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
-  let memStride = Math.pow(2, randomGenerator(1, 9, generator));
+  let memStride = randomGenerator(1, 7, generator);
   return {
-    minWorkgroups: minWorkgroups,
+    testingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
-    shufflePct: randomGenerator(0, 100, generator),
-    barrierPct: randomGenerator(0, 100, generator),
-    memStressPct: randomGenerator(0, 100, generator),
-    preStressPct: randomGenerator(0, 100, generator),
-    testMemorySize: memStride * 128,
+    shufflePct: roundedPercentage(generator),
+    barrierPct: roundedPercentage(generator),
+    memStressPct: roundedPercentage(generator),
+    preStressPct: roundedPercentage(generator),
     scratchMemorySize: 32 * stressLineSize * stressTargetLines,
     memStride: memStride,
     stressLineSize: stressLineSize,

@@ -1,23 +1,33 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
 import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
-import storeBuffer from '../../shaders/store-buffer.wgsl'
-import storeBufferRMW from '../../shaders/store-buffer-rmw.wgsl'
+import storeBuffer from '../../shaders/sb/store-buffer.wgsl'
+import storeBufferWorkgroup from '../../shaders/sb/store-buffer-workgroup.wgsl'
+import storeBufferStorageWorkgroup from '../../shaders/sb/store-buffer-storage-workgroup.wgsl'
+import storeBufferResults from '../../shaders/sb/store-buffer-results.wgsl'
+import storeBufferWorkgroupResults from '../../shaders/sb/store-buffer-workgroup-results.wgsl'
+
+const thread0NB = `0.1: atomicStore(x, 1)
+0.2: let r0 = atomicLoad(y)`
+
+const thread1NB = `1.1: atomicStore(y, 1)
+1.2: let r1 = atomicLoad(x)`
 
 const variants = {
   default: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: let r0 = atomicLoad(y)`, `1.1: atomicStore(y, 1)
-1.2: let r1 = atomicLoad(x)`]),
-    shader: storeBuffer
+    pseudo: buildPseudoCode([thread0NB, thread1NB]),
+    shader: storeBuffer,
+    workgroup: false 
   },
-  rmw_barrier: {
-    pseudo: buildPseudoCode([`0.1: atomicStore(x, 1)
-0.2: storageBarrier()
-0.3: let r0 = atomicAdd(y, 0)`, `1.1: atomicExchange(y, 1)
-1.2: storageBarrier()
-1.3: let r1 = atomicLoad(x)`]),
-    shader: storeBufferRMW
+  workgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: storeBufferWorkgroup,
+    workgroup: true
+  },
+  storageWorkgroup: {
+    pseudo: buildPseudoCode([thread0NB, thread1NB], true),
+    shader: storeBufferStorageWorkgroup,
+    workgroup: true
   }
 };
 
@@ -51,6 +61,10 @@ export default function StoreBuffer() {
       testDescription: "The store buffer litmus test checks to see if stores can be buffered and re-ordered on different threads. A release/acquire barrier is not enough to disallow this behavior.",
       testParams: defaultTestParams,
       shaderCode: storeBuffer,
+      resultShaderCode: {
+        default: storeBufferResults,
+        workgroup: storeBufferWorkgroupResults
+      },
       stateConfig: stateConfig,
       pseudoCode: pseudoCode,
       variants: variants

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { runLitmusTest, reportTime, getCurrentIteration, defaultTestParams } from './litmus-setup.js'
+import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.js'
 import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, randomConfig, workgroupMemorySize } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
@@ -15,7 +15,7 @@ function getPageState(props) {
   const [tuning, setTuning] = useState(false);
   const [activePseudoCode, setActivePseudoCode] = useState(props.pseudoCode.code);
   const [activeShader, setActiveShader] = useState(props.shaderCode);
-  const [activeVariant, setActiveVariant] = useState("default");
+  const [workgroupVariant, setWorkgroupVariant] = useState(props.variants.default.workgroup);
   const [tuningTimes, setTuningTimes] = useState(10);
   const [resetTable, setResetTable] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,9 +49,9 @@ function getPageState(props) {
       value: activeShader,
       update: setActiveShader
     },
-    activeVariant: {
-      value: activeVariant,
-      update: setActiveVariant
+    workgroupVariant: {
+      value: workgroupVariant,
+      update: setWorkgroupVariant
     },
     modeActive: {
       value: mode,
@@ -92,10 +92,16 @@ function getPageState(props) {
   }
 }
 
-async function doTest(pageState, testParams, shaderCode, testState, keys) {
+async function doTest(pageState, testParams, shaderCode, resultShaderCode, testState, keys) {
   pageState.running.update(true);
   clearState(testState, keys);
-  await runLitmusTest(shaderCode, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
+  var resultShader;
+  if (pageState.workgroupVariant.value) {
+    resultShader = resultShaderCode.workgroup;
+  } else {
+    resultShader = resultShaderCode.default;
+  }
+  await runLitmusTest(shaderCode, resultShader, testParams, pageState.iterations.value, handleResult(testState, keys)).then(
     success => {
       pageState.running.update(false);
       console.log("success!")
@@ -105,7 +111,7 @@ async function doTest(pageState, testParams, shaderCode, testState, keys) {
   );
 }
 
-function chartConfig(pageState, tooltipFilter) {
+function chartConfig(pageState, testParams, uiParams, tooltipFilter) {
   return {
     plugins: {
       title: {
@@ -123,7 +129,7 @@ function chartConfig(pageState, tooltipFilter) {
         axis: 'y',
         type: 'logarithmic',
         min: 0.1,
-        max: pageState.iterations.value,
+        max: pageState.iterations.value * testParams.maxWorkgroupSize * testParams.testingWorkgroups,
         ticks: {
           callback: function (value, index, values) {
             var val = value;
@@ -165,11 +171,7 @@ function VariantOptions(props) {
       <select className="dropdown" name="variant" onChange={(e) => {
         props.pageState.activePseudoCode.update(props.variants[e.target.value].pseudo);
         props.pageState.activeShader.update(props.variants[e.target.value].shader);
-        props.pageState.activeVariant.update(e.target.value);
-        if (e.target.value.includes("workgroup")) {
-          props.uiParams.testMemorySize.state.update(workgroupMemorySize);
-          props.testParams['testMemorySize'] = workgroupMemorySize;
-        }
+        props.pageState.workgroupVariant.update(props.variants[e.target.value].workgroup);
       }} disabled={props.pageState.running.value}>
         {variantOptions}
       </select>
@@ -177,7 +179,7 @@ function VariantOptions(props) {
 }
 
 //run litmus test for each random config and store config for displaying 
-async function random(pageState, testState, testParams, keys, buildStaticRowOutputs) {
+async function random(pageState, testState, testParams, keys, buildStaticRowOutputs, resultShaderCode) {
   pageState.tuningRows.update([]);
   pageState.running.update(true);
   pageState.tuningStats.update({
@@ -193,9 +195,11 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
       maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
       numOutputs: testParams.numOutputs,
-      memoryAliases: testParams.memoryAliases
+      permuteFirst: testParams.permuteFirst,
+      permuteSecond: testParams.permuteSecond,
+      aliasedMemory: testParams.aliasedMemory
     };
-    await doTest(pageState, params, pageState.activeShader.value, testState, keys);
+    await doTest(pageState, params, pageState.activeShader.value, resultShaderCode, testState, keys);
     let config = {
       progress: 100,
       rate: Math.round((getCurrentIteration() / (reportTime()))),
@@ -312,7 +316,7 @@ export function makeTestPage(props) {
                   <button className="button is-primary" onClick={() => {
                     pageState.resetTable.update(false);
                     pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-                    random(pageState, props.testState, props.testParams, props.keys, props.buildStaticRowOutputs);
+                    random(pageState, props.testState, props.testParams, props.keys, props.buildStaticRowOutputs, props.resultShaderCode);
                     pageState.tuningActive.update(true);
 
                   }} disabled={pageState.running.value}>
@@ -346,7 +350,7 @@ export function makeTestPage(props) {
                   <div className="columns">
                     <Bar
                       data={props.chartData}
-                      options={chartConfig(pageState, props.tooltipFilter)}
+                      options={chartConfig(pageState, props.testParams, stressPanel.uiParams, props.tooltipFilter)}
                     />
                   </div>
                 </div>
@@ -377,7 +381,7 @@ export function makeTestPage(props) {
             </div>
             <div className="buttons mt-2">
               <button className="button is-primary" onClick={() => {
-                doTest(pageState, props.testParams, pageState.activeShader.value, props.testState, props.keys);
+                doTest(pageState, props.testParams, pageState.activeShader.value, props.resultShaderCode, props.testState, props.keys);
                 setProgressBarState();
                 totalIteration = pageState.iterations.value;
               }} disabled={pageState.iterations.value < 0 || pageState.running.value}>Start Test</button>

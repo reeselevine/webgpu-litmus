@@ -1,68 +1,90 @@
 import { useState } from 'react';
 import * as seedrandom from 'seedrandom';
-import { atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, buildThrottle, coRR4Handlers, coRRHandlers, coRW1Handlers, coRW2Handlers, coWRHandlers, coWWHandlers, loadBufferHandlers, messagePassingHandlers, randomConfig, readHandlers, storeBufferHandlers, storeHandlers, twoPlusTwoWriteHandlers } from '../components/test-page-utils.js';
+import { buildThrottle, randomConfig } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
-import messagePassing from '../shaders/message-passing.wgsl';
-import barrierMessagePassing from '../shaders/barrier-message-passing.wgsl'
-import barrier1MessagePassing from '../shaders/barrier1-message-passing.wgsl'
-import barrier2MessagePassing from '../shaders/barrier2-message-passing.wgsl'
-import barrierMessagePassingNA from '../shaders/barrier-message-passing-na.wgsl';
-import barrierMessagePassingNARacy from '../shaders/barrier-message-passing-na-racy.wgsl';
-import store from '../shaders/store.wgsl';
-import barrierStore from '../shaders/barrier-store.wgsl'
-import barrier1Store from '../shaders/barrier1-store.wgsl'
-import barrier2Store from '../shaders/barrier2-store.wgsl'
-import barrierStoreNA from '../shaders/barrier-store-na.wgsl';
-import loadBuffer from '../shaders/load-buffer.wgsl';
-import barrierLoadBuffer from '../shaders/barrier-load-buffer.wgsl';
-import barrier1LoadBuffer from '../shaders/barrier1-load-buffer.wgsl';
-import barrier2LoadBuffer from '../shaders/barrier2-load-buffer.wgsl';
-import barrierLoadBufferNA from '../shaders/barrier-load-buffer-na.wgsl';
-import coRR from '../shaders/corr.wgsl';
-import coRR_RMW from '../shaders/corr-rmw.wgsl';
-import coRR_RMW1 from '../shaders/corr-rmw1.wgsl';
-import coRR_RMW2 from '../shaders/corr-rmw2.wgsl';
-import coRR_workgroup from '../shaders/corr-workgroup.wgsl';
-import coRR_RMW_workgroup from '../shaders/corr-rmw-workgroup.wgsl';
-import coRR4 from '../shaders/corr4.wgsl';
-import coRR4_RMW from '../shaders/corr4-rmw.wgsl';
-import coRR4_workgroup from '../shaders/corr4-workgroup.wgsl';
-import coRR4_RMW_workgroup from '../shaders/corr4-rmw-workgroup.wgsl';
-import coWW from '../shaders/coww.wgsl';
-import coWW_RMW from '../shaders/coww-rmw.wgsl';
-import coWW_workgroup from '../shaders/coww-workgroup.wgsl';
-import coWW_RMW_workgroup from '../shaders/coww-rmw-workgroup.wgsl';
-import coWR from '../shaders/cowr.wgsl';
-import coWR_RMW from '../shaders/cowr-rmw.wgsl';
-import coWR_workgroup from '../shaders/cowr-workgroup.wgsl';
-import coWR_RMW_workgroup from '../shaders/cowr-rmw-workgroup.wgsl';
-import coWR_RMW1 from '../shaders/cowr-rmw1.wgsl';
-import coWR_RMW2 from '../shaders/cowr-rmw2.wgsl';
-import coWR_RMW3 from '../shaders/cowr-rmw3.wgsl';
-import coWR_RMW4 from '../shaders/cowr-rmw4.wgsl';
-import coRW1 from '../shaders/corw1.wgsl';
-import coRW1_workgroup from '../shaders/corw1-workgroup.wgsl';
-import coRW2 from '../shaders/corw2.wgsl';
-import coRW2_RMW from '../shaders/corw2-rmw.wgsl';
-import coRW2_workgroup from '../shaders/corw2-workgroup.wgsl';
-import coRW2_RMW_workgroup from '../shaders/corw2-rmw-workgroup.wgsl';
-import atomicity from '../shaders/atomicity.wgsl';
-import atomicity_workgroup from '../shaders/atomicity-workgroup.wgsl';
-import barrierLS from '../shaders/barrier-load-store.wgsl';
-import barrierSL from '../shaders/barrier-store-load.wgsl';
-import barrierSS from '../shaders/barrier-store-store.wgsl';
-import barrierWorkgroupLS from '../shaders/barrier-load-store-workgroup.wgsl';
-import barrierWorkgroupSL from '../shaders/barrier-store-load-workgroup.wgsl';
-import barrierWorkgroupSS from '../shaders/barrier-store-store-workgroup.wgsl';
-
-import read from '../shaders/read.wgsl';
-import storeBuffer from '../shaders/store-buffer.wgsl';
-import twoPlusTwoWrite from '../shaders/2+2-write.wgsl';
+import messagePassing from '../shaders/mp/message-passing.wgsl'
+import barrierMessagePassing from '../shaders/mp/message-passing-barrier.wgsl'
+import workgroupMessagePassing from '../shaders/mp/message-passing-workgroup.wgsl';
+import storageWorkgroupMessagePassing from '../shaders/mp/message-passing-storage-workgroup.wgsl';
+import barrierWorkgroupMessagePassing from '../shaders/mp/message-passing-workgroup-barrier.wgsl';
+import barrierStorageWorkgroupMessagePassing from '../shaders/mp/message-passing-storage-workgroup-barrier.wgsl';
+import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
+import store from '../shaders/store/store.wgsl'
+import barrierStore from '../shaders/store/store-barrier.wgsl'
+import workgroupStore from '../shaders/store/store-workgroup.wgsl'
+import storageWorkgroupStore from '../shaders/store/store-storage-workgroup.wgsl'
+import barrierWorkgroupStore from '../shaders/store/store-workgroup-barrier.wgsl'
+import barrierStorageWorkgroupStore from '../shaders/store/store-storage-workgroup-barrier.wgsl'
+import storeResults from '../shaders/store/store-results.wgsl';
+import storeWorkgroupResults from '../shaders/store/store-workgroup-results.wgsl';
+import read from '../shaders/read/read.wgsl'
+import readWorkgroup from '../shaders/read/read-workgroup.wgsl'
+import readStorageWorkgroup from '../shaders/read/read-storage-workgroup.wgsl'
+import readResults from '../shaders/read/read-results.wgsl'
+import readWorkgroupResults from '../shaders/read/read-workgroup-results.wgsl'
+import loadBuffer from '../shaders/lb/load-buffer.wgsl'
+import barrierLoadBuffer from '../shaders/lb/load-buffer-barrier.wgsl'
+import workgroupLoadBuffer from '../shaders/lb/load-buffer-workgroup.wgsl';
+import storageWorkgroupLoadBuffer from '../shaders/lb/load-buffer-storage-workgroup.wgsl';
+import barrierWorkgroupLoadBuffer from '../shaders/lb/load-buffer-workgroup-barrier.wgsl';
+import barrierStorageWorkgroupLoadBuffer from '../shaders/lb/load-buffer-storage-workgroup-barrier.wgsl';
+import loadBufferResults from '../shaders/lb/load-buffer-results.wgsl';
+import loadBufferWorkgroupResults from '../shaders/lb/load-buffer-workgroup-results.wgsl';
+import storeBuffer from '../shaders/sb/store-buffer.wgsl'
+import storeBufferWorkgroup from '../shaders/sb/store-buffer-workgroup.wgsl'
+import storeBufferStorageWorkgroup from '../shaders/sb/store-buffer-storage-workgroup.wgsl'
+import storeBufferResults from '../shaders/sb/store-buffer-results.wgsl'
+import storeBufferWorkgroupResults from '../shaders/sb/store-buffer-workgroup-results.wgsl'
+import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl'
+import twoPlusTwoWriteWorkgroup from '../shaders/2+2w/2+2-write-workgroup.wgsl'
+import twoPlusTwoWriteStorageWorkgroup from '../shaders/2+2w/2+2-write-storage-workgroup.wgsl'
+import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl'
+import twoPlusTwoWriteWorkgroupResults from '../shaders/2+2w/2+2-write-workgroup-results.wgsl'
+import coRR from '../shaders/corr/corr.wgsl'
+import coRRWorkgroup from '../shaders/corr/corr-workgroup.wgsl'
+import coRRStorageWorkgroup from '../shaders/corr/corr-storage-workgroup.wgsl'
+import coRRResults from '../shaders/corr/corr-results.wgsl'
+import coRRWorkgroupResults from '../shaders/corr/corr-workgroup-results.wgsl'
+import coWW from '../shaders/coww/coww.wgsl'
+import coWWWorkgroup from '../shaders/coww/coww-workgroup.wgsl'
+import coWWStorageWorkgroup from '../shaders/coww/coww-storage-workgroup.wgsl'
+import coWWResults from '../shaders/coww/coww-results.wgsl'
+import coWWWorkgroupResults from '../shaders/coww/coww-workgroup-results.wgsl'
+import coWR from '../shaders/cowr/cowr.wgsl'
+import coWRWorkgroup from '../shaders/cowr/cowr-workgroup.wgsl'
+import coWRStorageWorkgroup from '../shaders/cowr/cowr-storage-workgroup.wgsl'
+import coWRResults from '../shaders/cowr/cowr-results.wgsl'
+import coWRWorkgroupResults from '../shaders/cowr/cowr-workgroup-results.wgsl'
+import coRW1 from '../shaders/corw1/corw1.wgsl'
+import coRW1Workgroup from '../shaders/corw1/corw1-workgroup.wgsl'
+import coRW1StorageWorkgroup from '../shaders/corw1/corw1-storage-workgroup.wgsl'
+import coRW1Results from '../shaders/corw1/corw1-results.wgsl'
+import coRW1WorkgroupResults from '../shaders/corw1/corw1-workgroup-results.wgsl'
+import coRW2 from '../shaders/corw2/corw2.wgsl'
+import coRW2Workgroup from '../shaders/corw2/corw2-workgroup.wgsl'
+import coRW2StorageWorkgroup from '../shaders/corw2/corw2-storage-workgroup.wgsl'
+import coRW2Results from '../shaders/corw2/corw2-results.wgsl'
+import coRW2WorkgroupResults from '../shaders/corw2/corw2-workgroup-results.wgsl'
+import atom from '../shaders/atom/atomicity.wgsl'
+import atomWorkgroup from '../shaders/atom/atomicity-workgroup.wgsl'
+import atomResults from '../shaders/atom/atomicity-results.wgsl'
+import atomWorkgroupResults from '../shaders/atom/atomicity-workgroup-results.wgsl'
+import atomStorageWorkgroup from '../shaders/atom/atomicity-storage-workgroup.wgsl'
+import barrierLSWorkgroup from '../shaders/barrier-ls/barrier-load-store-workgroup.wgsl';
+import barrierLSStorageWorkgroup from '../shaders/barrier-ls/barrier-load-store-storage-workgroup.wgsl';
+import barrierLSResults from '../shaders/barrier-ls/barrier-load-store-workgroup-results.wgsl';
+import barrierSLWorkgroup from '../shaders/barrier-sl/barrier-store-load-workgroup.wgsl';
+import barrierSLStorageWorkgroup from '../shaders/barrier-sl/barrier-store-load-storage-workgroup.wgsl';
+import barrierSLResults from '../shaders/barrier-sl/barrier-store-load-workgroup-results.wgsl';
+import barrierSSWorkgroup from '../shaders/barrier-ss/barrier-store-store-workgroup.wgsl';
+import barrierSSStorageWorkgroup from '../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
+import barrierSSResults from '../shaders/barrier-ss/barrier-store-store-workgroup-results.wgsl';
 import { ParamButton } from '../components/tuningTable.js';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-const keys = ["seq", "interleaved", "weak"];
+const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
+const oneThreadKeys = ["seq", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
@@ -140,7 +162,7 @@ function TuningTest(props) {
   )
 }
 
-function buildTest(testName, testVariant, shader, handler, pageState, testParamOverrides = {}) {
+function buildTest(testName, testVariant, shader, resultShader, pageState, testKeys, testParamOverrides = {}) {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleOnChange = () => {
@@ -150,12 +172,13 @@ function buildTest(testName, testVariant, shader, handler, pageState, testParamO
     testName: testName,
     testVariant: testVariant,
     shader: shader,
-    handler: handler,
+    resultShader: resultShader,
     state: {
       seq: 0,
       interleaved: 0,
       weak: 0
     },
+    keys: testKeys,
     isChecked: isChecked,
     setIsChecked: setIsChecked,
     testParamOverrides: testParamOverrides,
@@ -172,14 +195,17 @@ function buildStateValues(state, updateFunc) {
 }
 
 function handleResult(test, pageState) {
-  return function (result, memResult) {
-    for (const key of keys) {
-      if (test.handler[key](result, memResult)) {
-        test.state[key] = test.state[key] + 1;
-        pageState[key].internalState = pageState[key].internalState + 1;
-        pageState[key].update(pageState[key].internalState);
-        break;
+  return function (result) {
+    for (let i = 0; i < test.keys.length; i++) {
+      var key;
+      if (test.keys[i].includes("seq")) {
+        key = "seq";
+      } else {
+        key = test.keys[i];
       }
+      test.state[key] = test.state[key] + result[i];
+      pageState[key].internalState = pageState[key].internalState + result[i];
+      pageState[key].update(pageState[key].internalState);
     }
   }
 }
@@ -338,159 +364,133 @@ function getTestSelector(pageState) {
   // Weak memory tests
   let mpName = "Message Passing";
   let mpTests = [
-    buildTest(mpName, "Default", messagePassing, messagePassingHandlers, pageState),
-    buildTest(mpName, "Barrier Variant", barrierMessagePassing, messagePassingHandlers, pageState),
-    buildTest(mpName, "Barrier Variant 1", barrier1MessagePassing, messagePassingHandlers, pageState),
-    buildTest(mpName, "Barrier Variant 2", barrier2MessagePassing, messagePassingHandlers, pageState),
-    buildTest(mpName, "Non-atomic with barrier", barrierMessagePassingNA, messagePassingHandlers, pageState),
-    buildTest(mpName, "Non-atomic with barrier (no if cond)", barrierMessagePassingNARacy, messagePassingHandlers, pageState)
+    buildTest(mpName, "Default", messagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Barrier Variant", barrierMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Workgroup (workgroup memory)", workgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Workgroup (storage memory)", storageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys)
   ];
   const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
   let storeName = "Store";
   let storeTests = [
-    buildTest(storeName, "Default", store, storeHandlers, pageState),
-    buildTest(storeName, "Barrier Variant", barrierStore, storeHandlers, pageState),
-    buildTest(storeName, "Barrier Variant 1", barrier1Store, storeHandlers, pageState),
-    buildTest(storeName, "Barrier Variant 2", barrier2Store, storeHandlers, pageState),
-    buildTest(storeName, "Non-atomic with barrier", barrierStoreNA, storeHandlers, pageState)
+    buildTest(storeName, "Default", store, storeResults, pageState, defaultKeys),
+    buildTest(storeName, "Barrier Variant", barrierStore, storeResults, pageState, defaultKeys),
+    buildTest(storeName, "Workgroup (workgroup memory)", workgroupStore, storeWorkgroupResults, pageState, defaultKeys),
+    buildTest(storeName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
+    buildTest(storeName, "Workgroup (storage memory)", storageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
+    buildTest(storeName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys)
   ];
   let readName = "Read";
   const storeJsx = <SelectorTest key="store" testName={storeName} tests={storeTests} />;
   let readTests = [
-    buildTest(readName, "Default", read, readHandlers, pageState),
+    buildTest(readName, "Default", read, readResults, pageState, defaultKeys),
+    buildTest(readName, "Workgroup (workgroup memory)", readWorkgroup, readWorkgroupResults, pageState, defaultKeys),
+    buildTest(readName, "Workgroup (storage memory)", readStorageWorkgroup, readWorkgroupResults, pageState, defaultKeys),
   ];
   const readJsx = <SelectorTest key="read" testName={readName} tests={readTests} />;
   let lbName = "Load Buffer";
   let lbTests = [
-    buildTest(lbName, "Default", loadBuffer, loadBufferHandlers, pageState),
-    buildTest(lbName, "Barrier Variant", barrierLoadBuffer, loadBufferHandlers, pageState),
-    buildTest(lbName, "Barrier Variant 1", barrier1LoadBuffer, loadBufferHandlers, pageState),
-    buildTest(lbName, "Barrier Variant 2", barrier2LoadBuffer, loadBufferHandlers, pageState),
-    buildTest(lbName, "Non-atomic with barrier", barrierLoadBufferNA, loadBufferHandlers, pageState)
+    buildTest(lbName, "Default", loadBuffer, loadBufferResults, pageState, defaultKeys),
+    buildTest(lbName, "Barrier Variant", barrierLoadBuffer, loadBufferResults, pageState, defaultKeys),
+    buildTest(lbName, "Workgroup (workgroup memory)", workgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(lbName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(lbName, "Workgroup (storage memory)", storageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(lbName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys)
   ];
   const lbJsx = <SelectorTest key="lb" testName={lbName} tests={lbTests} />;
   let sbName = "Store Buffer";
   let sbTests = [
-    buildTest(sbName, "Default", storeBuffer, storeBufferHandlers, pageState),
+    buildTest(sbName, "Default", storeBuffer, storeBufferResults, pageState, defaultKeys),
+    buildTest(sbName, "Workgroup (workgroup memory)", storeBufferWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(sbName, "Workgroup (storage memory)", storeBufferStorageWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys)
   ];
   const sbJsx = <SelectorTest key="sb" testName={sbName} tests={sbTests} />;
   let tptName = "2+2 Write";
   let twoPlusTwoWriteTests = [
-    buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteHandlers, pageState),
+    buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteResults, pageState, defaultKeys),
+    buildTest(tptName, "Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
+    buildTest(tptName, "Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys)
   ];
   const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
 
-
   // Coherence tests
   const coherenceOverrides = {
-    memoryAliases: {
-      1: 0
-    }
+    aliasedMemory: true,
+    permuteSecond: 1
   };
-  const coherenceWorkgroupOverrides = {
-    memoryAliases: {
-      1: 0
-    },
-    minWorkgroupSize: 256,
-    maxWorkgroupSize: 256
-  };
+
   let corrName = "CoRR";
   let corrTests = [
-    buildTest(corrName, "Default", coRR, coRRHandlers, pageState, coherenceOverrides),
-    buildTest(corrName, "RMW Variant", coRR_RMW, coRRHandlers, pageState, coherenceOverrides),
-    buildTest(corrName, "Default (workgroup memory)", coRR_workgroup, coRRHandlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(corrName, "RMW Variant (workgroup memory)", coRR_RMW_workgroup, coRRHandlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(corrName, "RMW Variant 1", coRR_RMW1, coRRHandlers, pageState, coherenceOverrides),
-    buildTest(corrName, "RMW Variant 2", coRR_RMW2, coRRHandlers, pageState, coherenceOverrides)
+    buildTest(corrName, "Default", coRR, coRRResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corrName, "Workgroup (workgroup memory)", coRRWorkgroup, coRRWorkgroupResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corrName, "Workgroup (storage memory)", coRRStorageWorkgroup, coRRWorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
   const coRRJsx = <SelectorTest key="corr" testName={corrName} tests={corrTests} />;
-  let corr4Name = "4-threaded CoRR";
-  let corr4Tests = [
-    buildTest(corr4Name, "Default", coRR4, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest(corr4Name, "RMW Variant", coRR4_RMW, coRR4Handlers, pageState, coherenceOverrides),
-    buildTest(corr4Name, "Default (workgroup memory)", coRR4_workgroup, coRR4Handlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(corr4Name, "RMW Variant (workgroup memory)", coRR4_RMW_workgroup, coRR4Handlers, pageState, coherenceWorkgroupOverrides)
-  ];
-  const coRR4Jsx = <SelectorTest key="corr4" testName={corr4Name} tests={corr4Tests} />;
   let cowwName = "CoWW";
   let cowwTests = [
-    buildTest(cowwName, "Default", coWW, coWWHandlers, pageState, coherenceOverrides),
-    buildTest(cowwName, "RMW Variant", coWW_RMW, coWWHandlers, pageState, coherenceOverrides),
-    buildTest(cowwName, "Default (workgroup memory)", coWW_workgroup, coWWHandlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(cowwName, "RMW Variant (workgroup memory)", coWW_RMW_workgroup, coWWHandlers, pageState, coherenceWorkgroupOverrides)
+    buildTest(cowwName, "Default", coWW, coWWResults, pageState, oneThreadKeys, coherenceOverrides),
+    buildTest(cowwName, "Workgroup (workgroup memory)", coWWWorkgroup, coWWWorkgroupResults, pageState, oneThreadKeys, coherenceOverrides),
+    buildTest(cowwName, "Workgroup (storage memory)", coWWStorageWorkgroup, coWWWorkgroupResults, pageState, oneThreadKeys, coherenceOverrides)
   ];
   const coWWJsx = <SelectorTest key="coww" testName={cowwName} tests={cowwTests} />;
   let cowrName = "CoWR";
   let cowrTests = [
-    buildTest(cowrName, "Default", coWR, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "RMW Variant", coWR_RMW, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "Default (workgroup memory)", coWR_workgroup, coWRHandlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(cowrName, "RMW Variant (workgroup memory)", coWR_RMW_workgroup, coWRHandlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(cowrName, "RMW Variant 1", coWR_RMW1, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "RMW Variant 2", coWR_RMW2, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "RMW Variant 3", coWR_RMW3, coWRHandlers, pageState, coherenceOverrides),
-    buildTest(cowrName, "RMW Variant 4", coWR_RMW4, coWRHandlers, pageState, coherenceOverrides)
+    buildTest(cowrName, "Default", coWR, coWRResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(cowrName, "Workgroup (workgroup memory)", coWRWorkgroup, coWRWorkgroupResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(cowrName, "Workgroup (storage memory)", coWRStorageWorkgroup, coWRWorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
   const coWRJsx = <SelectorTest key="cowr" testName={cowrName} tests={cowrTests} />;
   let corw1Name = "CoRW1";
   let corw1Tests = [
-    buildTest(corw1Name, "Default", coRW1, coRW1Handlers, pageState, coherenceOverrides),
-    buildTest(corw1Name, "Default (workgroup memory)", coRW1_workgroup, coRW1Handlers, pageState, coherenceWorkgroupOverrides),
+    buildTest(corw1Name, "Default", coRW1, coRW1Results, pageState, oneThreadKeys, coherenceOverrides),
+    buildTest(corw1Name, "Workgroup (workgroup memory)", coRW1Workgroup, coRW1WorkgroupResults, pageState, oneThreadKeys, coherenceOverrides),
+    buildTest(corw1Name, "Workgroup (storage memory)", coRW1StorageWorkgroup, coRW1WorkgroupResults, pageState, oneThreadKeys, coherenceOverrides)
   ];
   const coRW1Jsx = <SelectorTest key="corw1" testName={corw1Name} tests={corw1Tests} />;
   let corw2Name = "CoRW2";
   let corw2Tests = [
-    buildTest(corw2Name, "Default", coRW2, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest(corw2Name, "RMW Variant", coRW2_RMW, coRW2Handlers, pageState, coherenceOverrides),
-    buildTest(corw2Name, "Default (workgroup memory)", coRW2_workgroup, coRW2Handlers, pageState, coherenceWorkgroupOverrides),
-    buildTest(corw2Name, "RMW Variant (workgroup memory)", coRW2_RMW_workgroup, coRW2Handlers, pageState, coherenceWorkgroupOverrides)
+    buildTest(corw2Name, "Default", coRW2, coRW2Results, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corw2Name, "Workgroup (workgroup memory)", coRW2Workgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corw2Name, "Workgroup (storage memory)", coRW2StorageWorkgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
   const coRW2Jsx = <SelectorTest key="corw2" testName={corw2Name} tests={corw2Tests} />;
-  let coherenceJsx = [coRRJsx, coRR4Jsx, coWWJsx, coWRJsx, coRW1Jsx, coRW2Jsx];
+  let coherenceJsx = [coRRJsx, coWWJsx, coWRJsx, coRW1Jsx, coRW2Jsx];
 
   // Atomicity
-  const atomicityWorkgroupOverrides = {
-    minWorkgroupSize: 256,
-    maxWorkgroupSize: 256
-  };
   let atomName = "Atomicity";
+  let atomKeys = ["seq0", "seq1", "weak"];
   let atomicityTests = [
-    buildTest(atomName, "Default", atomicity, atomicityHandlers, pageState),
-    buildTest(atomName, "Default (workgroup memory)", atomicity_workgroup, atomicityHandlers, pageState, atomicityWorkgroupOverrides)
+    buildTest(atomName, "Default", atom, atomResults, pageState, atomKeys),
+    buildTest(atomName, "Workgroup (workgroup memory)", atomWorkgroup, atomWorkgroupResults, pageState, atomKeys),
+    buildTest(atomName, "Workgroup (storage memory)", atomStorageWorkgroup, atomWorkgroupResults, pageState, atomKeys)
   ];
   const atomicityJsx = [<SelectorTest key="atom" testName={atomName} tests={atomicityTests} />];
 
   // Barrier
-  const barrierOverrides = {
-    memoryAliases: {
-      1: 0
-    },
-    minWorkgroupSize: 256,
-    maxWorkgroupSize: 256
-  };
   let barrierSLName = "Barrier Store Load";
   let barrierSLTests = [
-    buildTest(barrierSLName, "Default", barrierSL, barrierStoreLoadHandlers, pageState, barrierOverrides),
-    buildTest(barrierSLName, "Default (workgroup memory)", barrierWorkgroupSL, barrierStoreLoadHandlers, pageState, barrierOverrides)
+    buildTest(barrierSLName, "Workgroup memory", barrierSLWorkgroup, barrierSLResults, pageState, oneThreadKeys),
+    buildTest(barrierSLName, "Storage memory", barrierSLStorageWorkgroup, barrierSLResults, pageState, oneThreadKeys)
   ];
   const barrierSLJsx = <SelectorTest key="barriersl" testName={barrierSLName} tests={barrierSLTests} />;
   let barrierLSName = "Barrier Load Store";
   let barrierLSTests = [
-    buildTest(barrierLSName, "Default", barrierLS, barrierLoadStoreHandlers, pageState, barrierOverrides),
-    buildTest(barrierLSName, "Default (workgroup memory)", barrierWorkgroupLS, barrierLoadStoreHandlers, pageState, barrierOverrides)
+    buildTest(barrierLSName, "Workgroup memory", barrierLSWorkgroup, barrierLSResults, pageState, oneThreadKeys),
+    buildTest(barrierLSName, "Storage memory", barrierLSStorageWorkgroup, barrierLSResults, pageState, oneThreadKeys)
   ];
   const barrierLSJsx = <SelectorTest key="barrierls" testName={barrierLSName} tests={barrierLSTests} />;
   let barrierSSName = "Barrier Store Store";
   let barrierSSTests = [
-    buildTest(barrierSSName, "Default", barrierSS, barrierStoreStoreHandlers, pageState, barrierOverrides),
-    buildTest(barrierSSName, "Default (workgroup memory)", barrierWorkgroupSS, barrierStoreStoreHandlers, pageState, barrierOverrides)
+    buildTest(barrierSSName, "Workgroup memory", barrierSSWorkgroup, barrierSSResults, pageState, oneThreadKeys),
+    buildTest(barrierSSName, "Storage memory", barrierSSStorageWorkgroup, barrierSSResults, pageState, oneThreadKeys)
   ];
   const barrierSSJsx = <SelectorTest key="barrierss" testName={barrierSSName} tests={barrierSSTests} />;
   const barrierJsx = [barrierSLJsx, barrierLSJsx, barrierSSJsx];
 
   let tests = [...mpTests, ...storeTests, ...readTests, ...lbTests, ...sbTests, ...twoPlusTwoWriteTests,
-  ...corrTests, ...corr4Tests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
+  ...corrTests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
   ...barrierSLTests, ...barrierLSTests, ...barrierSSTests];
   return {
     tests: tests,
@@ -529,23 +529,28 @@ function getTestSelector(pageState) {
                       tests.map(test => test.setIsChecked(false));
                       mpTests[0].setIsChecked(true);
                       mpTests[2].setIsChecked(true);
-                      mpTests[3].setIsChecked(true);
+                      mpTests[4].setIsChecked(true);
                       storeTests[0].setIsChecked(true);
                       storeTests[2].setIsChecked(true);
-                      storeTests[3].setIsChecked(true);
+                      storeTests[4].setIsChecked(true);
                       readTests[0].setIsChecked(true);
+                      readTests[1].setIsChecked(true);
+                      readTests[2].setIsChecked(true);
                       lbTests[0].setIsChecked(true);
                       lbTests[2].setIsChecked(true);
-                      lbTests[3].setIsChecked(true);
+                      lbTests[4].setIsChecked(true);
                       sbTests[0].setIsChecked(true);
+                      sbTests[1].setIsChecked(true);
+                      sbTests[2].setIsChecked(true);
                       twoPlusTwoWriteTests[0].setIsChecked(true);
+                      twoPlusTwoWriteTests[1].setIsChecked(true);
+                      twoPlusTwoWriteTests[2].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Weak Memory Comprehensive
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
                       corrTests.map(test => test.setIsChecked(true));
-                      corr4Tests.map(test => test.setIsChecked(true));
                       cowwTests.map(test => test.setIsChecked(true));
                       cowrTests.map(test => test.setIsChecked(true));
                       corw1Tests.map(test => test.setIsChecked(true));
@@ -566,7 +571,6 @@ function getTestSelector(pageState) {
                     }} disabled={pageState.running.value}>
                       Clear all
                     </button>
-
                   </div>
                 </div>
               </div>
@@ -612,7 +616,9 @@ async function tune(tests, testParams, pageState) {
       maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
       numOutputs: testParams.numOutputs,
-      memoryAliases: testParams.memoryAliases
+      permuteFirst: testParams.permuteFirst,
+      permuteSecond: testParams.permuteSecond,
+      aliasedMemory: testParams.aliasedMemory
     };
     pageState.curParams = params;
     for (let j = 0; j < pageState.activeTests.length; j++) {
@@ -624,7 +630,7 @@ async function tune(tests, testParams, pageState) {
       for (const key in curTest.testParamOverrides) {
         newParams[key] = curTest.testParamOverrides[key];
       }
-      await runLitmusTest(curTest.shader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
+      await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
       pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
       pageState.totalTime.update(pageState.totalTime.internalState);
       pageState.completedTests.internalState = pageState.completedTests.internalState + 1;

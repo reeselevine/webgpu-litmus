@@ -4,50 +4,59 @@ import { getStressPanel } from '../components/stressPanel.js';
 import { buildThrottle, clearState, handleResult, coRRHandlers, coRR4Handlers, coWWHandlers, coWRHandlers, coRW1Handlers, coRW2Handlers, atomicityHandlers, barrierLoadStoreHandlers, barrierStoreLoadHandlers, barrierStoreStoreHandlers, workgroupMemorySize, messagePassingHandlers, loadBufferHandlers, storeHandlers } from '../components/test-page-utils.js';
 import { runLitmusTest, reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
-import coRR from '../shaders/corr.wgsl';
-import coRR_RMW from '../shaders/corr-rmw.wgsl';
-import coRR_RMW1 from '../shaders/corr-rmw1.wgsl';
-import coRR_RMW2 from '../shaders/corr-rmw2.wgsl';
-import coRR_workgroup from '../shaders/corr-workgroup.wgsl';
-import coRR_RMW_workgroup from '../shaders/corr-rmw-workgroup.wgsl';
-import coRR4 from '../shaders/corr4.wgsl';
-import coRR4_RMW from '../shaders/corr4-rmw.wgsl';
-import coRR4_workgroup from '../shaders/corr4-workgroup.wgsl';
-import coRR4_RMW_workgroup from '../shaders/corr4-rmw-workgroup.wgsl';
-import coWW from '../shaders/coww.wgsl';
-import coWW_RMW from '../shaders/coww-rmw.wgsl';
-import coWW_workgroup from '../shaders/coww-workgroup.wgsl';
-import coWW_RMW_workgroup from '../shaders/coww-rmw-workgroup.wgsl';
-import coWR from '../shaders/cowr.wgsl';
-import coWR_RMW from '../shaders/cowr-rmw.wgsl';
-import coWR_workgroup from '../shaders/cowr-workgroup.wgsl';
-import coWR_RMW_workgroup from '../shaders/cowr-rmw-workgroup.wgsl';
-import coWR_RMW1 from '../shaders/cowr-rmw1.wgsl';
-import coWR_RMW2 from '../shaders/cowr-rmw2.wgsl';
-import coWR_RMW3 from '../shaders/cowr-rmw3.wgsl';
-import coWR_RMW4 from '../shaders/cowr-rmw4.wgsl';
-import coRW1 from '../shaders/corw1.wgsl';
-import coRW1_workgroup from '../shaders/corw1-workgroup.wgsl';
-import coRW2 from '../shaders/corw2.wgsl';
-import coRW2_RMW from '../shaders/corw2-rmw.wgsl';
-import coRW2_workgroup from '../shaders/corw2-workgroup.wgsl';
-import coRW2_RMW_workgroup from '../shaders/corw2-rmw-workgroup.wgsl';
-import atomicity from '../shaders/atomicity.wgsl';
-import atomicity_workgroup from '../shaders/atomicity-workgroup.wgsl';
-import barrierLS from '../shaders/barrier-load-store.wgsl';
-import barrierSL from '../shaders/barrier-store-load.wgsl';
-import barrierSS from '../shaders/barrier-store-store.wgsl';
-import barrierWorkgroupLS from '../shaders/barrier-load-store-workgroup.wgsl';
-import barrierWorkgroupSL from '../shaders/barrier-store-load-workgroup.wgsl';
-import barrierWorkgroupSS from '../shaders/barrier-store-store-workgroup.wgsl';
-import barrierMP from '../shaders/barrier-message-passing.wgsl';
-import barrierLB from '../shaders/barrier-load-buffer.wgsl';
-import barrierS from '../shaders/barrier-store.wgsl';
-import barrierMPNA from '../shaders/barrier-message-passing-na.wgsl';
-import barrierLBNA from '../shaders/barrier-load-buffer-na.wgsl';
-import barrierSNA from '../shaders/barrier-store-na.wgsl';
+import coRR from '../shaders/corr/corr.wgsl'
+import coRRWorkgroup from '../shaders/corr/corr-workgroup.wgsl'
+import coRRStorageWorkgroup from '../shaders/corr/corr-storage-workgroup.wgsl'
+import coRRResults from '../shaders/corr/corr-results.wgsl'
+import coRRWorkgroupResults from '../shaders/corr/corr-workgroup-results.wgsl'
+import coWW from '../shaders/coww/coww.wgsl'
+import coWWWorkgroup from '../shaders/coww/coww-workgroup.wgsl'
+import coWWStorageWorkgroup from '../shaders/coww/coww-storage-workgroup.wgsl'
+import coWWResults from '../shaders/coww/coww-results.wgsl'
+import coWWWorkgroupResults from '../shaders/coww/coww-workgroup-results.wgsl'
+import coWR from '../shaders/cowr/cowr.wgsl'
+import coWRWorkgroup from '../shaders/cowr/cowr-workgroup.wgsl'
+import coWRStorageWorkgroup from '../shaders/cowr/cowr-storage-workgroup.wgsl'
+import coWRResults from '../shaders/cowr/cowr-results.wgsl'
+import coWRWorkgroupResults from '../shaders/cowr/cowr-workgroup-results.wgsl'
+import coRW1 from '../shaders/corw1/corw1.wgsl'
+import coRW1Workgroup from '../shaders/corw1/corw1-workgroup.wgsl'
+import coRW1StorageWorkgroup from '../shaders/corw1/corw1-storage-workgroup.wgsl'
+import coRW1Results from '../shaders/corw1/corw1-results.wgsl'
+import coRW1WorkgroupResults from '../shaders/corw1/corw1-workgroup-results.wgsl'
+import coRW2 from '../shaders/corw2/corw2.wgsl'
+import coRW2Workgroup from '../shaders/corw2/corw2-workgroup.wgsl'
+import coRW2StorageWorkgroup from '../shaders/corw2/corw2-storage-workgroup.wgsl'
+import coRW2Results from '../shaders/corw2/corw2-results.wgsl'
+import coRW2WorkgroupResults from '../shaders/corw2/corw2-workgroup-results.wgsl'
+import atom from '../shaders/atom/atomicity.wgsl'
+import atomWorkgroup from '../shaders/atom/atomicity-workgroup.wgsl'
+import atomResults from '../shaders/atom/atomicity-results.wgsl'
+import atomWorkgroupResults from '../shaders/atom/atomicity-workgroup-results.wgsl'
+import atomStorageWorkgroup from '../shaders/atom/atomicity-storage-workgroup.wgsl'
+import barrierLSWorkgroup from '../shaders/barrier-ls/barrier-load-store-workgroup.wgsl';
+import barrierLSStorageWorkgroup from '../shaders/barrier-ls/barrier-load-store-storage-workgroup.wgsl';
+import barrierLSResults from '../shaders/barrier-ls/barrier-load-store-workgroup-results.wgsl';
+import barrierSLWorkgroup from '../shaders/barrier-sl/barrier-store-load-workgroup.wgsl';
+import barrierSLStorageWorkgroup from '../shaders/barrier-sl/barrier-store-load-storage-workgroup.wgsl';
+import barrierSLResults from '../shaders/barrier-sl/barrier-store-load-workgroup-results.wgsl';
+import barrierSSWorkgroup from '../shaders/barrier-ss/barrier-store-store-workgroup.wgsl';
+import barrierSSStorageWorkgroup from '../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
+import barrierSSResults from '../shaders/barrier-ss/barrier-store-store-workgroup-results.wgsl';
+import barrierWorkgroupMessagePassing from '../shaders/mp/message-passing-workgroup-barrier.wgsl';
+import barrierStorageWorkgroupMessagePassing from '../shaders/mp/message-passing-storage-workgroup-barrier.wgsl';
+import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
+import barrierWorkgroupStore from '../shaders/store/store-workgroup-barrier.wgsl'
+import barrierStorageWorkgroupStore from '../shaders/store/store-storage-workgroup-barrier.wgsl'
+import storeWorkgroupResults from '../shaders/store/store-workgroup-results.wgsl';
+import barrierWorkgroupLoadBuffer from '../shaders/lb/load-buffer-workgroup-barrier.wgsl';
+import barrierStorageWorkgroupLoadBuffer from '../shaders/lb/load-buffer-storage-workgroup-barrier.wgsl';
+import loadBufferWorkgroupResults from '../shaders/lb/load-buffer-workgroup-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
+const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
+const oneThreadKeys = ["seq", "weak"];
+const atomicityKeys = ["seq0", "seq1", "weak"];
 const keys = ["seq", "interleaved", "weak"];
 
 function getPageState() {
@@ -76,13 +85,12 @@ function getPageState() {
   }
 }
 
-function buildStateValues(key, handlers, state, updateFunc) {
+function buildStateValues(state, updateFunc) {
   return {
     visibleState: state,
     internalState: 0,
     syncUpdate: updateFunc,
     throttledUpdate: buildThrottle(updateFunc),
-    resultHandler: handlers[key]
   }
 }
 
@@ -123,15 +131,14 @@ function TestRow(props) {
         <td>{props.state.interleaved.visibleState}</td>
         <td>{props.state.weak.visibleState}</td>
         <td><button className="button" onClick={() => {
-          doTest(props.pageState, props.testParams, props.shaderCode, props.state, props.testParamOverrides);
+          doTest(props.pageState, props.testParams, props.shaderCode, props.resultShaderCode, props.state, props.testParamOverrides);
         }} disabled={props.pageState.running.value}>Run</button></td>
       </tr>
     </>
   );
-
 }
 
-function buildTest(testName, testUrl, pageState, testParams, shaderCode, handlers, testParamOverrides) {
+function buildTest(testName, testUrl, pageState, testParams, shaderCode, resultShaderCode, testKeys, testParamOverrides = {}) {
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
@@ -141,13 +148,13 @@ function buildTest(testName, testUrl, pageState, testParams, shaderCode, handler
   const [time, setTime] = useState(0);
   const state = {
     seq: {
-      ...buildStateValues("seq", handlers, seq, setSeq)
+      ...buildStateValues(seq, setSeq)
     },
     interleaved: {
-      ...buildStateValues("interleaved", handlers, interleaved, setInterleaved)
+      ...buildStateValues(interleaved, setInterleaved)
     },
     weak: {
-      ...buildStateValues("weak", handlers, weak, setWeak)
+      ...buildStateValues(weak, setWeak)
     },
     result: {
       value: pass,
@@ -164,26 +171,36 @@ function buildTest(testName, testUrl, pageState, testParams, shaderCode, handler
     time: {
       value: time,
       update: buildThrottle(setTime)
-    }
+    },
+    keys: testKeys
   };
   return {
     run: async function () {
-      return doTest(pageState, testParams, shaderCode, state, testParamOverrides);
+      return doTest(pageState, testParams, shaderCode, resultShaderCode, state, testParamOverrides);
     },
-    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode} testParamOverrides={testParamOverrides} />
+    jsx: <TestRow key={testName} testName={testName} testUrl={testUrl} state={state} pageState={pageState} testParams={testParams} shaderCode={shaderCode} resultShaderCode={resultShaderCode} testParamOverrides={testParamOverrides} />
   }
 }
 
-function buildBarrierTest(testName, testUrl, pageState, testParams, shaderCode, handlers, testParamOverrides = {}) {
-  const barrierTestParams = JSON.parse(JSON.stringify(testParams));
-  barrierTestParams.minWorkgroupSize = 256;
-  barrierTestParams.maxWorkgroupSize = 256;
-  return buildTest(testName, testUrl, pageState, barrierTestParams, shaderCode, handlers, testParamOverrides);
+function handleConformanceResult(testState) {
+  return function (result) {
+    for (let i = 0; i < testState.keys.length; i++) {
+      var key;
+      if (testState.keys[i].includes("seq")) {
+        key = "seq";
+      } else {
+        key = testState.keys[i];
+      }
+      testState[key].internalState = testState[key].internalState + result[i];
+      testState[key].throttledUpdate(testState[key].internalState);
+    }
+  }
 }
 
 function updateStateAndHandleResult(pageState, testState) {
-  const fn = handleResult(testState, keys);
-  return function (result, memResult) {
+  const fn = handleConformanceResult(testState);
+  return function (result) {
+    console.log(result);
     let time = reportTime();
     let curIter = getCurrentIteration();
     var rate;
@@ -195,11 +212,11 @@ function updateStateAndHandleResult(pageState, testState) {
     testState.progress.update(Math.floor(curIter * 100 / pageState.iterations.value));
     testState.rate.update(rate);
     testState.time.update(time);
-    fn(result, memResult);
+    fn(result);
   }
 }
 
-async function doTest(pageState, testParams, shaderCode, testState, testParamOverrides) {
+async function doTest(pageState, testParams, shaderCode, resultShaderCode, testState, testParamOverrides) {
   let newParams = JSON.parse(JSON.stringify(testParams));
   for (const key in testParamOverrides) {
     newParams[key] = testParamOverrides[key];
@@ -210,7 +227,7 @@ async function doTest(pageState, testParams, shaderCode, testState, testParamOve
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runLitmusTest(shaderCode, newParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
+  await runLitmusTest(shaderCode, resultShaderCode, newParams, pageState.iterations.value, updateStateAndHandleResult(pageState, testState));
   testState.progress.update(100);
   pageState.running.update(false);
   if (testState.weak.internalState > 0) {
@@ -240,65 +257,48 @@ async function doAllTests(pageState, tests) {
 }
 
 export default function ConformanceTestSuite() {
-  testParams.memoryAliases[1] = 0;
-  testParams.numOutputs = 4;
-  const workgroupOverride = {
-    testMemorySize: workgroupMemorySize
-  };
   const aliasOverride = {
-    memoryAliases: {}
-  }
+    aliasedMemory: true,
+    permuteSecond: 1
+  };
   const pageState = getPageState();
-  const coRRConfig = buildTest("CoRR", "corr", pageState, testParams, coRR, coRRHandlers);
-  const coRRRMWConfig = buildTest("CoRR (strongest idiomatic RMW variant)", "corr", pageState, testParams, coRR_RMW, coRRHandlers);
-  const coRRWorkgroupConfig = buildTest("CoRR (workgroup memory)", "corr", pageState, testParams, coRR_workgroup, coRRHandlers);
-  const coRRRMWWorkgroupConfig = buildTest("CoRR (strongest idiomatic RMW variant, workgroup memory)", "corr", pageState, testParams, coRR_RMW_workgroup, coRRHandlers);
-  const coRRRMW1Config = buildTest("CoRR (idiomatic RMW variant 1)", "corr", pageState, testParams, coRR_RMW1, coRRHandlers);
-  const coRRRMW2Config = buildTest("CoRR (idiomatic RMW variant 2)", "corr", pageState, testParams, coRR_RMW2, coRRHandlers);
-  const coRR4Config = buildTest("4-threaded CoRR", "corr4", pageState, testParams, coRR4, coRR4Handlers);
-  const coRR4RMWConfig = buildTest("4-threaded CoRR (strongest idiomatic RMW variant)", "corr4", pageState, testParams, coRR4_RMW, coRR4Handlers);
-  const coRR4WorkgroupConfig = buildTest("4-threaded CoRR (workgroup memory)", "corr4", pageState, testParams, coRR4_workgroup, coRR4Handlers);
-  const coRR4RMWWorkgroupConfig = buildTest("4-threaded CoRR (strongest idiomatic RMW variant, workgroup memory)", "corr4", pageState, testParams, coRR4_RMW_workgroup, coRR4Handlers);
-  const coWWConfig = buildTest("CoWW", "coww", pageState, testParams, coWW, coWWHandlers);
-  const coWWRMWConfig = buildTest("CoWW (strongest idiomatic RMW variant)", "coww", pageState, testParams, coWW_RMW, coWWHandlers);
-  const coWWWorkgroupConfig = buildTest("CoWW (workgroup memory)", "coww", pageState, testParams, coWW_workgroup, coWWHandlers);
-  const coWWRMWWorkgroupConfig = buildTest("CoWW (strongest idiomatic RMW variant, workgroup memory)", "coww", pageState, testParams, coWW_RMW_workgroup, coWWHandlers);
-  const coWRConfig = buildTest("CoWR", "cowr", pageState, testParams, coWR, coWRHandlers);
-  const coWRRMWConfig = buildTest("CoWR (strongest idiomatic RMW variant)", "cowr", pageState, testParams, coWR_RMW, coWRHandlers);
-  const coWRWorkgroupConfig = buildTest("CoWR (workgroup memory)", "cowr", pageState, testParams, coWR_workgroup, coWRHandlers);
-  const coWRRMWWorkgroupConfig = buildTest("CoWR (strongest idiomatic RMW variant, workgroup memory)", "cowr", pageState, testParams, coWR_RMW_workgroup, coWRHandlers);
-  const coWRRMW1Config = buildTest("CoWR (idiomatic RMW variant 1)", "cowr", pageState, testParams, coWR_RMW1, coWRHandlers);
-  const coWRRMW2Config = buildTest("CoWR (idiomatic RMW variant 2)", "cowr", pageState, testParams, coWR_RMW2, coWRHandlers);
-  const coWRRMW3Config = buildTest("CoWR (idiomatic RMW variant 3)", "cowr", pageState, testParams, coWR_RMW3, coWRHandlers);
-  const coWRRMW4Config = buildTest("CoWR (idiomatic RMW variant 4)", "cowr", pageState, testParams, coWR_RMW4, coWRHandlers);
-  const coRW1Config = buildTest("CoRW1", "corw1", pageState, testParams, coRW1, coRW1Handlers);
-  const coRW1WorkgroupConfig = buildTest("CoRW1 (workgroup memory)", "corw1", pageState, testParams, coRW1_workgroup, coRW1Handlers);
-  const coRW2Config = buildTest("CoRW2", "corw2", pageState, testParams, coRW2, coRW2Handlers);
-  const coRW2RMWConfig = buildTest("CoRW2 (strongest idiomatic RMW variant)", "corw2", pageState, testParams, coRW2_RMW, coRW2Handlers);
-  const coRW2WorkgroupConfig = buildTest("CoRW2 (workgroup memory)", "corw2", pageState, testParams, coRW2_workgroup, coRW2Handlers);
-  const coRW2RMWWorkgroupConfig = buildTest("CoRW2 (strongest idiomatic RMW variant, workgroup memory)", "corw2", pageState, testParams, coRW2_RMW_workgroup, coRW2Handlers);
-  const atomicityConfig = buildTest("Atomicity", "atomicity", pageState, testParams, atomicity, atomicityHandlers);
-  const atomicityWorkgroupConfig = buildTest("Atomicity (workgroup memory)", "atomicity", pageState, testParams, atomicity_workgroup, atomicityHandlers);
-  const barrierLoadStoreConfig = buildBarrierTest("Barrier Load Store", "barrier-load-store", pageState, testParams, barrierLS, barrierLoadStoreHandlers);
-  const barrierStoreLoadConfig = buildBarrierTest("Barrier Store Load", "barrier-store-load", pageState, testParams, barrierSL, barrierStoreLoadHandlers);
-  const barrierStoreStoreConfig = buildBarrierTest("Barrier Store Store", "barrier-store-store", pageState, testParams, barrierSS, barrierStoreStoreHandlers);
-  const barrierWorkgroupLoadStoreConfig = buildBarrierTest("Barrier Load Store (workgroup memory)", "barrier-load-store", pageState, testParams, barrierWorkgroupLS, barrierLoadStoreHandlers, workgroupOverride);
-  const barrierWorkgroupStoreLoadConfig = buildBarrierTest("Barrier Store Load (workgroup memory)", "barrier-store-load", pageState, testParams, barrierWorkgroupSL, barrierStoreLoadHandlers, workgroupOverride);
-  const barrierWorkgroupStoreStoreConfig = buildBarrierTest("Barrier Store Store (workgroup memory)", "barrier-store-store", pageState, testParams, barrierWorkgroupSS, barrierStoreStoreHandlers, workgroupOverride);
-  const messagePassingBarrierConfig = buildTest("Message Passing with Barrier", "message-passing", pageState, testParams, barrierMP, messagePassingHandlers, aliasOverride);
-  const loadBufferBarrierConfig = buildTest("Load Buffer with Barrier", "load-buffer", pageState, testParams, barrierLB, loadBufferHandlers, aliasOverride);
-  const storeBarrierConfig = buildTest("Store with Barrier", "store", pageState, testParams, barrierS, storeHandlers, aliasOverride);
-  const messagePassingBarrierNAConfig = buildTest("Message Passing with Barrier (non-atomic variant)", "message-passing", pageState, testParams, barrierMPNA, messagePassingHandlers, aliasOverride);
-  const loadBufferBarrierNAConfig = buildTest("Load Buffer with Barrier (non-atomic variant)", "load-buffer", pageState, testParams, barrierLBNA, loadBufferHandlers, aliasOverride);
-  const storeBarrierNAConfig = buildTest("Store with Barrier (non-atomic variant)", "store", pageState, testParams, barrierSNA, storeHandlers, aliasOverride);
+  const coRRConfig = buildTest("CoRR", "corr", pageState, testParams, coRR, coRRResults, defaultKeys, aliasOverride);
+  const coRRWorkgroupConfig = buildTest("CoRR Workgroup (workgroup memory)", "corr", pageState, testParams, coRRWorkgroup, coRRWorkgroupResults, defaultKeys, aliasOverride);
+  const coRRStorageWorkgroupConfig = buildTest("CoRR Workgroup (storage memory)", "corr", pageState, testParams, coRRStorageWorkgroup, coRRWorkgroupResults, defaultKeys, aliasOverride);
+  const coWWConfig = buildTest("CoWW", "coww", pageState, testParams, coWW, coWWResults, oneThreadKeys, aliasOverride);
+  const coWWWorkgroupConfig = buildTest("CoWW Workgroup (workgroup memory)", "coww", pageState, testParams, coWWWorkgroup, coWWWorkgroupResults, oneThreadKeys, aliasOverride);
+  const coWWStorageWorkgroupConfig = buildTest("CoWW Workgroup (storage memory)", "coww", pageState, testParams, coWWStorageWorkgroup, coWWWorkgroupResults, oneThreadKeys, aliasOverride);
+  const coWRConfig = buildTest("CoWR", "cowr", pageState, testParams, coWR, coWRResults, defaultKeys, aliasOverride);
+  const coWRWorkgroupConfig = buildTest("CoWR Workgroup (workgroup memory)", "cowr", pageState, testParams, coWRWorkgroup, coWRWorkgroupResults, defaultKeys, aliasOverride);
+  const coWRStorageWorkgroupConfig = buildTest("CoWR Workgroup (storage memory)", "cowr", pageState, testParams, coWRStorageWorkgroup, coWRWorkgroupResults, defaultKeys, aliasOverride);
+  const coRW1Config = buildTest("CoRW1", "corw1", pageState, testParams, coRW1, coRW1Results, oneThreadKeys, aliasOverride);
+  const coRW1WorkgroupConfig = buildTest("CoRW1 Workgroup (workgroup memory)", "corw1", pageState, testParams, coRW1Workgroup, coRW1WorkgroupResults, oneThreadKeys, aliasOverride);
+  const coRW1StorageWorkgroupConfig = buildTest("CoRW1 Workgroup (storage memory)", "corw1", pageState, testParams, coRW1StorageWorkgroup, coRW1WorkgroupResults, oneThreadKeys, aliasOverride);
+  const coRW2Config = buildTest("CoRW2", "corw2", pageState, testParams, coRW2, coRW2Results, defaultKeys, aliasOverride);
+  const coRW2WorkgroupConfig = buildTest("CoRW2 Workgroup (workgroup memory)", "corw2", pageState, testParams, coRW2Workgroup, coRW2WorkgroupResults, defaultKeys, aliasOverride);
+  const coRW2StorageWorkgroupConfig = buildTest("CoRW2 Workgroup (storage memory)", "corw2", pageState, testParams, coRW2StorageWorkgroup, coRW2WorkgroupResults, defaultKeys, aliasOverride);
+  const atomConfig = buildTest("Atomicity", "atomicity", pageState, testParams, atom, atomResults, defaultKeys);
+  const atomWorkgroupConfig = buildTest("Atomicity Workgroup (workgroup memory)", "atomicity", pageState, testParams, atomWorkgroup, atomWorkgroupResults, defaultKeys);
+  const atomStorageWorkgroupConfig = buildTest("Atomicity Workgroup (storage memory)", "atomicity", pageState, testParams, atomStorageWorkgroup, atomWorkgroupResults, defaultKeys);
+  const barrierSLWorkgroupConfig = buildTest("Barrier Store Load (workgroup memory)", "barrier-store-load", pageState, testParams, barrierSLWorkgroup, barrierSLResults, oneThreadKeys);
+  const barrierSLStorageWorkgroupConfig = buildTest("Barrier Store Load (storage memory)", "barrier-store-load", pageState, testParams, barrierSLStorageWorkgroup, barrierSLResults, oneThreadKeys);
+  const barrierLSWorkgroupConfig = buildTest("Barrier Load Store (workgroup memory)", "barrier-load-store", pageState, testParams, barrierLSWorkgroup, barrierLSResults, oneThreadKeys);
+  const barrierLSStorageWorkgroupConfig = buildTest("Barrier Load Store (storage memory)", "barrier-load-store", pageState, testParams, barrierLSStorageWorkgroup, barrierLSResults, oneThreadKeys);
+  const barrierSSWorkgroupConfig = buildTest("Barrier Store Store (workgroup memory)", "barrier-store-store", pageState, testParams, barrierSSWorkgroup, barrierSSResults, oneThreadKeys);
+  const barrierSSStorageWorkgroupConfig = buildTest("Barrier Store Store (storage memory)", "barrier-store-store", pageState, testParams, barrierSSStorageWorkgroup, barrierSSResults, oneThreadKeys);
+  const messagePassingWorkgroupConfig = buildTest("Message Passing Workgroup (workgroup memory)", "message-passing", pageState, testParams, barrierWorkgroupMessagePassing, messagePassingResults, defaultKeys);
+  const messagePassingStorageWorkgroupConfig = buildTest("Atomicity Workgroup (storage memory)", "message-passing", pageState, testParams, barrierStorageWorkgroupMessagePassing, messagePassingResults, defaultKeys);
+  const storeWorkgroupConfig = buildTest("Store Workgroup (workgroup memory)", "store", pageState, testParams, barrierWorkgroupStore, storeWorkgroupResults, defaultKeys);
+  const storeStorageWorkgroupConfig = buildTest("Store Workgroup (storage memory)", "store", pageState, testParams, barrierStorageWorkgroupStore, storeWorkgroupResults, defaultKeys);
+  const loadBufferWorkgroupConfig = buildTest("Load Buffer Workgroup (workgroup memory)", "load-buffer", pageState, testParams, barrierWorkgroupLoadBuffer, loadBufferWorkgroupResults, defaultKeys);
+  const loadBufferStorageWorkgroupConfig = buildTest("Load Buffer Workgroup (storage memory)", "load-buffer", pageState, testParams, barrierStorageWorkgroupLoadBuffer, loadBufferWorkgroupResults, defaultKeys);
 
-  const tests = [coRRConfig, coRRRMWConfig, coRRWorkgroupConfig, coRRRMWWorkgroupConfig, coRRRMW1Config, coRRRMW2Config, coRR4Config, 
-    coRR4RMWConfig, coRR4WorkgroupConfig, coRR4RMWWorkgroupConfig, coWWConfig, coWWRMWConfig, coWWWorkgroupConfig, coWWRMWWorkgroupConfig, 
-    coWRConfig, coWRRMWConfig, coWRWorkgroupConfig, coWRRMWWorkgroupConfig, coWRRMW1Config, coWRRMW2Config, coWRRMW3Config, coWRRMW4Config, 
-    coRW1Config, coRW1WorkgroupConfig, coRW2Config, coRW2RMWConfig, coRW2WorkgroupConfig, coRW2RMWWorkgroupConfig, atomicityConfig, 
-    atomicityWorkgroupConfig, barrierLoadStoreConfig, barrierWorkgroupLoadStoreConfig, barrierStoreLoadConfig, barrierWorkgroupStoreLoadConfig,
-    barrierStoreStoreConfig, barrierWorkgroupStoreStoreConfig, messagePassingBarrierConfig, messagePassingBarrierNAConfig, 
-    loadBufferBarrierConfig, loadBufferBarrierNAConfig, storeBarrierConfig, storeBarrierNAConfig];
+  const tests = [coRRConfig, coRRWorkgroupConfig, coRRStorageWorkgroupConfig, coWWConfig, coWWWorkgroupConfig, coWWStorageWorkgroupConfig,
+    coWRConfig, coWRWorkgroupConfig, coWRStorageWorkgroupConfig, coRW1Config, coRW1WorkgroupConfig, coRW1StorageWorkgroupConfig, coRW2Config, coRW2WorkgroupConfig,
+    coRW2StorageWorkgroupConfig, atomConfig, atomWorkgroupConfig, atomStorageWorkgroupConfig, barrierSLWorkgroupConfig, barrierSLStorageWorkgroupConfig,
+    barrierLSWorkgroupConfig, barrierLSStorageWorkgroupConfig, barrierSSWorkgroupConfig, barrierSSStorageWorkgroupConfig, messagePassingWorkgroupConfig,
+    messagePassingStorageWorkgroupConfig, storeWorkgroupConfig, storeStorageWorkgroupConfig, loadBufferWorkgroupConfig, loadBufferStorageWorkgroupConfig
+  ];
 
   let initialIterations = pageState.iterations.value;
   const stressPanel = getStressPanel(testParams, pageState);
@@ -313,9 +313,9 @@ export default function ConformanceTestSuite() {
             </p>
             <h5>Classic Coherence Tests</h5>
             <p>
-              Five classic coherence tests that verify sequential consistency per location are included: CoRR, CoWW, CoWR, CoRW1, and CoRW2. Additionally, 
-              a four threaded version of CoRR is included. For several of these tests, variants that use atomic read-modify-write instructions are also included
-              as long as they maintain the same ordering and adjacency of reads and writes as the original tests.             </p>
+              Five classic coherence tests that verify sequential consistency per location are included: CoRR, CoWW, CoWR, CoRW1, and CoRW2. Variants that test workgroup level
+              shared memory with different storage classes are also tested.
+            </p>
             <h5>Atomicity Tests</h5>
             <p>
               An atomicity test is also included to confirm the correct behavior of a read-modify-write instruction. 
@@ -327,9 +327,8 @@ export default function ConformanceTestSuite() {
             </p>
             <h5>Weak Memory Litmus Tests</h5>
             <p>
-              Due to the acquire/release semantics of WebGPU's barrier, we can include three classic litmus tests: message passing, load buffer, and store. Each of these
-              tests should not show a weak behavior because of the barrier in between the instructions in each thread. A non-atomic variant of each of the tests is also
-              included.
+              Due to the acquire/release semantics of WebGPU's barriers, we can include three classic litmus tests: message passing, load buffer, and store. Each of these
+              tests should not show a weak behavior because of the barrier in between the instructions in each thread.
             </p>
           </div>
         </div>
