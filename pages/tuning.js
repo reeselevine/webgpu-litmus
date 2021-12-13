@@ -21,6 +21,9 @@ import storeWorkgroupResults from '../shaders/store/store-workgroup-results.wgsl
 import read from '../shaders/read/read.wgsl'
 import readWorkgroup from '../shaders/read/read-workgroup.wgsl'
 import readStorageWorkgroup from '../shaders/read/read-storage-workgroup.wgsl'
+import readRMWBarrier from '../shaders/read/read-rmw-barrier.wgsl'
+import readWorkgroupRMWBarrier from '../shaders/read/read-workgroup-rmw-barrier.wgsl'
+import readStorageWorkgroupRMWBarrier from '../shaders/read/read-storage-workgroup-rmw-barrier.wgsl'
 import readResults from '../shaders/read/read-results.wgsl'
 import readWorkgroupResults from '../shaders/read/read-workgroup-results.wgsl'
 import loadBuffer from '../shaders/lb/load-buffer.wgsl'
@@ -34,24 +37,33 @@ import loadBufferWorkgroupResults from '../shaders/lb/load-buffer-workgroup-resu
 import storeBuffer from '../shaders/sb/store-buffer.wgsl'
 import storeBufferWorkgroup from '../shaders/sb/store-buffer-workgroup.wgsl'
 import storeBufferStorageWorkgroup from '../shaders/sb/store-buffer-storage-workgroup.wgsl'
+import storeBufferRMWBarrier from '../shaders/sb/store-buffer-rmw-barrier.wgsl'
+import storeBufferWorkgroupRMWBarrier from '../shaders/sb/store-buffer-workgroup-rmw-barrier.wgsl'
+import storeBufferStorageWorkgroupRMWBarrier from '../shaders/sb/store-buffer-storage-workgroup-rmw-barrier.wgsl'
 import storeBufferResults from '../shaders/sb/store-buffer-results.wgsl'
 import storeBufferWorkgroupResults from '../shaders/sb/store-buffer-workgroup-results.wgsl'
 import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl'
 import twoPlusTwoWriteWorkgroup from '../shaders/2+2w/2+2-write-workgroup.wgsl'
 import twoPlusTwoWriteStorageWorkgroup from '../shaders/2+2w/2+2-write-storage-workgroup.wgsl'
+import twoPlusTwoWriteRMWBarrier from '../shaders/2+2w/2+2-write-rmw-barrier.wgsl'
+import twoPlusTwoWriteWorkgroupRMWBarrier from '../shaders/2+2w/2+2-write-workgroup-rmw-barrier.wgsl'
+import twoPlusTwoWriteStorageWorkgroupRMWBarrier from '../shaders/2+2w/2+2-write-storage-workgroup-rmw-barrier.wgsl'
 import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl'
 import twoPlusTwoWriteWorkgroupResults from '../shaders/2+2w/2+2-write-workgroup-results.wgsl'
 import coRR from '../shaders/corr/corr.wgsl'
+import coRRRMW from '../shaders/corr/corr-rmw.wgsl'
 import coRRWorkgroup from '../shaders/corr/corr-workgroup.wgsl'
 import coRRStorageWorkgroup from '../shaders/corr/corr-storage-workgroup.wgsl'
 import coRRResults from '../shaders/corr/corr-results.wgsl'
 import coRRWorkgroupResults from '../shaders/corr/corr-workgroup-results.wgsl'
 import coWW from '../shaders/coww/coww.wgsl'
+import coWWRMW from '../shaders/coww/coww-rmw.wgsl'
 import coWWWorkgroup from '../shaders/coww/coww-workgroup.wgsl'
 import coWWStorageWorkgroup from '../shaders/coww/coww-storage-workgroup.wgsl'
 import coWWResults from '../shaders/coww/coww-results.wgsl'
 import coWWWorkgroupResults from '../shaders/coww/coww-workgroup-results.wgsl'
 import coWR from '../shaders/cowr/cowr.wgsl'
+import coWRRMW from '../shaders/cowr/cowr-rmw.wgsl'
 import coWRWorkgroup from '../shaders/cowr/cowr-workgroup.wgsl'
 import coWRStorageWorkgroup from '../shaders/cowr/cowr-storage-workgroup.wgsl'
 import coWRResults from '../shaders/cowr/cowr-results.wgsl'
@@ -62,6 +74,7 @@ import coRW1StorageWorkgroup from '../shaders/corw1/corw1-storage-workgroup.wgsl
 import coRW1Results from '../shaders/corw1/corw1-results.wgsl'
 import coRW1WorkgroupResults from '../shaders/corw1/corw1-workgroup-results.wgsl'
 import coRW2 from '../shaders/corw2/corw2.wgsl'
+import coRW2RMW from '../shaders/corw2/corw2.wgsl'
 import coRW2Workgroup from '../shaders/corw2/corw2-workgroup.wgsl'
 import coRW2StorageWorkgroup from '../shaders/corw2/corw2-storage-workgroup.wgsl'
 import coRW2Results from '../shaders/corw2/corw2-results.wgsl'
@@ -387,6 +400,9 @@ function getTestSelector(pageState) {
     buildTest(readName, "Default", read, readResults, pageState, defaultKeys),
     buildTest(readName, "Workgroup (workgroup memory)", readWorkgroup, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "Workgroup (storage memory)", readStorageWorkgroup, readWorkgroupResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier", readRMWBarrier, readResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier Workgroup (workgroup memory)", readWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys)
   ];
   const readJsx = <SelectorTest key="read" testName={readName} tests={readTests} />;
   let lbName = "Load Buffer";
@@ -403,14 +419,20 @@ function getTestSelector(pageState) {
   let sbTests = [
     buildTest(sbName, "Default", storeBuffer, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "Workgroup (workgroup memory)", storeBufferWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
-    buildTest(sbName, "Workgroup (storage memory)", storeBufferStorageWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys)
+    buildTest(sbName, "Workgroup (storage memory)", storeBufferStorageWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier", storeBufferRMWBarrier, storeBufferResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier Workgroup (workgroup memory)", storeBufferWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys)
   ];
   const sbJsx = <SelectorTest key="sb" testName={sbName} tests={sbTests} />;
   let tptName = "2+2 Write";
   let twoPlusTwoWriteTests = [
     buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
-    buildTest(tptName, "Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys)
+    buildTest(tptName, "Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW Barrier", twoPlusTwoWriteRMWBarrier, twoPlusTwoWriteResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW Barrier Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW Barrier Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys)
   ];
   const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
@@ -424,6 +446,7 @@ function getTestSelector(pageState) {
   let corrName = "CoRR";
   let corrTests = [
     buildTest(corrName, "Default", coRR, coRRResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corrName, "RMW", coRRRMW, coRRResults, pageState, defaultKeys, coherenceOverrides),
     buildTest(corrName, "Workgroup (workgroup memory)", coRRWorkgroup, coRRWorkgroupResults, pageState, defaultKeys, coherenceOverrides),
     buildTest(corrName, "Workgroup (storage memory)", coRRStorageWorkgroup, coRRWorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
@@ -431,6 +454,7 @@ function getTestSelector(pageState) {
   let cowwName = "CoWW";
   let cowwTests = [
     buildTest(cowwName, "Default", coWW, coWWResults, pageState, oneThreadKeys, coherenceOverrides),
+    buildTest(cowwName, "RMW", coWWRMW, coWWResults, pageState, oneThreadKeys, coherenceOverrides),
     buildTest(cowwName, "Workgroup (workgroup memory)", coWWWorkgroup, coWWWorkgroupResults, pageState, oneThreadKeys, coherenceOverrides),
     buildTest(cowwName, "Workgroup (storage memory)", coWWStorageWorkgroup, coWWWorkgroupResults, pageState, oneThreadKeys, coherenceOverrides)
   ];
@@ -438,6 +462,7 @@ function getTestSelector(pageState) {
   let cowrName = "CoWR";
   let cowrTests = [
     buildTest(cowrName, "Default", coWR, coWRResults, pageState, defaultKeys, coherenceOverrides),
+    buildTest(cowrName, "RMW", coWRRMW, coWRResults, pageState, defaultKeys, coherenceOverrides),
     buildTest(cowrName, "Workgroup (workgroup memory)", coWRWorkgroup, coWRWorkgroupResults, pageState, defaultKeys, coherenceOverrides),
     buildTest(cowrName, "Workgroup (storage memory)", coWRStorageWorkgroup, coWRWorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
@@ -452,6 +477,7 @@ function getTestSelector(pageState) {
   let corw2Name = "CoRW2";
   let corw2Tests = [
     buildTest(corw2Name, "Default", coRW2, coRW2Results, pageState, defaultKeys, coherenceOverrides),
+    buildTest(corw2Name, "RMW", coRW2RMW, coRW2Results, pageState, defaultKeys, coherenceOverrides),
     buildTest(corw2Name, "Workgroup (workgroup memory)", coRW2Workgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides),
     buildTest(corw2Name, "Workgroup (storage memory)", coRW2StorageWorkgroup, coRW2WorkgroupResults, pageState, defaultKeys, coherenceOverrides)
   ];
