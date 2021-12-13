@@ -654,7 +654,6 @@ export default function TuningSuite() {
   const testSelector = getTestSelector(pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
-  testParams.numOutputs = 4;
   return (
     <>
       <div className="columns">
@@ -662,7 +661,7 @@ export default function TuningSuite() {
           <div className="section">
             <h1 className="testName">Tuning Suite</h1>
             <p>
-              The tuning suite is used to tune over user selected tests.
+              The tuning suite is used to tune over user selected tests. Several test presets are included, allowing users to quickly tune over different categories of tests. By default, a new random seed is generated for each tuning run, but by inputting a chosen random seed, parameter combinations can be kept constant across different runs. A random seed can be any string. For example, "webgpu" (without quotation marks) is a valid random seed.
             </p>
           </div>
         </div>
