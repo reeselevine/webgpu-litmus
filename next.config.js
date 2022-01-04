@@ -19,8 +19,8 @@ module.exports = (phase, { defaultConfig }) => {
   }
 
   return {
-    assetPrefix: '',
-    basePath: '',
+    assetPrefix: '/webgpu-mem-testing',
+    basePath: '/webgpu-mem-testing',
     trailingSlash: true,
     ...loader
   }

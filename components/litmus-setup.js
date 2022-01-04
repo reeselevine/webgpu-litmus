@@ -159,7 +159,7 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
   scratchLocations.writeBuffer.unmap();
 }
 
-function setStressParams(stressParams, testParams) {
+function setDynamicStressParams(stressParams, testParams) {
   const stressParamsArrayBuffer = stressParams.writeBuffer.getMappedRange();
   const stressParamsArray = new Uint32Array(stressParamsArrayBuffer);
   if (getRandomInt(100) < testParams.barrierPct) {
@@ -172,13 +172,19 @@ function setStressParams(stressParams, testParams) {
   } else {
     stressParamsArray[1*uniformBufferAlignment] = 0;
   }
-  stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
-  stressParamsArray[3*uniformBufferAlignment] = testParams.memStressPattern;
   if (getRandomInt(100) < testParams.preStressPct) {
     stressParamsArray[4*uniformBufferAlignment] = 1;
   } else {
     stressParamsArray[4*uniformBufferAlignment] = 0;
   }
+  stressParams.writeBuffer.unmap();
+}
+
+function setStaticStressParams(stressParams, testParams) {
+  const stressParamsArrayBuffer = stressParams.writeBuffer.getMappedRange();
+  const stressParamsArray = new Uint32Array(stressParamsArrayBuffer);
+  stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
+  stressParamsArray[3*uniformBufferAlignment] = testParams.memStressPattern;
   stressParamsArray[5*uniformBufferAlignment] = testParams.preStressIterations;
   stressParamsArray[6*uniformBufferAlignment] = testParams.preStressPattern;
   stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
@@ -338,6 +344,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const p4 = map_buffer(buffers.barrier);
   const p5 = map_buffer(buffers.scratchLocations);
   const p6 = map_buffer(buffers.readResults);
+  const p7 = map_buffer(buffers.stressParams);
 
   await p1;
   clearBuffer(buffers.testLocations, testLocationsSize);
@@ -351,6 +358,8 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
   await p6;
   clearBuffer(buffers.readResults, testingThreads * testParams.numOutputs);
+  await p7;
+  setDynamicStressParams(buffers.stressParams, testParams);
 
   const commandEncoder = device.createCommandEncoder();
   commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, testLocationsSize * uint32ByteSize);
@@ -516,7 +525,7 @@ export async function runLitmusTest(shaderCode, resultShaderCode, testParams, it
 
   const p1 = map_buffer(buffers.stressParams);
   await p1;
-  setStressParams(buffers.stressParams, testParams);
+  setStaticStressParams(buffers.stressParams, testParams);
 
   const start = Date.now();
   for (let i = 0; i < iterations; i++) {
@@ -566,7 +575,7 @@ export async function runEvaluationLitmusTest(
 
   const p7 = map_buffer(buffers.stressParams);
   await p7;
-  setStressParams(buffers.stressParams, testParams);
+  setStaticStressParams(buffers.stressParams, testParams);
   const start = Date.now();
 
   for (let i = 0; i < iterations; i++) {
