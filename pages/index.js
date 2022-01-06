@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <div className="section">
+    <div className="section content">
       <h3>WebGPU Memory Model Testing</h3>
       <p>
         <a href="https://web.dev/gpu/">WebGPU</a> is a new framework for writing applications targeting GPUs. This website is focused on testing WebGPU's memory model, which specifies the semantics and rules threads must follow when sharing memory. Specifically, we use litmus tests, small parallel programs that showcase the allowed behaviors of a given memory model. For more information on
