@@ -105,14 +105,14 @@ function TestRow(props) {
         <td>{props.state.nonWeak.visibleState}</td>
         <td>{props.state.weak.visibleState}</td>
         <td><button className="button" onClick={() => {
-          doTest(props.pageState, props.validTestParams, props.buggyTestParams, props.validShader, props.buggyShader, props.resultShader, props.state);
+          doTest(props.pageState, props.testParams, props.getTestParams, props.getMutatedTestParams, props.validShader, props.buggyShader, props.resultShader, props.state);
         }} disabled={props.pageState.running.value}>Run</button></td>
       </tr>
     </>
   );
 }
 
-function buildTest(testName, pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, keys) {
+function buildTest(testName, pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, keys) {
   const [nonWeak, setNonWeak] = useState(0);
   const [weak, setWeak] = useState(0);
   const [result, setResult] = useState(undefined);
@@ -146,9 +146,9 @@ function buildTest(testName, pageState, validTestParams, buggyTestParams, validS
   };
   return {
     run: async function () {
-      return doTest(pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, state);
+      return doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, state);
     },
-    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} validTestParams={validTestParams} buggyTestParams={buggyTestParams} validShader={validShader} buggyShader={buggyShader} resultShader={resultShader} />
+    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} testParams={testParams} getTestParams={getTestParams} getMutatedTestParams={getMutatedTestParams} validShader={validShader} buggyShader={buggyShader} resultShader={resultShader} />
   }
 }
 
@@ -185,14 +185,14 @@ function updateStateAndHandleResult(pageState, testState) {
   }
 }
 
-async function doTest(pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, testState) {
+async function doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, testState) {
   pageState.running.update(true);
   clearState(testState, defaultKeys);
   testState.progress.update(0);
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runEvaluationLitmusTest(validShader, buggyShader, resultShader, validTestParams, buggyTestParams, pageState.iterations.value, pageState.buggyPercentage.value, updateStateAndHandleResult(pageState, testState));
+  await runEvaluationLitmusTest(validShader, buggyShader, resultShader, getTestParams(testParams), getMutatedTestParams(testParams), pageState.iterations.value, pageState.buggyPercentage.value, updateStateAndHandleResult(pageState, testState));
   testState.progress.update(100);
   pageState.running.update(false);
   if (testState.weak.internalState > 0) {
@@ -221,120 +221,28 @@ async function doAllTests(pageState, tests) {
   }
 }
 
-const rwHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || result[1] != 1 || result[2] != 2;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && result[1] == 1 && result[2] == 2;
-  }
-};
-
-const wrHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || result[1] != 2 || result[2] != 1;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && result[1] == 2 && result[2] == 1;
-  }
-};
-
-const wwHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || result[1] != 3 || result[2] != 3 || result[3] != 1;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && result[1] == 3 && result[2] == 3 && result[3] == 1;
-  }
-};
-
-const readHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 0 || memResult[1] != 3;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 0 && memResult[1] == 3;
-  }
-};
-
-const messagePassingHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || result[1] != 0;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && result[1] == 0;
-  }
-};
-
-const loadBufferHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || result[1] != 1;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && result[1] == 1;
-  }
-};
-
-const storeHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 2 || memResult[0] != 1;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 2 && memResult[0] == 1;
-  }
-};
-
-const storeBufferHandlers = {
-  nonWeak: function(result, memResult) {
-    return result[0] != 0 || result[1] != 0;
-  },
-  weak: function(result, memResult) {
-    return result[0] == 0 && result[1] == 0;
-  }
-};
-
-const twoPlusTwoWriteHandlers = {
-  nonWeak: function(result, memResult) {
-    return memResult[0] != 1 || memResult[1] != 3;
-  },
-  weak: function(result, memResult) {
-    return memResult[0] == 1 && memResult[1] == 3;
-  }
-};
-
-function getOneReadOneWriteParams(testParams) {
-  const oneReadOneWriteParams = JSON.parse(JSON.stringify(testParams));
-  oneReadOneWriteParams.numOutputs = 3;
-  oneReadOneWriteParams.memoryAliases[1] = 0;
-  return oneReadOneWriteParams;
-}
-
-function getWWParams(testParams) {
-  const wwParams = JSON.parse(JSON.stringify(testParams));
-  wwParams.numOutputs = 4;
-  wwParams.memoryAliases[1] = 0;
-  return wwParams;
-}
-
 function getAliasedParams(testParams) {
-  const weakParams = JSON.parse(JSON.stringify(testParams));
-  weakParams.aliasedMemory = true;
-  weakParams.permuteSecond = 1;
-  return weakParams;
+  const aliasedParams = JSON.parse(JSON.stringify(testParams));
+  aliasedParams.aliasedMemory = true;
+  aliasedParams.permuteSecond = 1;
+  return aliasedParams;
+}
+
+function paramsIdentity(testParams) {
+  return testParams;
 }
 
 export default function EvaluationTestSuite() {
   const pageState = getPageState();
-  const aliasedParams = getAliasedParams(testParams);
-  let rwConfig = buildTest("RW", pageState, aliasedParams, aliasedParams, rw, rwBuggy, rwResults, defaultKeys);
-  let wrConfig = buildTest("WR", pageState, aliasedParams, aliasedParams, wr, wrBuggy, wrResults, defaultKeys);
-  let wwConfig = buildTest("WW", pageState, aliasedParams, aliasedParams, ww, wwBuggy, wwResults, defaultKeys);
-  let messagePassingConfig = buildTest("Message Passing", pageState, aliasedParams, testParams, messagePassing, messagePassing, messagePassingResults, weakTestKeys);
-  let storeConfig = buildTest("Store", pageState, aliasedParams, testParams, store, store, storeResults, weakTestKeys);
-  let readConfig = buildTest("Read", pageState, aliasedParams, testParams, read, read, readResults, weakTestKeys);
-  let loadBufferConfig = buildTest("Load Buffer", pageState, aliasedParams, testParams, loadBuffer, loadBuffer, loadBufferResults, weakTestKeys);
-  let storeBufferConfig = buildTest("Store Buffer", pageState, aliasedParams, testParams, storeBuffer, storeBuffer, storeBufferResults, weakTestKeys);
-  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, aliasedParams, testParams, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults, weakTestKeys);
+  let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwBuggy, rwResults, defaultKeys);
+  let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrBuggy, wrResults, defaultKeys);
+  let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwBuggy, wwResults, defaultKeys);
+  let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getAliasedParams, paramsIdentity, messagePassing, messagePassing, messagePassingResults, weakTestKeys);
+  let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults, weakTestKeys);
+  let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults, weakTestKeys);
+  let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getAliasedParams, paramsIdentity, loadBuffer, loadBuffer, loadBufferResults, weakTestKeys);
+  let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults, weakTestKeys);
+  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults, weakTestKeys);
 
   const tests = [rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
   let initialIterations = pageState.iterations.value;

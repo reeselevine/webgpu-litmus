@@ -133,8 +133,8 @@ let workgroupXSize = 256;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    let r0 = atomicLoad(&test_locations.value[x_0]);
-    atomicStore(&test_locations.value[y_0], 1u);
+    atomicStore(&test_locations.value[x_0], 1u);
+    let r0 = atomicLoad(&test_locations.value[y_0]);
     atomicStore(&test_locations.value[x_1], 2u);
     let r1 = atomicLoad(&test_locations.value[x_2]);
     let r2 = atomicLoad(&test_locations.value[y_2]);

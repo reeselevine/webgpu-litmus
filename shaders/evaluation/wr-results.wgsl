@@ -1,6 +1,6 @@
 [[block]] struct TestResults {
-  weak: atomic<u32>;
   nonWeak: atomic<u32>;
+  weak: atomic<u32>;
 };
 
 [[block]] struct AtomicMemory {
@@ -54,7 +54,7 @@ let workgroupXSize = 256;
   let r0 = atomicLoad(&read_results.value[id_0].r0);
   let r1 = atomicLoad(&read_results.value[id_0].r1);
   let r2 = atomicLoad(&read_results.value[id_0].r2);
-  if ((r0 == 2u && r1 == 1u && r2 == 2u)) {
+  if ((r0 == 2u && r1 == 2u && r2 == 1u)) {
     let unused = atomicAdd(&test_results.weak, 1u);
   } else {
     let unused = atomicAdd(&test_results.nonWeak, 1u);
