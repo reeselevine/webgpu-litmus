@@ -1,39 +1,38 @@
 import { useState } from 'react';
 import { getStressPanel } from '../components/stressPanel.js';
-import { buildThrottle, clearState } from '../components/test-page-utils.js';
+import { buildThrottle, clearState, handleResult } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runEvaluationLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import rw from '../shaders/evaluation/rw.wgsl';
-import rwBuggy from '../shaders/evaluation/rw-buggy.wgsl';
+import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
 import rwResults from '../shaders/evaluation/rw-results.wgsl';
 import wr from '../shaders/evaluation/wr.wgsl';
-import wrBuggy from '../shaders/evaluation/wr-buggy.wgsl';
+import wrMutation from '../shaders/evaluation/wr-mutation.wgsl';
 import wrResults from '../shaders/evaluation/wr-results.wgsl';
 import ww from '../shaders/evaluation/ww.wgsl';
-import wwBuggy from '../shaders/evaluation/ww-buggy.wgsl';
+import wwMutation from '../shaders/evaluation/ww-mutation.wgsl';
 import wwResults from '../shaders/evaluation/ww-results.wgsl';
 import messagePassing from '../shaders/mp/message-passing.wgsl'
-import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
+import messagePassingResults from '../shaders/evaluation/message-passing-results.wgsl';
 import store from '../shaders/store/store.wgsl'
-import storeResults from '../shaders/store/store-results.wgsl';
+import storeResults from '../shaders/evaluation/store-results.wgsl';
 import read from '../shaders/read/read.wgsl';
-import readResults from '../shaders/read/read-results.wgsl';
+import readResults from '../shaders/evaluation/read-results.wgsl';
 import loadBuffer from '../shaders/lb/load-buffer.wgsl';
-import loadBufferResults from '../shaders/lb/load-buffer-results.wgsl';
+import loadBufferResults from '../shaders/evaluation/load-buffer-results.wgsl';
 import storeBuffer from '../shaders/sb/store-buffer.wgsl';
-import storeBufferResults from '../shaders/sb/store-buffer-results.wgsl';
+import storeBufferResults from '../shaders/evaluation/store-buffer-results.wgsl';
 import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl';
-import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl';
+import twoPlusTwoWriteResults from '../shaders/evaluation/2+2-write-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 testParams.numOutputs = 4;
-const weakTestKeys = ["seq0", "seq1", "interleaved", "weak"];
 const defaultKeys = ["nonWeak", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(100);
-  const [buggyPercentage, setBuggyPercentage] = useState(1);
+  const [mutationPercentage, setMutationPercentage] = useState(1);
   const [violationsNotObserved, setViolationsNotObserved] = useState(0);
   const [violationsObserved, setViolationsObserved] = useState(0);
   return {
@@ -53,9 +52,9 @@ function getPageState() {
       value: violationsObserved,
       update: setViolationsObserved 
     },
-    buggyPercentage: {
-      value: buggyPercentage,
-      update: setBuggyPercentage
+    mutationPercentage: {
+      value: mutationPercentage,
+      update: setMutationPercentage
     }
   }
 }
@@ -105,14 +104,14 @@ function TestRow(props) {
         <td>{props.state.nonWeak.visibleState}</td>
         <td>{props.state.weak.visibleState}</td>
         <td><button className="button" onClick={() => {
-          doTest(props.pageState, props.testParams, props.getTestParams, props.getMutatedTestParams, props.validShader, props.buggyShader, props.resultShader, props.state);
+          doTest(props.pageState, props.testParams, props.getTestParams, props.getMutatedTestParams, props.validShader, props.mutatedShader, props.resultShader, props.state);
         }} disabled={props.pageState.running.value}>Run</button></td>
       </tr>
     </>
   );
 }
 
-function buildTest(testName, pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, keys) {
+function buildTest(testName, pageState, testParams, getTestParams, getMutatedTestParams, validShader, mutatedShader, resultShader) {
   const [nonWeak, setNonWeak] = useState(0);
   const [weak, setWeak] = useState(0);
   const [result, setResult] = useState(undefined);
@@ -141,34 +140,18 @@ function buildTest(testName, pageState, testParams, getTestParams, getMutatedTes
     time: {
       value: time,
       update: buildThrottle(setTime)
-    },
-    keys: keys
+    }
   };
   return {
     run: async function () {
-      return doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, state);
+      return doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, mutatedShader, resultShader, state);
     },
-    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} testParams={testParams} getTestParams={getTestParams} getMutatedTestParams={getMutatedTestParams} validShader={validShader} buggyShader={buggyShader} resultShader={resultShader} />
-  }
-}
-
-function handleEvaluationResult(testState) {
-  return function (result) {
-    for (let i = 0; i < testState.keys.length; i++) {
-      var key;
-      if (testState.keys[i] == "weak") {
-        key = "weak";
-      } else {
-        key = "nonWeak";
-      }
-      testState[key].internalState = testState[key].internalState + result[i];
-      testState[key].throttledUpdate(testState[key].internalState);
-    }
+    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} testParams={testParams} getTestParams={getTestParams} getMutatedTestParams={getMutatedTestParams} validShader={validShader} mutatedShader={mutatedShader} resultShader={resultShader} />
   }
 }
 
 function updateStateAndHandleResult(pageState, testState) {
-  const fn = handleEvaluationResult(testState);
+  const fn = handleResult(testState, defaultKeys);
   return function (result) {
     let time = reportTime();
     let curIter = getCurrentIteration();
@@ -185,14 +168,14 @@ function updateStateAndHandleResult(pageState, testState) {
   }
 }
 
-async function doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, buggyShader, resultShader, testState) {
+async function doTest(pageState, testParams, getTestParams, getMutatedTestParams, validShader, mutatedShader, resultShader, testState) {
   pageState.running.update(true);
   clearState(testState, defaultKeys);
   testState.progress.update(0);
   testState.rate.update(0);
   testState.time.update(0);
   testState.result.update(undefined);
-  await runEvaluationLitmusTest(validShader, buggyShader, resultShader, getTestParams(testParams), getMutatedTestParams(testParams), pageState.iterations.value, pageState.buggyPercentage.value, updateStateAndHandleResult(pageState, testState));
+  await runEvaluationLitmusTest(validShader, mutatedShader, resultShader, getTestParams(testParams), getMutatedTestParams(testParams), pageState.iterations.value, pageState.mutationPercentage.value, updateStateAndHandleResult(pageState, testState));
   testState.progress.update(100);
   pageState.running.update(false);
   if (testState.weak.internalState > 0) {
@@ -234,19 +217,19 @@ function paramsIdentity(testParams) {
 
 export default function EvaluationTestSuite() {
   const pageState = getPageState();
-  let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwBuggy, rwResults, defaultKeys);
-  let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrBuggy, wrResults, defaultKeys);
-  let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwBuggy, wwResults, defaultKeys);
-  let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getAliasedParams, paramsIdentity, messagePassing, messagePassing, messagePassingResults, weakTestKeys);
-  let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults, weakTestKeys);
-  let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults, weakTestKeys);
-  let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getAliasedParams, paramsIdentity, loadBuffer, loadBuffer, loadBufferResults, weakTestKeys);
-  let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults, weakTestKeys);
-  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults, weakTestKeys);
+  let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwMutation, rwResults);
+  let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrMutation, wrResults);
+  let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwMutation, wwResults);
+  let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getAliasedParams, paramsIdentity, messagePassing, messagePassing, messagePassingResults);
+  let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults);
+  let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults);
+  let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getAliasedParams, paramsIdentity, loadBuffer, loadBuffer, loadBufferResults);
+  let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
+  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
 
   const tests = [rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
   let initialIterations = pageState.iterations.value;
-  let initialBuggyPercentage = pageState.buggyPercentage.value;
+  let initialMutationPercentage = pageState.mutationPercentage.value;
   const stressPanel = getStressPanel(testParams, pageState);
   return (
     <>
@@ -256,21 +239,21 @@ export default function EvaluationTestSuite() {
             <h1 className="testName">Evaluation Test Suite</h1>
             <p>
               The evaluation test suite is used to evaluate the performance of a set of tuned parameters on uncovering potential violations of WebGPU's memory consistency model.
-              A test used for evaluation consists of two shaders: a valid shader with a post condition that is impossible under a correct implementation, and a buggy shader that is a
+              A test used for evaluation consists of two shaders: a valid shader with a post condition that is impossible under a correct implementation, and a mutated shader that is a
               transformed version of the valid shader where the impossible behavior is possible, but unlikely. During a test run, the transformed shader is substituted for the valid one
               some percentage of the time, and the parameter set is evaluated on whether the behavior is observed. There are two categories of evaluation tests.
             </p>
             <h5>Interleaved Tests</h5>
             <p>
               These tests consist of two thread, three instruction programs, where at least two of the instructions are a write. Extra "observer" threads may be added to force certain coherence
-              orders. In the valid shader, the behavior is impossible due to coherence. However, in the buggy shader, a reordering of instructions in one of the test threads may lead to the behavior
+              orders. In the valid shader, the behavior is impossible due to coherence. However, in the mutated shader, a reordering of instructions in one of the test threads may lead to the behavior
               being observed if a precise interleaving of instructions happens across all threads.
             </p>
             <h5>Weak Memory Tests</h5>
             <p>
               These tests consist of two thread, four instruction programs, where at least two of the instructions are a write. In the valid shaders, all writes and reads are to one memory location.
-              In a buggy shader, a cross thread coherence or reads-from relation is used to transform two writes or a write and a read to use a different memory location, in effect turning the test
-              into one of the six weak memory tests. Since weak behaviors are possible under these buggy shaders, the weak behavior may be observed if thet test parameter set is effective.
+              In a mutated shader, a cross thread coherence or reads-from relation is used to transform two writes or a write and a read to use a different memory location, in effect turning the test
+              into one of the six weak memory tests. Since weak behaviors are possible under these mutated shaders, the weak behavior may be observed if thet test parameter set is effective.
             </p>
           </div>
         </div>
@@ -287,9 +270,9 @@ export default function EvaluationTestSuite() {
         </div>
         <div className="column is-one-fifth">
           <div className="control">
-            <label><b>Buggy Percentage:</b></label>
-            <input className="input" type="text" defaultValue={initialBuggyPercentage} onInput={(e) => {
-              pageState.buggyPercentage.update(e.target.value);
+            <label><b>Mutation Percentage:</b></label>
+            <input className="input" type="text" defaultValue={initialMutationPercentage} onInput={(e) => {
+              pageState.mutationPercentage.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
         </div>
