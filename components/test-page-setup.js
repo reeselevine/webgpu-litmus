@@ -8,7 +8,7 @@ import { clearState, handleResult, randomConfig } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
-  const [iterations, setIterations] = useState(1000);
+  const [iterations, setIterations] = useState(100);
   const [running, setRunning] = useState(false);
   const [pseudoActive, setPseudoActive] = useState(true);
   const [mode, setMode] = useState(false);
