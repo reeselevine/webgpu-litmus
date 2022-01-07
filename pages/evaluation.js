@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { getStressPanel } from '../components/stressPanel.js';
-import { buildThrottle, clearState, workgroupMemorySize } from '../components/test-page-utils.js';
+import { buildThrottle, clearState } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runEvaluationLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
-import rw from '../shaders/evaluation/eval-rw.wgsl';
-import rwBuggy from '../shaders/evaluation/eval-rw-buggy.wgsl';
-import wr from '../shaders/evaluation/eval-wr.wgsl';
-import wrBuggy from '../shaders/evaluation/eval-wr-buggy.wgsl';
-import ww from '../shaders/evaluation/eval-ww.wgsl';
-import wwBuggy from '../shaders/evaluation/eval-ww-buggy.wgsl';
-import messagePassing from '../../shaders/mp/message-passing.wgsl'
-import messagePassingResults from '../../shaders/mp/message-passing-results.wgsl';
+import rw from '../shaders/evaluation/rw.wgsl';
+import rwBuggy from '../shaders/evaluation/rw-buggy.wgsl';
+import rwResults from '../shaders/evaluation/rw-results.wgsl';
+import wr from '../shaders/evaluation/wr.wgsl';
+import wrBuggy from '../shaders/evaluation/wr-buggy.wgsl';
+import wrResults from '../shaders/evaluation/wr-results.wgsl';
+import ww from '../shaders/evaluation/ww.wgsl';
+import wwBuggy from '../shaders/evaluation/ww-buggy.wgsl';
+import wwResults from '../shaders/evaluation/ww-results.wgsl';
+import messagePassing from '../shaders/mp/message-passing.wgsl'
+import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
 import store from '../shaders/store/store.wgsl'
 import storeResults from '../shaders/store/store-results.wgsl';
 import read from '../shaders/read/read.wgsl';
@@ -23,12 +26,14 @@ import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl';
 import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-const keys = ["nonWeak", "weak"];
+testParams.numOutputs = 4;
+const weakTestKeys = ["seq0", "seq1", "interleaved", "weak"];
+const defaultKeys = ["nonWeak", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
-  const [iterations, setIterations] = useState(1000);
-  const [buggyPercentage, setBuggyPercentage] = useState(.01);
+  const [iterations, setIterations] = useState(100);
+  const [buggyPercentage, setBuggyPercentage] = useState(1);
   const [violationsNotObserved, setViolationsNotObserved] = useState(0);
   const [violationsObserved, setViolationsObserved] = useState(0);
   return {
@@ -107,7 +112,7 @@ function TestRow(props) {
   );
 }
 
-function buildTest(testName, pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader) {
+function buildTest(testName, pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, keys) {
   const [nonWeak, setNonWeak] = useState(0);
   const [weak, setWeak] = useState(0);
   const [result, setResult] = useState(undefined);
@@ -136,13 +141,14 @@ function buildTest(testName, pageState, validTestParams, buggyTestParams, validS
     time: {
       value: time,
       update: buildThrottle(setTime)
-    }
+    },
+    keys: keys
   };
   return {
     run: async function () {
       return doTest(pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, state);
     },
-    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} validTestParams={validTestParams} buggyParams={buggyTestParams} validShader={validShader} buggyShader={buggyShader} resultShader={resultShader} />
+    jsx: <TestRow key={testName} testName={testName} state={state} pageState={pageState} validTestParams={validTestParams} buggyTestParams={buggyTestParams} validShader={validShader} buggyShader={buggyShader} resultShader={resultShader} />
   }
 }
 
@@ -181,7 +187,7 @@ function updateStateAndHandleResult(pageState, testState) {
 
 async function doTest(pageState, validTestParams, buggyTestParams, validShader, buggyShader, resultShader, testState) {
   pageState.running.update(true);
-  clearState(testState, keys);
+  clearState(testState, defaultKeys);
   testState.progress.update(0);
   testState.rate.update(0);
   testState.time.update(0);
@@ -317,23 +323,18 @@ function getAliasedParams(testParams) {
   return weakParams;
 }
 
-function getBuggyWeakParams(testParams) {
-  const weakBuggyParams = JSON.parse(JSON.stringify(testParams));
-  return weakBuggyParams;
-}
-
 export default function EvaluationTestSuite() {
   const pageState = getPageState();
   const aliasedParams = getAliasedParams(testParams);
-  let rwConfig = buildTest("RW", pageState, aliasedParams, aliasedParams, rw, rwBuggy, rwResults);
-  let wrConfig = buildTest("WR", pageState, aliasedParams, aliasedParams, wr, wrBuggy, wrResults);
-  let wwConfig = buildTest("WW", pageState, aliasedParams, aliasedParams, ww, wwBuggy, wwResults);
-  let messagePassingConfig = buildTest("Message Passing", pageState, aliasedParams, testParams, messagePassing, messagePassing, messagePassingResults);
-  let storeConfig = buildTest("Store", pageState, aliasedParams, testParams, store, store, storeResults);
-  let readConfig = buildTest("Read", pageState, aliasedParams, testParams, read, read, readResults);
-  let loadBufferConfig = buildTest("Load Buffer", pageState, aliasedParams, testParams, loadBuffer, loadBuffer, loadBufferResults);
-  let storeBufferConfig = buildTest("Store Buffer", pageState, aliasedParams, testParams, storeBuffer, storeBuffer, storeBufferResults);
-  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, aliasedParams, testParams, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
+  let rwConfig = buildTest("RW", pageState, aliasedParams, aliasedParams, rw, rwBuggy, rwResults, defaultKeys);
+  let wrConfig = buildTest("WR", pageState, aliasedParams, aliasedParams, wr, wrBuggy, wrResults, defaultKeys);
+  let wwConfig = buildTest("WW", pageState, aliasedParams, aliasedParams, ww, wwBuggy, wwResults, defaultKeys);
+  let messagePassingConfig = buildTest("Message Passing", pageState, aliasedParams, testParams, messagePassing, messagePassing, messagePassingResults, weakTestKeys);
+  let storeConfig = buildTest("Store", pageState, aliasedParams, testParams, store, store, storeResults, weakTestKeys);
+  let readConfig = buildTest("Read", pageState, aliasedParams, testParams, read, read, readResults, weakTestKeys);
+  let loadBufferConfig = buildTest("Load Buffer", pageState, aliasedParams, testParams, loadBuffer, loadBuffer, loadBufferResults, weakTestKeys);
+  let storeBufferConfig = buildTest("Store Buffer", pageState, aliasedParams, testParams, storeBuffer, storeBuffer, storeBufferResults, weakTestKeys);
+  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, aliasedParams, testParams, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults, weakTestKeys);
 
   const tests = [rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
   let initialIterations = pageState.iterations.value;

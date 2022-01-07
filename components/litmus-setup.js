@@ -385,6 +385,14 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   );
 
   commandEncoder.copyBufferToBuffer(
+    buffers.readResults.deviceBuffer,
+    0,
+    buffers.readResults.readBuffer,
+    0,
+    testParams.numOutputs * testingThreads * uint32ByteSize
+  );
+
+  commandEncoder.copyBufferToBuffer(
     buffers.testLocations.deviceBuffer,
     0,
     buffers.testLocations.readBuffer,
@@ -401,6 +409,10 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const arrayBuffer = buffers.testResults.readBuffer.getMappedRange();
   const result = new Uint32Array(arrayBuffer).slice(0);
   buffers.testResults.readBuffer.unmap();
+  await buffers.readResults.readBuffer.mapAsync(GPUMapMode.READ);
+  const readResultsArrayBuffer = buffers.readResults.readBuffer.getMappedRange();
+  //console.log(new Uint32Array(readResultsArrayBuffer).slice(0));
+  buffers.readResults.readBuffer.unmap();
   await buffers.testLocations.readBuffer.mapAsync(GPUMapMode.READ);
   const memArrayBuffer = buffers.testLocations.readBuffer.getMappedRange();
   //console.log(new Uint32Array(memArrayBuffer).slice(0));
@@ -534,6 +546,7 @@ export async function runEvaluationLitmusTest(
   handleResult) {
   const setup = await setupTest(testParams);
   const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShader, setup.workgroupSize);
+  const start = Date.now();
   for (let i = 0; i < iterations; i++) {
     let shaderCode;
     let params;
@@ -546,7 +559,7 @@ export async function runEvaluationLitmusTest(
     }
     const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, setup.workgroupSize);
     currentIteration = i;
-    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, restup.resultBindGroup, setup.buffers, params, setup.workgroupSize);
+    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, setup.resultBindGroup, setup.buffers, params, setup.workgroupSize);
     handleResult(result);
     duration = Date.now() - start;
   }
