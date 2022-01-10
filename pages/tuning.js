@@ -93,7 +93,7 @@ import barrierSLResults from '../shaders/barrier-sl/barrier-store-load-workgroup
 import barrierSSWorkgroup from '../shaders/barrier-ss/barrier-store-store-workgroup.wgsl';
 import barrierSSStorageWorkgroup from '../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
 import barrierSSResults from '../shaders/barrier-ss/barrier-store-store-workgroup-results.wgsl';
-import { ParamButton } from '../components/tuningTable.js';
+import { filteredParams } from '../components/tuningTable.js';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
@@ -101,7 +101,7 @@ const oneThreadKeys = ["seq", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
-  const [iterations, setIterations] = useState(1000);
+  const [iterations, setIterations] = useState(100);
   const [randomSeed, setRandomSeed] = useState("");
   const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
@@ -189,7 +189,8 @@ function buildTest(testName, testVariant, shader, resultShader, pageState, testK
     state: {
       seq: 0,
       interleaved: 0,
-      weak: 0
+      weak: 0,
+      durationSeconds: 0
     },
     keys: testKeys,
     isChecked: isChecked,
@@ -223,11 +224,12 @@ function handleResult(test, pageState) {
   }
 }
 
-function getRunStats(activeTests) {
+function getRunStats(activeTests, params) {
   let stats = {};
   for (const test of activeTests) {
     stats[test.testName + " " + test.testVariant] = JSON.parse(JSON.stringify(test.state));
   }
+  stats["params"] = JSON.parse(filteredParams(params));
   return stats;
 }
 
@@ -279,8 +281,6 @@ function DynamicRow(props) {
       <td>
       </td>
       <td>
-      </td>
-      <td>
         {props.pageState.completedTests.visibleState}/{props.pageState.totalTests.value}
       </td>
       <td>
@@ -313,9 +313,6 @@ export function StaticRow(props) {
     <tr  >
       <td>
         {props.pageState.curParams.id + 1}
-      </td>
-      <td>
-        <ParamButton params={props.pageState.curParams} pageState={props.pageState}></ParamButton>
       </td>
       <td>
         <RunStatistics stats={props.stats}/>
@@ -652,12 +649,14 @@ async function tune(tests, testParams, pageState) {
       curTest.state.seq = 0;
       curTest.state.interleaved = 0;
       curTest.state.weak = 0;
+      curTest.state.durationSeconds = 0;
       let newParams = JSON.parse(JSON.stringify(params));
       for (const key in curTest.testParamOverrides) {
         newParams[key] = curTest.testParamOverrides[key];
       }
       await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
       pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
+      curTest.state.durationSeconds = reportTime();
       pageState.totalTime.update(pageState.totalTime.internalState);
       pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
       pageState.completedTests.update(pageState.completedTests.internalState);
@@ -666,7 +665,7 @@ async function tune(tests, testParams, pageState) {
         pageState.logSum.update(pageState.logSum.internalState);
       }
     }
-    let stats = getRunStats(pageState.activeTests);
+    let stats = getRunStats(pageState.activeTests, params);
     let row = <StaticRow pageState={pageState} key={params.id} stats={stats}/>;
     pageState.allStats.internalState[i] = stats;
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
@@ -734,7 +733,6 @@ export default function TuningSuite() {
           <thead>
             <tr>
               <th>Run number</th>
-              <th>Parameters</th>
               <th>Run Statistics</th>
               <th>Tests Completed</th>
               <th>Overall Progress</th>

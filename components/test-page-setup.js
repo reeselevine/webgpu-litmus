@@ -355,10 +355,8 @@ export function makeTestPage(props) {
                   </div>
                 </div>
                 <div className="columns" >
-                  <div className="column" style={{ width: '300px', paddingLeft: '0px' }}>
-                    <div className="column " style={{ width: "200px" }}>
-                      <ProgressBar ></ProgressBar>
-                    </div>
+                  <div className="column is-half">
+                    <ProgressBar/>
                   </div>
                 </div>
               </div>

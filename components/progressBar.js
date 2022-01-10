@@ -23,11 +23,11 @@ export default function progressBar(){
     return(
         <>
         {defaultState ? (
-            <div className="progressBar">
-                <ProgressBar now={0}/>
+            <div>
+              <ProgressBar now={0}/>
             </div>
         ) : (
-          <div className="progressBar">
+          <div>
             {checkLast ? (<ProgressBar now = {100} label ={`Done`}/>): (<ProgressBar now={percentage} label={`${percentage}% completed`}  animated/> )}
           </div>
         )}

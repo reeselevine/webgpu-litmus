@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
-let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','memoryAliases']
+let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','aliasedMemory', 'permuteFirst', 'permuteSecond']
 let indexToStringList = ['memStressPattern','preStressPattern','stressAssignmentStrategy']
 let indexToStringMapping = {
   memStressPattern: ["store-store", "store-load", "load-store", "load-load"],
@@ -21,10 +21,14 @@ function replacer(key, value) {
   }
 }
 
+export function filteredParams(params) {
+  return JSON.stringify(params, replacer);
+}
+
 export function ParamButton(props) {
   const [isCopied, setIsCopied] = useState(false);
   const [isActive, setIsActive] = useState(false);
-  let json = JSON.stringify(props.params, replacer).split(",").join('\n').replace(/{|}/g, "");
+  let json = filteredParams(props.params).split(",").join('\n').replace(/{|}/g, "");
   return (
     <>
       <button className="button is-info is-small" onClick={() => {
