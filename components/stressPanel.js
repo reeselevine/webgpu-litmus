@@ -112,6 +112,36 @@ function DropdownStressParam(props) {
   )
 }
 
+function paramsInputOnChange(params, uiParams) {
+  return function onChange(e) {
+    let file = e.target.files[0];
+    let reader = new FileReader();
+    reader.onload = function(event) {
+      let config = JSON.parse(event.target.result);
+      setConfig(params, uiParams, config);
+      console.log(config);
+    };
+    reader.readAsText(file);
+  }
+}
+
+function StressParamsInput(props) {
+  return (
+    <>
+      <div className="file is-primary">
+        <label className="file-label" data-tip="A JSON file with the same structure and parameters as the 'params' field when downloading tuning results.">
+          <input className="file-input" type="file" name="params" onChange={paramsInputOnChange(props.params, props.uiParams)}/>
+          <span className="file-cta">
+            <span className="file-label">
+              Upload
+            </span>
+          </span>
+        </label>
+      </div>
+    </>
+  )
+}
+
 const noStressConfig = {
   testingWorkgroups: 2,
   maxWorkgroups: 4,
@@ -249,6 +279,14 @@ export function getStressPanel(params, pageState) {
                       Random
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="panel-block p-2">
+              <div className="columns">
+                <div className="column">
+                  <b>Choose a Parameter File:</b>
+                  <StressParamsInput params={params} uiParams={uiParams}/>
                 </div>
               </div>
             </div>
