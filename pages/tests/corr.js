@@ -3,6 +3,8 @@ import { coRRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr/corr.wgsl'
 import coRRRMW from '../../shaders/corr/corr-rmw.wgsl'
+import coRRRMW1 from '../../shaders/corr/corr-rmw1.wgsl'
+import coRRRMW2 from '../../shaders/corr/corr-rmw2.wgsl'
 import coRRWorkgroup from '../../shaders/corr/corr-workgroup.wgsl'
 import coRRStorageWorkgroup from '../../shaders/corr/corr-storage-workgroup.wgsl'
 import coRRNB from '../../shaders/corr/corr-nb.wgsl'
@@ -30,6 +32,16 @@ const variants = {
   rmw: {
     pseudo: buildPseudoCode([thread0RMW, thread1RMW]),
     shader: coRRRMW,
+    workgroup: false
+  },
+  rmw1: {
+    pseudo: buildPseudoCode([thread0RMW, thread1]),
+    shader: coRRRMW1,
+    workgroup: false
+  },
+  rmw2: {
+    pseudo: buildPseudoCode([thread0, thread1RMW]),
+    shader: coRRRMW2,
     workgroup: false
   },
   workgroup: {
