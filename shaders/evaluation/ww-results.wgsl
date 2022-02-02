@@ -10,8 +10,6 @@
 struct ReadResult {
   r0: atomic<u32>;
   r1: atomic<u32>;
-  r2: atomic<u32>;
-  r3: atomic<u32>;
 };
 
 [[block]] struct ReadResults {
@@ -54,9 +52,9 @@ let workgroupXSize = 256;
   let id_0 = workgroup_id[0] * u32(workgroupXSize) + local_invocation_id[0];
   let r0 = atomicLoad(&read_results.value[id_0].r0);
   let r1 = atomicLoad(&read_results.value[id_0].r1);
-  let r2 = atomicLoad(&read_results.value[id_0].r2);
-  let r3 = atomicLoad(&read_results.value[id_0].r3);
-  if ((r0 == 2u && r1 == 3u && r2 == 3u && r3 == 1u)) {
+  let x_0 = (id_0) * stress_params.mem_stride * 2u;
+  let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
+  if (r0 == 2u && r1 == 3u && mem_x_0 == 1u) {
     let unused = atomicAdd(&test_results.weak, 1u);
   } else {
     let unused = atomicAdd(&test_results.nonWeak, 1u);

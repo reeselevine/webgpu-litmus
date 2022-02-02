@@ -9,7 +9,6 @@
 struct ReadResult {
   r0: atomic<u32>;
   r1: atomic<u32>;
-  r2: atomic<u32>;
 };
 
 [[block]] struct ReadResults {
@@ -119,14 +118,9 @@ let workgroupXSize = 256;
     let workgroup_id_1 = stripe_workgroup(shuffled_workgroup, local_invocation_id[0]);
     let local_id_1 = permute_id(local_invocation_id[0], stress_params.permute_first, u32(workgroupXSize));
     let id_1 = workgroup_id_1 * u32(workgroupXSize) + local_id_1;
-    let workgroup_id_2 = stripe_workgroup(workgroup_id_1, local_id_1);
-    let local_id_2 = permute_id(local_id_1, stress_params.permute_first, u32(workgroupXSize));
-    let id_2 = workgroup_id_2 * u32(workgroupXSize) + local_id_2;
     let x_0 = (id_0) * stress_params.mem_stride * 2u;
     let y_0 = (permute_id(id_0, stress_params.permute_second, total_ids)) * stress_params.mem_stride * 2u + stress_params.location_offset;
     let x_1 = (id_1) * stress_params.mem_stride * 2u;
-    let x_2 = (id_2) * stress_params.mem_stride * 2u;
-    let y_2 = (permute_id(id_2, stress_params.permute_second, total_ids)) * stress_params.mem_stride * 2u + stress_params.location_offset;
     if (stress_params.pre_stress == 1u) {
       do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, shuffled_workgroup);
     }
@@ -136,12 +130,8 @@ let workgroupXSize = 256;
     let r0 = atomicLoad(&test_locations.value[x_0]);
     atomicStore(&test_locations.value[y_0], 1u);
     atomicStore(&test_locations.value[x_1], 2u);
-    let r1 = atomicLoad(&test_locations.value[x_2]);
-    let r2 = atomicLoad(&test_locations.value[y_2]);
     workgroupBarrier();
     atomicStore(&results.value[id_0].r0, r0);
-    atomicStore(&results.value[id_2].r1, r1);
-    atomicStore(&results.value[id_2].r2, r2);
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

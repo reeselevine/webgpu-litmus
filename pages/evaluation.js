@@ -3,6 +3,11 @@ import { getStressPanel } from '../components/stressPanel.js';
 import { buildThrottle, clearState, handleResult } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runEvaluationLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
+import rr from '../shaders/evaluation/rr.wgsl';
+import rrMutation from '../shaders/evaluation/rr-mutation.wgsl';
+import rrRMW from '../shaders/evaluation/rr.wgsl';
+import rrRMWMutation from '../shaders/evaluation/rr-mutation.wgsl';
+import rrResults from '../shaders/evaluation/rr-results.wgsl';
 import rw from '../shaders/evaluation/rw.wgsl';
 import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
 import rwResults from '../shaders/evaluation/rw-results.wgsl';
@@ -26,7 +31,7 @@ import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl';
 import twoPlusTwoWriteResults from '../shaders/evaluation/2+2-write-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-testParams.numOutputs = 4;
+testParams.numOutputs = 2;
 const defaultKeys = ["nonWeak", "weak"];
 
 function getPageState() {
@@ -217,6 +222,8 @@ function paramsIdentity(testParams) {
 
 export default function EvaluationTestSuite() {
   const pageState = getPageState();
+  let rrConfig = buildTest("RR", pageState, testParams, getAliasedParams, getAliasedParams, rr, rrMutation, rrResults);
+  let rrRMWConfig = buildTest("RR RMW", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW, rrRMWMutation, rrResults);
   let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwMutation, rwResults);
   let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrMutation, wrResults);
   let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwMutation, wwResults);
@@ -227,7 +234,8 @@ export default function EvaluationTestSuite() {
   let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
   let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
 
-  const tests = [rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
+  const tests = [rrConfig, rrRMWConfig, rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
+
   let initialIterations = pageState.iterations.value;
   let initialMutationPercentage = pageState.mutationPercentage.value;
   const stressPanel = getStressPanel(testParams, pageState);
