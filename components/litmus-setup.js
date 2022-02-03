@@ -12,10 +12,12 @@ export const defaultTestParams = {
   memStride: 1,
   memStressPct: 0,
   memStressIterations: 1024,
-  memStressPattern: 2,
+  memStressStoreFirstPct: 0,
+  memStressStoreSecondPct: 100,
   preStressPct: 0,
   preStressIterations: 128,
-  preStressPattern: 2,
+  preStressStoreFirstPct: 0,
+  preStressStoreSecondPct: 100,
   stressLineSize: 64,
   stressTargetLines: 2,
   stressAssignmentStrategy: 0,
@@ -173,14 +175,38 @@ function setStressParams(stressParams, testParams) {
     stressParamsArray[1*uniformBufferAlignment] = 0;
   }
   stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
-  stressParamsArray[3*uniformBufferAlignment] = testParams.memStressPattern;
+  const memStressStoreFirst = getRandomInt(100) < testParams.memStresssStoreFirstPct;
+  const memStressStoreSecond = getRandomInt(100) < testParams.memStressStoreSecondPct; 
+  let memStressPattern;
+  if (memStressStoreFirst && memStressStoreSecond) {
+    memStressPattern = 0;
+  } else if (memStressStoreFirst && !memStressStoreSecond) {
+    memStressPattern = 1;
+  } else if (!memStressStoreFirst && memStressStoreSecond) {
+    memStressPattern = 2;
+  } else {
+    memStressPattern = 3;
+  }
+  stressParamsArray[3*uniformBufferAlignment] = memStressPattern;
   if (getRandomInt(100) < testParams.preStressPct) {
     stressParamsArray[4*uniformBufferAlignment] = 1;
   } else {
     stressParamsArray[4*uniformBufferAlignment] = 0;
   }
   stressParamsArray[5*uniformBufferAlignment] = testParams.preStressIterations;
-  stressParamsArray[6*uniformBufferAlignment] = testParams.preStressPattern;
+  const preStressStoreFirst = getRandomInt(100) < testParams.preStresssStoreFirstPct;
+  const preStressStoreSecond = getRandomInt(100) < testParams.preStressStoreSecondPct; 
+  let preStressPattern;
+  if (preStressStoreFirst && preStressStoreSecond) {
+    preStressPattern = 0;
+  } else if (preStressStoreFirst && !preStressStoreSecond) {
+    preStressPattern = 1;
+  } else if (!preStressStoreFirst && preStressStoreSecond) {
+    preStressPattern = 2;
+  } else {
+    preStressPattern = 3;
+  }
+  stressParamsArray[6*uniformBufferAlignment] = preStressPattern;
   stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
   stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
   stressParamsArray[9*uniformBufferAlignment] = testParams.testingWorkgroups;

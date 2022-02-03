@@ -3,10 +3,8 @@ import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','aliasedMemory', 'permuteFirst', 'permuteSecond']
-let indexToStringList = ['memStressPattern','preStressPattern','stressAssignmentStrategy']
+let indexToStringList = ['stressAssignmentStrategy']
 let indexToStringMapping = {
-  memStressPattern: ["store-store", "store-load", "load-store", "load-load"],
-  preStressPattern: ["store-store", "store-load", "load-store", "load-load"],
   stressAssignmentStrategy: ["round-robin", "chunking"]
 };
 

@@ -637,7 +637,9 @@ export function randomConfig(generator) {
     memStressIterations: randomGenerator(0, 1024, generator),
     preStressIterations: randomGenerator(0, 128, generator),
     stressAssignmentStrategy: randomGenerator(0, 1, generator),
-    memStressPattern: randomGenerator(0, 3, generator),
-    preStressPattern: randomGenerator(0, 3, generator)
+    memStressStoreFirstPct: roundedPercentage(generator),
+    memStressStoreSecondPct: roundedPercentage(generator),
+    preStressStoreFirstPct: roundedPercentage(generator),
+    preStressStoreSecondPct: roundedPercentage(generator)
   };
 }
