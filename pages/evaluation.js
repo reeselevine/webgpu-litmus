@@ -14,21 +14,38 @@ import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
 import rrResults from '../shaders/evaluation/rr-results.wgsl';
 import rw from '../shaders/evaluation/rw.wgsl';
 import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
-import rwRMW from '../shaders/evaluation/rw.wgsl';
-import rwRMWMutation from '../shaders/evaluation/rw-mutation.wgsl';
+import rwRMW from '../shaders/evaluation/rw-rmw.wgsl';
+import rwRMWMutation from '../shaders/evaluation/rw-rmw-mutation.wgsl';
 import rwResults from '../shaders/evaluation/rw-results.wgsl';
 import wr from '../shaders/evaluation/wr.wgsl';
 import wrMutation from '../shaders/evaluation/wr-mutation.wgsl';
-import wrRMW from '../shaders/evaluation/wr.wgsl';
-import wrRMWMutation from '../shaders/evaluation/wr-mutation.wgsl';
+import wrRMW from '../shaders/evaluation/wr-rmw.wgsl';
+import wrRMWMutation from '../shaders/evaluation/wr-rmw-mutation.wgsl';
 import wrResults from '../shaders/evaluation/wr-results.wgsl';
 import ww from '../shaders/evaluation/ww.wgsl';
 import wwMutation from '../shaders/evaluation/ww-mutation.wgsl';
-import wwRMW from '../shaders/evaluation/ww.wgsl';
-import wwRMWMutation from '../shaders/evaluation/ww-mutation.wgsl';
+import wwRMW from '../shaders/evaluation/ww-rmw.wgsl';
+import wwRMWMutation from '../shaders/evaluation/ww-rmw-mutation.wgsl';
+import wwRMW1 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW1Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW2 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW2Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW3 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW3Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW4 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW4Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW5 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW5Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW6 from '../shaders/evaluation/ww-rmw1.wgsl';
+import wwRMW6Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
 import wwResults from '../shaders/evaluation/ww-results.wgsl';
 import messagePassing from '../shaders/mp/message-passing.wgsl'
+import messagePassingBarrier from '../shaders/mp/message-passing-barrier.wgsl'
+import messagePassingBarrier1 from '../shaders/mp/message-passing-barrier1.wgsl'
+import messagePassingBarrier2 from '../shaders/mp/message-passing-barrier2.wgsl'
+import messagePassingCoherency from '../shaders/mp/message-passing-coherency.wgsl'
 import messagePassingResults from '../shaders/evaluation/message-passing-results.wgsl';
+import messagePassingCoherencyResults from '../shaders/evaluation/message-passing-coherency-results.wgsl';
 import store from '../shaders/store/store.wgsl'
 import storeResults from '../shaders/evaluation/store-results.wgsl';
 import read from '../shaders/read/read.wgsl';
@@ -242,15 +259,25 @@ export default function EvaluationTestSuite() {
   let wrRMWConfig = buildTest("WR RMW", pageState, testParams, getAliasedParams, getAliasedParams, wrRMW, wrRMWMutation, wrResults);
   let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwMutation, wwResults);
   let wwRMWConfig = buildTest("WW RMW", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW, wwRMWMutation, wwResults);
-  let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getAliasedParams, paramsIdentity, messagePassing, messagePassing, messagePassingResults);
+  let wwRMW1Config = buildTest("WW RMW1", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW1, wwRMW1Mutation, wwResults);
+  let wwRMW2Config = buildTest("WW RMW2", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW2, wwRMW2Mutation, wwResults);
+  let wwRMW3Config = buildTest("WW RMW3", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW3, wwRMW3Mutation, wwResults);
+  let wwRMW4Config = buildTest("WW RMW4", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW4, wwRMW4Mutation, wwResults);
+  let wwRMW5Config = buildTest("WW RMW5", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW5, wwRMW5Mutation, wwResults);
+  let wwRMW6Config = buildTest("WW RMW6", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW6, wwRMW6Mutation, wwResults);
+  let messagePassingBarrierConfig = buildTest("Message Passing Barrier", pageState, testParams, paramsIdentity, paramsIdentity, messagePassingBarrier, messagePassing, messagePassingResults);
+  let messagePassingBarrier1Config = buildTest("Message Passing Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, messagePassingBarrier, messagePassingBarrier1, messagePassingResults);
+  let messagePassingBarrier2Config = buildTest("Message Passing Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, messagePassingBarrier, messagePassingBarrier2, messagePassingResults);
+  let messagePassingCoherencyConfig = buildTest("Message Passing Coherency", pageState, testParams, getAliasedParams, paramsIdentity, messagePassingCoherency, messagePassingCoherency, messagePassingCoherencyResults);
   let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults);
   let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults);
   let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getAliasedParams, paramsIdentity, loadBuffer, loadBuffer, loadBufferResults);
   let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
   let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
 
-  const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, rwRMWConfig, wrConfig, wrRMWConfig, wwConfig, wwRMWConfig, 
-    messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
+  const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, rwRMWConfig, wrConfig, wrRMWConfig, wwConfig, wwRMWConfig, wwRMW1Config, wwRMW2Config, wwRMW3Config,
+    wwRMW4Config, wwRMW5Config, wwRMW6Config, messagePassingBarrierConfig, messagePassingBarrier1Config, messagePassingBarrier2Config, messagePassingCoherencyConfig,
+    storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
 
   let initialIterations = pageState.iterations.value;
   let initialMutationPercentage = pageState.mutationPercentage.value;
