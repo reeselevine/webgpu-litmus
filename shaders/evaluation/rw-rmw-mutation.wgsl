@@ -128,7 +128,7 @@ let workgroupXSize = 256;
     }
     atomicStore(&test_locations.value[x_0], 1u);
     let r0 = atomicLoad(&test_locations.value[y_0]);
-    atomicStore(&test_locations.value[x_1], 2u);
+    let unused = atomicExchange(&test_locations.value[x_1], 2u);
     workgroupBarrier();
     atomicStore(&results.value[id_0].r0, r0);
   } elseif (stress_params.mem_stress == 1u) {

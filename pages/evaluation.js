@@ -14,12 +14,18 @@ import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
 import rrResults from '../shaders/evaluation/rr-results.wgsl';
 import rw from '../shaders/evaluation/rw.wgsl';
 import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
+import rwRMW from '../shaders/evaluation/rw.wgsl';
+import rwRMWMutation from '../shaders/evaluation/rw-mutation.wgsl';
 import rwResults from '../shaders/evaluation/rw-results.wgsl';
 import wr from '../shaders/evaluation/wr.wgsl';
 import wrMutation from '../shaders/evaluation/wr-mutation.wgsl';
+import wrRMW from '../shaders/evaluation/wr.wgsl';
+import wrRMWMutation from '../shaders/evaluation/wr-mutation.wgsl';
 import wrResults from '../shaders/evaluation/wr-results.wgsl';
 import ww from '../shaders/evaluation/ww.wgsl';
 import wwMutation from '../shaders/evaluation/ww-mutation.wgsl';
+import wwRMW from '../shaders/evaluation/ww.wgsl';
+import wwRMWMutation from '../shaders/evaluation/ww-mutation.wgsl';
 import wwResults from '../shaders/evaluation/ww-results.wgsl';
 import messagePassing from '../shaders/mp/message-passing.wgsl'
 import messagePassingResults from '../shaders/evaluation/message-passing-results.wgsl';
@@ -231,8 +237,11 @@ export default function EvaluationTestSuite() {
   let rrRMW1Config = buildTest("RR RMW1", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW1, rrRMW1Mutation, rrResults);
   let rrRMW2Config = buildTest("RR RMW2", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW2, rrRMW2Mutation, rrResults);
   let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwMutation, rwResults);
+  let rwRMWConfig = buildTest("RW RMW", pageState, testParams, getAliasedParams, getAliasedParams, rwRMW, rwRMWMutation, rwResults);
   let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrMutation, wrResults);
+  let wrRMWConfig = buildTest("WR RMW", pageState, testParams, getAliasedParams, getAliasedParams, wrRMW, wrRMWMutation, wrResults);
   let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwMutation, wwResults);
+  let wwRMWConfig = buildTest("WW RMW", pageState, testParams, getAliasedParams, getAliasedParams, wwRMW, wwRMWMutation, wwResults);
   let messagePassingConfig = buildTest("Message Passing", pageState, testParams, getAliasedParams, paramsIdentity, messagePassing, messagePassing, messagePassingResults);
   let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults);
   let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults);
@@ -240,8 +249,8 @@ export default function EvaluationTestSuite() {
   let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
   let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
 
-  const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, 
-    storeBufferConfig, twoPlusTwoWriteConfig];
+  const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, rwRMWConfig, wrConfig, wrRMWConfig, wwConfig, wwRMWConfig, 
+    messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
 
   let initialIterations = pageState.iterations.value;
   let initialMutationPercentage = pageState.mutationPercentage.value;
