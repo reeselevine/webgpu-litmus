@@ -7,7 +7,7 @@ import rr from '../shaders/evaluation/rr.wgsl';
 import rrMutation from '../shaders/evaluation/rr-mutation.wgsl';
 import rrRMW from '../shaders/evaluation/rr-rmw.wgsl';
 import rrRMWMutation from '../shaders/evaluation/rr-rmw-mutation.wgsl';
-import rrRMW1 from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
+import rrRMW1 from '../shaders/evaluation/rr-rmw1.wgsl';
 import rrRMW1Mutation from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
 import rrRMW2 from '../shaders/evaluation/rr-rmw2.wgsl';
 import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
@@ -28,16 +28,16 @@ import wwRMW from '../shaders/evaluation/ww-rmw.wgsl';
 import wwRMWMutation from '../shaders/evaluation/ww-rmw-mutation.wgsl';
 import wwRMW1 from '../shaders/evaluation/ww-rmw1.wgsl';
 import wwRMW1Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
-import wwRMW2 from '../shaders/evaluation/ww-rmw1.wgsl';
-import wwRMW2Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
-import wwRMW3 from '../shaders/evaluation/ww-rmw1.wgsl';
-import wwRMW3Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
-import wwRMW4 from '../shaders/evaluation/ww-rmw1.wgsl';
-import wwRMW4Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
-import wwRMW5 from '../shaders/evaluation/ww-rmw1.wgsl';
-import wwRMW5Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
-import wwRMW6 from '../shaders/evaluation/ww-rmw1.wgsl';
-import wwRMW6Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW2 from '../shaders/evaluation/ww-rmw2.wgsl';
+import wwRMW2Mutation from '../shaders/evaluation/ww-rmw2-mutation.wgsl';
+import wwRMW3 from '../shaders/evaluation/ww-rmw3.wgsl';
+import wwRMW3Mutation from '../shaders/evaluation/ww-rmw3-mutation.wgsl';
+import wwRMW4 from '../shaders/evaluation/ww-rmw4.wgsl';
+import wwRMW4Mutation from '../shaders/evaluation/ww-rmw4-mutation.wgsl';
+import wwRMW5 from '../shaders/evaluation/ww-rmw5.wgsl';
+import wwRMW5Mutation from '../shaders/evaluation/ww-rmw5-mutation.wgsl';
+import wwRMW6 from '../shaders/evaluation/ww-rmw6.wgsl';
+import wwRMW6Mutation from '../shaders/evaluation/ww-rmw6-mutation.wgsl';
 import wwResults from '../shaders/evaluation/ww-results.wgsl';
 import messagePassing from '../shaders/mp/message-passing.wgsl'
 import messagePassingBarrier from '../shaders/mp/message-passing-barrier.wgsl'
@@ -47,15 +47,38 @@ import messagePassingCoherency from '../shaders/mp/message-passing-coherency.wgs
 import messagePassingResults from '../shaders/evaluation/message-passing-results.wgsl';
 import messagePassingCoherencyResults from '../shaders/evaluation/message-passing-coherency-results.wgsl';
 import store from '../shaders/store/store.wgsl'
+import storeBarrier from '../shaders/store/store-barrier.wgsl'
+import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
+import storeBarrier2 from '../shaders/store/store-barrier2.wgsl'
+import storeCoherency from '../shaders/store/store-coherency.wgsl'
 import storeResults from '../shaders/evaluation/store-results.wgsl';
 import read from '../shaders/read/read.wgsl';
+import readBarrier from '../shaders/read/read-rmw-barrier.wgsl';
+import readBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl';
+import readBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl';
+import readCoherency from '../shaders/read/read-coherency.wgsl';
 import readResults from '../shaders/evaluation/read-results.wgsl';
+import readCoherencyResults from '../shaders/evaluation/read-coherency-results.wgsl';
 import loadBuffer from '../shaders/lb/load-buffer.wgsl';
+import loadBufferBarrier from '../shaders/lb/load-buffer-barrier.wgsl';
+import loadBufferBarrier1 from '../shaders/lb/load-buffer-barrier1.wgsl';
+import loadBufferBarrier2 from '../shaders/lb/load-buffer-barrier2.wgsl';
+import loadBufferCoherency from '../shaders/lb/load-buffer-coherency.wgsl';
 import loadBufferResults from '../shaders/evaluation/load-buffer-results.wgsl';
+import loadBufferCoherencyResults from '../shaders/evaluation/load-buffer-coherency-results.wgsl';
 import storeBuffer from '../shaders/sb/store-buffer.wgsl';
+import storeBufferBarrier from '../shaders/sb/store-buffer-rmw-barrier.wgsl';
+import storeBufferBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl';
+import storeBufferBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl';
+import storeBufferCoherency from '../shaders/sb/store-buffer.wgsl';
 import storeBufferResults from '../shaders/evaluation/store-buffer-results.wgsl';
 import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl';
+import twoPlusTwoWriteBarrier from '../shaders/2+2w/2+2-write-rmw-barrier.wgsl';
+import twoPlusTwoWriteBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
+import twoPlusTwoWriteBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
+import twoPlusTwoWriteCoherency from '../shaders/2+2w/2+2-write-coherency.wgsl';
 import twoPlusTwoWriteResults from '../shaders/evaluation/2+2-write-results.wgsl';
+import twoPlusTwoWriteCoherencyResults from '../shaders/evaluation/2+2-write-coherency-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 testParams.numOutputs = 2;
@@ -269,15 +292,32 @@ export default function EvaluationTestSuite() {
   let messagePassingBarrier1Config = buildTest("Message Passing Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, messagePassingBarrier, messagePassingBarrier1, messagePassingResults);
   let messagePassingBarrier2Config = buildTest("Message Passing Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, messagePassingBarrier, messagePassingBarrier2, messagePassingResults);
   let messagePassingCoherencyConfig = buildTest("Message Passing Coherency", pageState, testParams, getAliasedParams, paramsIdentity, messagePassingCoherency, messagePassingCoherency, messagePassingCoherencyResults);
-  let storeConfig = buildTest("Store", pageState, testParams, getAliasedParams, paramsIdentity, store, store, storeResults);
-  let readConfig = buildTest("Read", pageState, testParams, getAliasedParams, paramsIdentity, read, read, readResults);
-  let loadBufferConfig = buildTest("Load Buffer", pageState, testParams, getAliasedParams, paramsIdentity, loadBuffer, loadBuffer, loadBufferResults);
-  let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
-  let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
+  let storeBarrierConfig = buildTest("Store Barrier", pageState, testParams, paramsIdentity, paramsIdentity, storeBarrier, store, storeResults);
+  let storeBarrier1Config = buildTest("Store Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, storeBarrier, storeBarrier1, storeResults);
+  let storeBarrier2Config = buildTest("Store Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, storeBarrier, storeBarrier2, storeResults);
+  let storeCoherencyConfig = buildTest("Store Coherency", pageState, testParams, getAliasedParams, paramsIdentity, storeCoherency, storeCoherency, storeResults);
+  let readBarrierConfig = buildTest("Read Barrier", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, read, readResults);
+  let readBarrier1Config = buildTest("Read Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, readBarrier1, readResults);
+  let readBarrier2Config = buildTest("Read Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, readBarrier2, readResults);
+  let readCoherencyConfig = buildTest("Read Coherency", pageState, testParams, getAliasedParams, paramsIdentity, readCoherency, readCoherency, readCoherencyResults);
+  let loadBufferBarrierConfig = buildTest("Load Buffer Barrier", pageState, testParams, paramsIdentity, paramsIdentity, loadBufferBarrier, loadBuffer, loadBufferResults);
+  let loadBufferBarrier1Config = buildTest("Load Buffer Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, loadBufferBarrier, loadBufferBarrier1, loadBufferResults);
+  let loadBufferBarrier2Config = buildTest("Load Buffer Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, loadBufferBarrier, loadBufferBarrier2, loadBufferResults);
+  let loadBufferCoherencyConfig = buildTest("Load Buffer Coherency", pageState, testParams, getAliasedParams, paramsIdentity, loadBufferCoherency, loadBufferCoherency, loadBufferCoherencyResults);
+  let storeBufferBarrierConfig = buildTest("Store Buffer Barrier", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBuffer, storeBufferResults);
+  let storeBufferBarrier1Config = buildTest("Store Buffer Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBufferBarrier1, storeBufferResults);
+  let storeBufferBarrier2Config = buildTest("Store Buffer Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBufferBarrier2, storeBufferResults);
+  let storeBufferCoherencyConfig = buildTest("Store Buffer Coherency", pageState, testParams, getAliasedParams, paramsIdentity, storeBufferCoherency, storeBufferCoherency, storeBufferResults);
+  let twoPlusTwoWriteBarrierConfig = buildTest("2+2 Write Barrier", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWrite, twoPlusTwoWriteResults);
+  let twoPlusTwoWriteBarrier1Config = buildTest("2+2 Write Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWriteBarrier1, twoPlusTwoWriteResults);
+  let twoPlusTwoWriteBarrier2Config = buildTest("2+2 Write Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWriteBarrier2, twoPlusTwoWriteResults);
+  let twoPlusTwoWriteCoherencyConfig = buildTest("2+2 Write Coherency", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherencyResults);
 
   const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, rwRMWConfig, wrConfig, wrRMWConfig, wwConfig, wwRMWConfig, wwRMW1Config, wwRMW2Config, wwRMW3Config,
     wwRMW4Config, wwRMW5Config, wwRMW6Config, messagePassingBarrierConfig, messagePassingBarrier1Config, messagePassingBarrier2Config, messagePassingCoherencyConfig,
-    storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
+    storeBarrierConfig, storeBarrier1Config, storeBarrier2Config, storeCoherencyConfig, readBarrierConfig, readBarrier1Config, readBarrier2Config, readCoherencyConfig,
+    loadBufferBarrierConfig, loadBufferBarrier1Config, loadBufferBarrier2Config, loadBufferCoherencyConfig, storeBufferBarrierConfig, storeBufferBarrier1Config, storeBufferBarrier2Config,
+    storeBufferCoherencyConfig, twoPlusTwoWriteBarrierConfig, twoPlusTwoWriteBarrier1Config, twoPlusTwoWriteBarrier2Config, twoPlusTwoWriteCoherencyConfig];
 
   let initialIterations = pageState.iterations.value;
   let initialMutationPercentage = pageState.mutationPercentage.value;
