@@ -5,8 +5,12 @@ import { reportTime, getCurrentIteration, runEvaluationLitmusTest } from '../com
 import { defaultTestParams } from '../components/litmus-setup.js'
 import rr from '../shaders/evaluation/rr.wgsl';
 import rrMutation from '../shaders/evaluation/rr-mutation.wgsl';
-import rrRMW from '../shaders/evaluation/rr.wgsl';
-import rrRMWMutation from '../shaders/evaluation/rr-mutation.wgsl';
+import rrRMW from '../shaders/evaluation/rr-rmw.wgsl';
+import rrRMWMutation from '../shaders/evaluation/rr-rmw-mutation.wgsl';
+import rrRMW1 from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
+import rrRMW1Mutation from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
+import rrRMW2 from '../shaders/evaluation/rr-rmw2.wgsl';
+import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
 import rrResults from '../shaders/evaluation/rr-results.wgsl';
 import rw from '../shaders/evaluation/rw.wgsl';
 import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
@@ -224,6 +228,8 @@ export default function EvaluationTestSuite() {
   const pageState = getPageState();
   let rrConfig = buildTest("RR", pageState, testParams, getAliasedParams, getAliasedParams, rr, rrMutation, rrResults);
   let rrRMWConfig = buildTest("RR RMW", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW, rrRMWMutation, rrResults);
+  let rrRMW1Config = buildTest("RR RMW1", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW1, rrRMW1Mutation, rrResults);
+  let rrRMW2Config = buildTest("RR RMW2", pageState, testParams, getAliasedParams, getAliasedParams, rrRMW2, rrRMW2Mutation, rrResults);
   let rwConfig = buildTest("RW", pageState, testParams, getAliasedParams, getAliasedParams, rw, rwMutation, rwResults);
   let wrConfig = buildTest("WR", pageState, testParams, getAliasedParams, getAliasedParams, wr, wrMutation, wrResults);
   let wwConfig = buildTest("WW", pageState, testParams, getAliasedParams, getAliasedParams, ww, wwMutation, wwResults);
@@ -234,7 +240,8 @@ export default function EvaluationTestSuite() {
   let storeBufferConfig = buildTest("Store Buffer", pageState, testParams, getAliasedParams, paramsIdentity, storeBuffer, storeBuffer, storeBufferResults);
   let twoPlusTwoWriteConfig = buildTest("2+2 Write", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWrite, twoPlusTwoWrite, twoPlusTwoWriteResults);
 
-  const tests = [rrConfig, rrRMWConfig, rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, storeBufferConfig, twoPlusTwoWriteConfig];
+  const tests = [rrConfig, rrRMWConfig, rrRMW1Config, rrRMW2Config, rwConfig, wrConfig, wwConfig, messagePassingConfig, storeConfig, readConfig, loadBufferConfig, 
+    storeBufferConfig, twoPlusTwoWriteConfig];
 
   let initialIterations = pageState.iterations.value;
   let initialMutationPercentage = pageState.mutationPercentage.value;
