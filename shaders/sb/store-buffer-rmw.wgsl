@@ -127,12 +127,13 @@ let workgroupXSize = 256;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    atomicStore(&test_locations.value[x_0], 2u);
-    storageBarrier();
-    let unused = atomicExchange(&test_locations.value[y_0], 1u);
-    let unused1 = atomicExchange(&test_locations.value[y_1], 2u);
-    atomicStore(&test_locations.value[x_1], 1u);
+    atomicStore(&test_locations.value[x_0], 1u);
+    let r0 = atomicAdd(&test_locations.value[y_0], 0u);
+    let unused = atomicExchange(&test_locations.value[y_1], 1u);
+    let r1 = atomicLoad(&test_locations.value[x_1]);
     workgroupBarrier();
+    atomicStore(&results.value[id_0].r0, r0);
+    atomicStore(&results.value[id_1].r1, r1);
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

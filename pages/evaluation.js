@@ -52,7 +52,7 @@ import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
 import storeBarrier2 from '../shaders/store/store-barrier2.wgsl'
 import storeCoherency from '../shaders/store/store-coherency.wgsl'
 import storeResults from '../shaders/evaluation/store-results.wgsl';
-import read from '../shaders/read/read.wgsl';
+import readRMW from '../shaders/read/read-rmw.wgsl';
 import readBarrier from '../shaders/read/read-rmw-barrier.wgsl';
 import readBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl';
 import readBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl';
@@ -66,13 +66,13 @@ import loadBufferBarrier2 from '../shaders/lb/load-buffer-barrier2.wgsl';
 import loadBufferCoherency from '../shaders/lb/load-buffer-coherency.wgsl';
 import loadBufferResults from '../shaders/evaluation/load-buffer-results.wgsl';
 import loadBufferCoherencyResults from '../shaders/evaluation/load-buffer-coherency-results.wgsl';
-import storeBuffer from '../shaders/sb/store-buffer.wgsl';
+import storeBufferRMW from '../shaders/sb/store-buffer-rmw.wgsl';
 import storeBufferBarrier from '../shaders/sb/store-buffer-rmw-barrier.wgsl';
 import storeBufferBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl';
 import storeBufferBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl';
 import storeBufferCoherency from '../shaders/sb/store-buffer.wgsl';
 import storeBufferResults from '../shaders/evaluation/store-buffer-results.wgsl';
-import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl';
+import twoPlusTwoWriteRMW from '../shaders/2+2w/2+2-write-rmw.wgsl';
 import twoPlusTwoWriteBarrier from '../shaders/2+2w/2+2-write-rmw-barrier.wgsl';
 import twoPlusTwoWriteBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
 import twoPlusTwoWriteBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
@@ -296,7 +296,7 @@ export default function EvaluationTestSuite() {
   let storeBarrier1Config = buildTest("Store Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, storeBarrier, storeBarrier1, storeResults);
   let storeBarrier2Config = buildTest("Store Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, storeBarrier, storeBarrier2, storeResults);
   let storeCoherencyConfig = buildTest("Store Coherency", pageState, testParams, getAliasedParams, paramsIdentity, storeCoherency, storeCoherency, storeResults);
-  let readBarrierConfig = buildTest("Read Barrier", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, read, readResults);
+  let readBarrierConfig = buildTest("Read Barrier", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, readRMW, readResults);
   let readBarrier1Config = buildTest("Read Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, readBarrier1, readResults);
   let readBarrier2Config = buildTest("Read Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, readBarrier, readBarrier2, readResults);
   let readCoherencyConfig = buildTest("Read Coherency", pageState, testParams, getAliasedParams, paramsIdentity, readCoherency, readCoherency, readCoherencyResults);
@@ -304,11 +304,11 @@ export default function EvaluationTestSuite() {
   let loadBufferBarrier1Config = buildTest("Load Buffer Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, loadBufferBarrier, loadBufferBarrier1, loadBufferResults);
   let loadBufferBarrier2Config = buildTest("Load Buffer Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, loadBufferBarrier, loadBufferBarrier2, loadBufferResults);
   let loadBufferCoherencyConfig = buildTest("Load Buffer Coherency", pageState, testParams, getAliasedParams, paramsIdentity, loadBufferCoherency, loadBufferCoherency, loadBufferCoherencyResults);
-  let storeBufferBarrierConfig = buildTest("Store Buffer Barrier", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBuffer, storeBufferResults);
+  let storeBufferBarrierConfig = buildTest("Store Buffer Barrier", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBufferRMW, storeBufferResults);
   let storeBufferBarrier1Config = buildTest("Store Buffer Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBufferBarrier1, storeBufferResults);
   let storeBufferBarrier2Config = buildTest("Store Buffer Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, storeBufferBarrier, storeBufferBarrier2, storeBufferResults);
   let storeBufferCoherencyConfig = buildTest("Store Buffer Coherency", pageState, testParams, getAliasedParams, paramsIdentity, storeBufferCoherency, storeBufferCoherency, storeBufferResults);
-  let twoPlusTwoWriteBarrierConfig = buildTest("2+2 Write Barrier", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWrite, twoPlusTwoWriteResults);
+  let twoPlusTwoWriteBarrierConfig = buildTest("2+2 Write Barrier", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWriteRMW, twoPlusTwoWriteResults);
   let twoPlusTwoWriteBarrier1Config = buildTest("2+2 Write Barrier 1", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWriteBarrier1, twoPlusTwoWriteResults);
   let twoPlusTwoWriteBarrier2Config = buildTest("2+2 Write Barrier 2", pageState, testParams, paramsIdentity, paramsIdentity, twoPlusTwoWriteBarrier, twoPlusTwoWriteBarrier2, twoPlusTwoWriteResults);
   let twoPlusTwoWriteCoherencyConfig = buildTest("2+2 Write Coherency", pageState, testParams, getAliasedParams, paramsIdentity, twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherencyResults);

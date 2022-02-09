@@ -126,9 +126,9 @@ let workgroupXSize = 256;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    ignore(atomicExchange(&test_locations.value[x_0], 1u));
+    let unused = atomicExchange(&test_locations.value[x_0], 1u);
     let r0 = atomicAdd(&test_locations.value[y_0], 0u);
-    ignore(atomicExchange(&test_locations.value[x_1], 2u));
+    let unused1 = atomicExchange(&test_locations.value[x_1], 2u);
     workgroupBarrier();
     atomicStore(&results.value[id_0].r0, r0);
   } elseif (stress_params.mem_stress == 1u) {
