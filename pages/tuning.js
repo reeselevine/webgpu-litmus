@@ -93,6 +93,40 @@ import barrierSLResults from '../shaders/barrier-sl/barrier-store-load-workgroup
 import barrierSSWorkgroup from '../shaders/barrier-ss/barrier-store-store-workgroup.wgsl';
 import barrierSSStorageWorkgroup from '../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
 import barrierSSResults from '../shaders/barrier-ss/barrier-store-store-workgroup-results.wgsl';
+import rrMutation from '../shaders/evaluation/rr-mutation.wgsl';
+import rrRMWMutation from '../shaders/evaluation/rr-rmw-mutation.wgsl';
+import rrRMW1Mutation from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
+import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
+import rrResults from '../shaders/evaluation/rr-results.wgsl';
+import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
+import rwRMWMutation from '../shaders/evaluation/rw-rmw-mutation.wgsl';
+import rwResults from '../shaders/evaluation/rw-results.wgsl';
+import wrMutation from '../shaders/evaluation/wr-mutation.wgsl';
+import wrRMWMutation from '../shaders/evaluation/wr-rmw-mutation.wgsl';
+import wrResults from '../shaders/evaluation/wr-results.wgsl';
+import wwMutation from '../shaders/evaluation/ww-mutation.wgsl';
+import wwRMWMutation from '../shaders/evaluation/ww-rmw-mutation.wgsl';
+import wwRMW1Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
+import wwRMW2Mutation from '../shaders/evaluation/ww-rmw2-mutation.wgsl';
+import wwRMW3Mutation from '../shaders/evaluation/ww-rmw3-mutation.wgsl';
+import wwRMW4Mutation from '../shaders/evaluation/ww-rmw4-mutation.wgsl';
+import wwRMW5Mutation from '../shaders/evaluation/ww-rmw5-mutation.wgsl';
+import wwRMW6Mutation from '../shaders/evaluation/ww-rmw6-mutation.wgsl';
+import wwResults from '../shaders/evaluation/ww-results.wgsl';
+import messagePassingBarrier1 from '../shaders/mp/message-passing-barrier1.wgsl'
+import messagePassingBarrier2 from '../shaders/mp/message-passing-barrier2.wgsl'
+import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
+import storeBarrier2 from '../shaders/store/store-barrier2.wgsl'
+import readBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl';
+import readBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl';
+import loadBufferBarrier1 from '../shaders/lb/load-buffer-barrier1.wgsl';
+import loadBufferBarrier2 from '../shaders/lb/load-buffer-barrier2.wgsl';
+import storeBufferBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl';
+import storeBufferBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl';
+import twoPlusTwoWriteBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
+import twoPlusTwoWriteBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
+
+
 import { filteredParams } from '../components/tuningTable.js';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
@@ -376,6 +410,8 @@ function getTestSelector(pageState) {
   let mpTests = [
     buildTest(mpName, "Default", messagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Barrier Variant", barrierMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Barrier Variant 1", messagePassingBarrier1, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Barrier Variant 2", messagePassingBarrier2, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Workgroup (workgroup memory)", workgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Workgroup (storage memory)", storageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
@@ -386,6 +422,8 @@ function getTestSelector(pageState) {
   let storeTests = [
     buildTest(storeName, "Default", store, storeResults, pageState, defaultKeys),
     buildTest(storeName, "Barrier Variant", barrierStore, storeResults, pageState, defaultKeys),
+    buildTest(storeName, "Barrier Variant 1", storeBarrier1, storeResults, pageState, defaultKeys),
+    buildTest(storeName, "Barrier Variant 2", storeBarrier2, storeResults, pageState, defaultKeys),
     buildTest(storeName, "Workgroup (workgroup memory)", workgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Workgroup (storage memory)", storageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
@@ -398,6 +436,8 @@ function getTestSelector(pageState) {
     buildTest(readName, "Workgroup (workgroup memory)", readWorkgroup, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "Workgroup (storage memory)", readStorageWorkgroup, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier", readRMWBarrier, readResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier 1", storeBarrier1, readResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier 2", storeBarrier2, readResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (workgroup memory)", readWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys)
   ];
@@ -406,6 +446,8 @@ function getTestSelector(pageState) {
   let lbTests = [
     buildTest(lbName, "Default", loadBuffer, loadBufferResults, pageState, defaultKeys),
     buildTest(lbName, "Barrier Variant", barrierLoadBuffer, loadBufferResults, pageState, defaultKeys),
+    buildTest(lbName, "Barrier Variant 1", loadBufferBarrier1, loadBufferResults, pageState, defaultKeys),
+    buildTest(lbName, "Barrier Variant 2", loadBufferBarrier2, loadBufferResults, pageState, defaultKeys),
     buildTest(lbName, "Workgroup (workgroup memory)", workgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Workgroup (storage memory)", storageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
@@ -418,6 +460,7 @@ function getTestSelector(pageState) {
     buildTest(sbName, "Workgroup (workgroup memory)", storeBufferWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "Workgroup (storage memory)", storeBufferStorageWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier", storeBufferRMWBarrier, storeBufferResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier 1", storeBufferRMWBarrier, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (workgroup memory)", storeBufferWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys)
   ];
