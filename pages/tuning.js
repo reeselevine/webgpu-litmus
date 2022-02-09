@@ -117,14 +117,17 @@ import messagePassingBarrier1 from '../shaders/mp/message-passing-barrier1.wgsl'
 import messagePassingBarrier2 from '../shaders/mp/message-passing-barrier2.wgsl'
 import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
 import storeBarrier2 from '../shaders/store/store-barrier2.wgsl'
-import readBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl';
-import readBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl';
+import readRMW from '../shaders/read/read-rmw.wgsl';
+import readRMWBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl';
+import readRMWBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl';
 import loadBufferBarrier1 from '../shaders/lb/load-buffer-barrier1.wgsl';
 import loadBufferBarrier2 from '../shaders/lb/load-buffer-barrier2.wgsl';
-import storeBufferBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl';
-import storeBufferBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl';
-import twoPlusTwoWriteBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
-import twoPlusTwoWriteBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
+import storeBufferRMW from '../shaders/sb/store-buffer-rmw.wgsl';
+import storeBufferRMWBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl';
+import storeBufferRMWBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl';
+import twoPlusTwoWriteRMW from '../shaders/2+2w/2+2-write-rmw.wgsl';
+import twoPlusTwoWriteRMWBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
+import twoPlusTwoWriteRMWBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
 
 
 import { filteredParams } from '../components/tuningTable.js';
@@ -132,6 +135,7 @@ import { filteredParams } from '../components/tuningTable.js';
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
 const oneThreadKeys = ["seq", "weak"];
+const mutationTestKeys = ["nonWeak", "weak"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
@@ -246,7 +250,7 @@ function handleResult(test, pageState) {
   return function (result) {
     for (let i = 0; i < test.keys.length; i++) {
       var key;
-      if (test.keys[i].includes("seq")) {
+      if (test.keys[i].includes("seq") || test.keys[i] == "nonWeak") {
         key = "seq";
       } else {
         key = test.keys[i];
@@ -349,7 +353,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <RunStatistics stats={props.stats}/>
+        <RunStatistics stats={props.stats} />
       </td>
       <td>
         {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
@@ -435,9 +439,10 @@ function getTestSelector(pageState) {
     buildTest(readName, "Default", read, readResults, pageState, defaultKeys),
     buildTest(readName, "Workgroup (workgroup memory)", readWorkgroup, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "Workgroup (storage memory)", readStorageWorkgroup, readWorkgroupResults, pageState, defaultKeys),
+    buildTest(readName, "RMW", readRMW, readResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier", readRMWBarrier, readResults, pageState, defaultKeys),
-    buildTest(readName, "RMW Barrier 1", storeBarrier1, readResults, pageState, defaultKeys),
-    buildTest(readName, "RMW Barrier 2", storeBarrier2, readResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier 1", readRMWBarrier1, readResults, pageState, defaultKeys),
+    buildTest(readName, "RMW Barrier 2", readRMWBarrier2, readResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (workgroup memory)", readWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys)
   ];
@@ -459,8 +464,10 @@ function getTestSelector(pageState) {
     buildTest(sbName, "Default", storeBuffer, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "Workgroup (workgroup memory)", storeBufferWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "Workgroup (storage memory)", storeBufferStorageWorkgroup, storeBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW", storeBufferRMW, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier", storeBufferRMWBarrier, storeBufferResults, pageState, defaultKeys),
-    buildTest(sbName, "RMW Barrier 1", storeBufferRMWBarrier, storeBufferResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier 1", storeBufferRMWBarrier1, storeBufferResults, pageState, defaultKeys),
+    buildTest(sbName, "RMW Barrier 2", storeBufferRMWBarrier2, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (workgroup memory)", storeBufferWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys)
   ];
@@ -470,7 +477,10 @@ function getTestSelector(pageState) {
     buildTest(tptName, "Default", twoPlusTwoWrite, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
     buildTest(tptName, "Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroup, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW", twoPlusTwoWriteRMW, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier", twoPlusTwoWriteRMWBarrier, twoPlusTwoWriteResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW Barrier 1", twoPlusTwoWriteRMWBarrier1, twoPlusTwoWriteResults, pageState, defaultKeys),
+    buildTest(tptName, "RMW Barrier 2", twoPlusTwoWriteRMWBarrier2, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys)
   ];
@@ -555,9 +565,45 @@ function getTestSelector(pageState) {
   const barrierSSJsx = <SelectorTest key="barrierss" testName={barrierSSName} tests={barrierSSTests} />;
   const barrierJsx = [barrierSLJsx, barrierLSJsx, barrierSSJsx];
 
+  // Mutation Tests
+  let rrName = "RR Mutations";
+  let rrTests = [
+    buildTest(rrName, "Default", rrMutation, rrResults, pageState, mutationTestKeys),
+    buildTest(rrName, "RMW", rrRMWMutation, rrResults, pageState, mutationTestKeys),
+    buildTest(rrName, "RMW1", rrRMW1Mutation, rrResults, pageState, mutationTestKeys),
+    buildTest(rrName, "RMW2", rrRMW2Mutation, rrResults, pageState, mutationTestKeys)
+  ];
+  const rrJsx = <SelectorTest key="rr" testName={rrName} tests={rrTests} />;
+  let rwName = "RW Mutations";
+  let rwTests = [
+    buildTest(rwName, "Default", rwMutation, rwResults, pageState, mutationTestKeys),
+    buildTest(rwName, "RMW", rwRMWMutation, rwResults, pageState, mutationTestKeys)
+  ];
+  const rwJsx = <SelectorTest key="rw" testName={rwName} tests={rwTests} />;
+  let wrName = "WR Mutations";
+  let wrTests = [
+    buildTest(wrName, "Default", wrMutation, wrResults, pageState, mutationTestKeys),
+    buildTest(wrName, "RMW", wrRMWMutation, wrResults, pageState, mutationTestKeys)
+  ];
+  const wrJsx = <SelectorTest key="wr" testName={wrName} tests={wrTests} />;
+  let wwName = "WW Mutations";
+  let wwTests = [
+    buildTest(wwName, "Default", wwMutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW", wwRMWMutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 1", wwRMW1Mutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 2", wwRMW2Mutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 3", wwRMW3Mutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 4", wwRMW4Mutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 5", wwRMW5Mutation, wwResults, pageState, mutationTestKeys),
+    buildTest(wwName, "RMW 6", wwRMW6Mutation, wwResults, pageState, mutationTestKeys)
+  ];
+  const wwJsx = <SelectorTest key="ww" testName={wwName} tests={wwTests} />;
+  const mutationJsx = [rrJsx, rwJsx, wrJsx, wwJsx];
+
+
   let tests = [...mpTests, ...storeTests, ...readTests, ...lbTests, ...sbTests, ...twoPlusTwoWriteTests,
   ...corrTests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
-  ...barrierSLTests, ...barrierLSTests, ...barrierSSTests];
+  ...barrierSLTests, ...barrierLSTests, ...barrierSSTests, ...rrTests, ...rwTests, ...wrTests, ...wwTests];
   return {
     tests: tests,
     jsx: (
@@ -573,6 +619,7 @@ function getTestSelector(pageState) {
                 <SelectorCategory category="Coherence Tests" tests={coherenceJsx} />
                 <SelectorCategory category="Atomicity Tests" tests={atomicityJsx} />
                 <SelectorCategory category="Barrier Tests" tests={barrierJsx} />
+                <SelectorCategory category="Mutation Tests" tests={mutationJsx} />
               </aside>
             </div>
             <div className="panel-block p-2">
@@ -590,29 +637,6 @@ function getTestSelector(pageState) {
                       twoPlusTwoWriteTests[0].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Weak Memory Defaults
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      tests.map(test => test.setIsChecked(false));
-                      mpTests[0].setIsChecked(true);
-                      mpTests[2].setIsChecked(true);
-                      mpTests[4].setIsChecked(true);
-                      storeTests[0].setIsChecked(true);
-                      storeTests[2].setIsChecked(true);
-                      storeTests[4].setIsChecked(true);
-                      readTests[0].setIsChecked(true);
-                      readTests[1].setIsChecked(true);
-                      readTests[2].setIsChecked(true);
-                      lbTests[0].setIsChecked(true);
-                      lbTests[2].setIsChecked(true);
-                      lbTests[4].setIsChecked(true);
-                      sbTests[0].setIsChecked(true);
-                      sbTests[1].setIsChecked(true);
-                      sbTests[2].setIsChecked(true);
-                      twoPlusTwoWriteTests[0].setIsChecked(true);
-                      twoPlusTwoWriteTests[1].setIsChecked(true);
-                      twoPlusTwoWriteTests[2].setIsChecked(true);
-                    }} disabled={pageState.running.value}>
-                      Weak Memory Comprehensive
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
@@ -636,6 +660,58 @@ function getTestSelector(pageState) {
                       tests.map(test => test.setIsChecked(false));
                     }} disabled={pageState.running.value}>
                       Clear all
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[0].setIsChecked(true);
+                      storeTests[0].setIsChecked(true);
+                      readTests[0].setIsChecked(true);
+                      readTests[3].setIsChecked(true);
+                      lbTests[0].setIsChecked(true);
+                      sbTests[0].setIsChecked(true);
+                      sbTests[3].setIsChecked(true);
+                      twoPlusTwoWriteTests[0].setIsChecked(true);
+                      twoPlusTwoWriteTests[3].setIsChecked(true);
+                      rrTests[0].setIsChecked(true);
+                      rrTests[1].setIsChecked(true);
+                      rwTests[0].setIsChecked(true);
+                      rwTests[1].setIsChecked(true);
+                      wrTests[0].setIsChecked(true);
+                      wrTests[1].setIsChecked(true);
+                      wwTests[0].setIsChecked(true);
+                      wwTests[1].setIsChecked(true);
+                    }} disabled={pageState.running.value}>
+                      Evaluation Minimal
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[0].setIsChecked(true);
+                      mpTests[2].setIsChecked(true);
+                      mpTests[3].setIsChecked(true);
+                      storeTests[0].setIsChecked(true);
+                      storeTests[2].setIsChecked(true);
+                      storeTests[3].setIsChecked(true);
+                      readTests[0].setIsChecked(true);
+                      readTests[3].setIsChecked(true);
+                      readTests[5].setIsChecked(true);
+                      readTests[6].setIsChecked(true);
+                      lbTests[0].setIsChecked(true);
+                      lbTests[2].setIsChecked(true);
+                      lbTests[3].setIsChecked(true);
+                      sbTests[0].setIsChecked(true);
+                      sbTests[3].setIsChecked(true);
+                      sbTests[5].setIsChecked(true);
+                      sbTests[6].setIsChecked(true);
+                      twoPlusTwoWriteTests[0].setIsChecked(true);
+                      twoPlusTwoWriteTests[3].setIsChecked(true);
+                      twoPlusTwoWriteTests[5].setIsChecked(true);
+                      twoPlusTwoWriteTests[6].setIsChecked(true);
+                      rrTests.map(test => test.setIsChecked(true));
+                      rwTests.map(test => test.setIsChecked(true));
+                      wrTests.map(test => test.setIsChecked(true));
+                      wwTests.map(test => test.setIsChecked(true));
+                    }} disabled={pageState.running.value}>
+                      Evaluation All
                     </button>
                   </div>
                 </div>
@@ -709,7 +785,7 @@ async function tune(tests, testParams, pageState) {
       }
     }
     let stats = getRunStats(pageState.activeTests, params);
-    let row = <StaticRow pageState={pageState} key={params.id} stats={stats}/>;
+    let row = <StaticRow pageState={pageState} key={params.id} stats={stats} />;
     pageState.allStats.internalState[i] = stats;
     pageState.tuningRows.update(oldRows => [...oldRows, row]);
   }
@@ -769,7 +845,7 @@ export default function TuningSuite() {
       </div>
       <div>
         <label><b>All Runs:</b></label>
-        <RunStatistics stats={pageState.allStats.visibleState}/>
+        <RunStatistics stats={pageState.allStats.visibleState} />
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
