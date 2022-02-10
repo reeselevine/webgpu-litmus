@@ -175,8 +175,8 @@ function setStressParams(stressParams, testParams) {
     stressParamsArray[1*uniformBufferAlignment] = 0;
   }
   stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
-  const memStressStoreFirst = getRandomInt(100) < testParams.memStresssStoreFirstPct;
-  const memStressStoreSecond = getRandomInt(100) < testParams.memStressStoreSecondPct; 
+  const memStressStoreFirst = getRandomInt(100) < testParams.memStressStoreFirstPct;
+  const memStressStoreSecond = getRandomInt(100) < testParams.memStressStoreSecondPct;
   let memStressPattern;
   if (memStressStoreFirst && memStressStoreSecond) {
     memStressPattern = 0;
@@ -194,8 +194,8 @@ function setStressParams(stressParams, testParams) {
     stressParamsArray[4*uniformBufferAlignment] = 0;
   }
   stressParamsArray[5*uniformBufferAlignment] = testParams.preStressIterations;
-  const preStressStoreFirst = getRandomInt(100) < testParams.preStresssStoreFirstPct;
-  const preStressStoreSecond = getRandomInt(100) < testParams.preStressStoreSecondPct; 
+  const preStressStoreFirst = getRandomInt(100) < testParams.preStressStoreFirstPct;
+  const preStressStoreSecond = getRandomInt(100) < testParams.preStressStoreSecondPct;
   let preStressPattern;
   if (preStressStoreFirst && preStressStoreSecond) {
     preStressPattern = 0;
@@ -357,7 +357,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   let resultsSize = 4;
 
   // interleave waiting for buffers to map with initializing
-  // buffer values. This increases test throughput by about 2x. 
+  // buffer values. This increases test throughput by about 2x.
   const p1 = map_buffer(buffers.testLocations);
   const p2 = map_buffer(buffers.testResults);
   const p3 = map_buffer(buffers.shuffledWorkgroups);
@@ -395,7 +395,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   passEncoder.setBindGroup(0, bindGroup);
   passEncoder.dispatch(numWorkgroups);
   passEncoder.endPass();
-  
+
   const resultPassEncoder = commandEncoder.beginComputePass();
   resultPassEncoder.setPipeline(resultComputePipeline);
   resultPassEncoder.setBindGroup(0, resultBindGroup);
@@ -549,7 +549,7 @@ async function setupTest(testParams) {
 }
 
 export async function runLitmusTest(shaderCode, resultShaderCode, testParams, iterations, handleResult) {
-  const setup = await setupTest(testParams); 
+  const setup = await setupTest(testParams);
   const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, setup.workgroupSize);
   const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShaderCode, setup.workgroupSize);
   const start = Date.now();
