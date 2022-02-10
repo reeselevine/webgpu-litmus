@@ -3,17 +3,11 @@ import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','aliasedMemory', 'permuteFirst', 'permuteSecond']
-let indexToStringList = ['stressAssignmentStrategy']
-let indexToStringMapping = {
-  stressAssignmentStrategy: ["round-robin", "chunking"]
-};
 
 function replacer(key, value) {
   // Filtering out properties
   if (filterOutList.includes(key) ) {
     return undefined;
-  } else if (indexToStringList.includes(key)) {
-    return indexToStringMapping[key][value];
   } else {
     return value;
   }

@@ -155,7 +155,7 @@ const noStressConfig = {
   stressLineSize: 64,
   stressTargetLines: 2,
   preStressPct: 0,
-  stressAssignmentStrategy: 0,
+  stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 0,
   memStressStoreSecondPct: 100,
   preStressStoreFirstPct: 0,
@@ -175,7 +175,7 @@ const someStressConfig = {
   stressLineSize: 64,
   stressTargetLines: 2,
   preStressPct: 0,
-  stressAssignmentStrategy: 0,
+  stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 0,
   memStressStoreSecondPct: 100,
   preStressStoreFirstPct: 0,
@@ -195,7 +195,7 @@ const allStressConfig = {
   stressLineSize: 64,
   stressTargetLines: 2,
   preStressPct: 100,
-  stressAssignmentStrategy: 0,
+  stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 50,
   memStressStoreSecondPct: 50,
   preStressStoreFirstPct: 50,
@@ -227,7 +227,7 @@ export function getStressPanel(params, pageState) {
     scratchMemorySize: buildIntStressParam("Scratch Memory Size", "The size of the memory buffer where threads stress the memory", "scratchMemorySize", params, pageState, 256, 524288),
     stressLineSize: buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many bytes (values should be between 4 and 1024)", "stressLineSize", params, pageState, 4, 1024),
     stressTargetLines: buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 16),
-    stressAssignmentStrategy: buildDropdownStressParam("Stress Assignment Strategy", "How non-testing threads are assigned to scratch memory regions to access", "stressAssignmentStrategy", params, pageState, ["round-robin", "chunking"]),
+    stressStrategyBalancePct: buildIntStressParam("Memory Stress Assignment Balance", "How non-testing threads are assigned to stressing locations. 100 means all iterations use a round robin approach, 0 means all use a chunking approach.", "stressStrategyBalancePct", params, pageState, 0, 100),
     memStressStoreFirstPct: buildIntStressParam("Memory Stress Store First Percentage", "The percentage of iterations the first instruction in the stress pattern should be a store", "memStressStoreFirstPct", params, pageState, 0, 100),
     memStressStoreSecondPct: buildIntStressParam("Memory Stress Store Second Percentage", "The percentage of iterations the second instruction in the stress pattern should be a store", "memStressStoreSecondPct", params, pageState, 0, 100),
     preStressStoreFirstPct: buildIntStressParam("Pre Stress Store First Percentage", "The percentage of iterations the first instruction in the stress pattern should be a store", "preStressStoreFirstPct", params, pageState, 0, 100),
@@ -257,7 +257,7 @@ export function getStressPanel(params, pageState) {
               {uiParams.preStressIterations.jsx}
               {uiParams.stressLineSize.jsx}
               {uiParams.stressTargetLines.jsx}
-              {uiParams.stressAssignmentStrategy.jsx}
+              {uiParams.stressStrategyBalancePct.jsx}
               {uiParams.memStressStoreFirstPct.jsx}
               {uiParams.memStressStoreSecondPct.jsx}
               {uiParams.preStressStoreFirstPct.jsx}

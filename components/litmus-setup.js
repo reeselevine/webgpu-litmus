@@ -20,7 +20,7 @@ export const defaultTestParams = {
   preStressStoreSecondPct: 100,
   stressLineSize: 64,
   stressTargetLines: 2,
-  stressAssignmentStrategy: 0,
+  stressStrategyBalancePct: 100,
   permuteFirst: 109,
   permuteSecond: 419,
   aliasedMemory: false
@@ -139,12 +139,12 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
       region = getRandomInt(scratchNumRegions);
     }
     const locInRegion = getRandomInt(testParams.stressLineSize);
-    if (testParams.stressAssignmentStrategy == 0) {
+    if (getRandomInt(100) < testParams.stressStrategyBalancePct) {
       for (let j = i; j < numWorkgroups; j += testParams.stressTargetLines) {
         scratchLocationsArray[j] = region * testParams.stressLineSize + locInRegion;
 
       }
-    } else if (testParams.stressAssignmentStrategy == 1) {
+    } else {
       const workgroupsPerLocation = numWorkgroups / testParams.stressTargetLines;
       for (let j = 0; j < workgroupsPerLocation; j++) {
         scratchLocationsArray[i * workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
