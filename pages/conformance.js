@@ -305,7 +305,7 @@ export default function ConformanceTestSuite() {
     buildTest("Barrier Store Store (workgroup memory)", "barrier-store-store", pageState, testParams, barrierSSWorkgroup, barrierSSResults, oneThreadKeys),
     buildTest("Barrier Store Store (storage memory)", "barrier-store-store", pageState, testParams, barrierSSStorageWorkgroup, barrierSSResults, oneThreadKeys),
     buildTest("Message Passing Workgroup (workgroup memory)", "message-passing", pageState, testParams, barrierWorkgroupMessagePassing, messagePassingResults, defaultKeys),
-    buildTest("Atomicity Workgroup (storage memory)", "message-passing", pageState, testParams, barrierStorageWorkgroupMessagePassing, messagePassingResults, defaultKeys),
+    buildTest("Message Passing Workgroup (storage memory)", "message-passing", pageState, testParams, barrierStorageWorkgroupMessagePassing, messagePassingResults, defaultKeys),
     buildTest("Store Workgroup (workgroup memory)", "store", pageState, testParams, barrierWorkgroupStore, storeWorkgroupResults, defaultKeys),
     buildTest("Store Workgroup (storage memory)", "store", pageState, testParams, barrierStorageWorkgroupStore, storeWorkgroupResults, defaultKeys),
     buildTest("Load Buffer Workgroup (workgroup memory)", "load-buffer", pageState, testParams, barrierWorkgroupLoadBuffer, loadBufferWorkgroupResults, defaultKeys),
