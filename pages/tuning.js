@@ -141,6 +141,7 @@ function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(100);
   const [randomSeed, setRandomSeed] = useState("");
+  const [smoothedParameters, setSmoothedParameters] = useState(true);
   const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
@@ -167,6 +168,10 @@ function getPageState() {
     randomSeed: {
       value: randomSeed,
       update: setRandomSeed
+    },
+    smoothedParameters: {
+      value: smoothedParameters,
+      update: setSmoothedParameters
     },
     tuningRows: {
       value: rows,
@@ -752,7 +757,7 @@ async function tune(tests, testParams, pageState) {
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
     let params = {
-      ...randomConfig(generator),
+      ...randomConfig(generator, pageState.smoothedParameters.value),
       id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,
@@ -840,6 +845,17 @@ export default function TuningSuite() {
             <input className="input" type="text" defaultValue={""} onInput={(e) => {
               pageState.randomSeed.update(e.target.value);
             }} disabled={pageState.running.value} />
+          </div>
+        </div>
+        <div className="column">
+          <div className='control'>
+            <label className="checkbox"><b>Smoothed Parameters:</b></label>
+            <div>
+              <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
+                pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
+              }}/>
+                <b>Enabled</b>
+            </div>
           </div>
         </div>
       </div>

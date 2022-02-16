@@ -617,7 +617,16 @@ function roundedPercentage(generator) {
   return Math.floor(randomGenerator(0, 100, generator) / 5) * 5;
 }
 
-export function randomConfig(generator) {
+// Gets either a discrete or continuous percentage, based on the smoothedParameters value.
+function getPercentage(generator, smoothedParameters) {
+  if (smoothedParameters) {
+    return roundedPercentage(generator);
+  } else {
+    return randomGenerator(0, 1, generator) * 100;
+  }
+}
+
+export function randomConfig(generator, smoothedParameters=true) {
   let testingWorkgroups = randomGenerator(2, 1024, generator);
   let maxWorkgroups =  randomGenerator(testingWorkgroups, 1024, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
@@ -626,20 +635,20 @@ export function randomConfig(generator) {
   return {
     testingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
-    shufflePct: roundedPercentage(generator),
-    barrierPct: roundedPercentage(generator),
-    memStressPct: roundedPercentage(generator),
-    preStressPct: roundedPercentage(generator),
+    shufflePct: getPercentage(generator, smoothedParameters),
+    barrierPct: getPercentage(generator, smoothedParameters),
+    memStressPct: getPercentage(generator, smoothedParameters),
+    preStressPct: getPercentage(generator, smoothedParameters),
     scratchMemorySize: 32 * stressLineSize * stressTargetLines,
     memStride: memStride,
     stressLineSize: stressLineSize,
     stressTargetLines: stressTargetLines,
     memStressIterations: randomGenerator(0, 1024, generator),
     preStressIterations: randomGenerator(0, 128, generator),
-    stressStrategyBalancePct: roundedPercentage(generator),
-    memStressStoreFirstPct: roundedPercentage(generator),
-    memStressStoreSecondPct: roundedPercentage(generator),
-    preStressStoreFirstPct: roundedPercentage(generator),
-    preStressStoreSecondPct: roundedPercentage(generator)
+    stressStrategyBalancePct: getPercentage(generator, smoothedParameters),
+    memStressStoreFirstPct: getPercentage(generator, smoothedParameters),
+    memStressStoreSecondPct: getPercentage(generator, smoothedParameters),
+    preStressStoreFirstPct: getPercentage(generator, smoothedParameters),
+    preStressStoreSecondPct: getPercentage(generator, smoothedParameters)
   };
 }
