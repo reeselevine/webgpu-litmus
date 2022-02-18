@@ -573,34 +573,34 @@ function getTestSelector(pageState) {
   // Mutation Tests
   let rrName = "RR Mutations";
   let rrTests = [
-    buildTest(rrName, "Default", rrMutation, rrResults, pageState, mutationTestKeys),
-    buildTest(rrName, "RMW", rrRMWMutation, rrResults, pageState, mutationTestKeys),
-    buildTest(rrName, "RMW1", rrRMW1Mutation, rrResults, pageState, mutationTestKeys),
-    buildTest(rrName, "RMW2", rrRMW2Mutation, rrResults, pageState, mutationTestKeys)
+    buildTest(rrName, "Default", rrMutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rrName, "RMW", rrRMWMutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rrName, "RMW1", rrRMW1Mutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rrName, "RMW2", rrRMW2Mutation, rrResults, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const rrJsx = <SelectorTest key="rr" testName={rrName} tests={rrTests} />;
   let rwName = "RW Mutations";
   let rwTests = [
-    buildTest(rwName, "Default", rwMutation, rwResults, pageState, mutationTestKeys),
-    buildTest(rwName, "RMW", rwRMWMutation, rwResults, pageState, mutationTestKeys)
+    buildTest(rwName, "Default", rwMutation, rwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rwName, "RMW", rwRMWMutation, rwResults, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const rwJsx = <SelectorTest key="rw" testName={rwName} tests={rwTests} />;
   let wrName = "WR Mutations";
   let wrTests = [
-    buildTest(wrName, "Default", wrMutation, wrResults, pageState, mutationTestKeys),
-    buildTest(wrName, "RMW", wrRMWMutation, wrResults, pageState, mutationTestKeys)
+    buildTest(wrName, "Default", wrMutation, wrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wrName, "RMW", wrRMWMutation, wrResults, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const wrJsx = <SelectorTest key="wr" testName={wrName} tests={wrTests} />;
   let wwName = "WW Mutations";
   let wwTests = [
-    buildTest(wwName, "Default", wwMutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW", wwRMWMutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 1", wwRMW1Mutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 2", wwRMW2Mutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 3", wwRMW3Mutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 4", wwRMW4Mutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 5", wwRMW5Mutation, wwResults, pageState, mutationTestKeys),
-    buildTest(wwName, "RMW 6", wwRMW6Mutation, wwResults, pageState, mutationTestKeys)
+    buildTest(wwName, "Default", wwMutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW", wwRMWMutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 1", wwRMW1Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 2", wwRMW2Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 3", wwRMW3Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 4", wwRMW4Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 5", wwRMW5Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "RMW 6", wwRMW6Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const wwJsx = <SelectorTest key="ww" testName={wwName} tests={wwTests} />;
   const mutationJsx = [rrJsx, rwJsx, wrJsx, wwJsx];
