@@ -853,7 +853,7 @@ export default function TuningSuite() {
             <div>
               <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
                 pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
-              }}/>
+              }} disabled={pageState.running.value} />
                 <b>Enabled</b>
             </div>
           </div>
