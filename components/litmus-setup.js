@@ -497,6 +497,13 @@ async function setupTest(testParams) {
         buffer: {
           type: "uniform"
         }
+      },
+      {
+        binding: 4,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage"
+        }
       }
     ]
   });
@@ -525,6 +532,12 @@ async function setupTest(testParams) {
         binding: 3,
         resource: {
           buffer: buffers.stressParams.deviceBuffer
+        }
+      },
+      {
+        binding: 4,
+        resource: {
+          buffer: buffers.shuffledWorkgroups.deviceBuffer
         }
       }
     ]
