@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { barrierStoreStoreHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import barrierSSWorkgroup from '../../shaders/barrier-ss/barrier-store-store-workgroup.wgsl';
 import barrierSSStorageWorkgroup from '../../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
@@ -33,11 +33,9 @@ export default function BarrierStoreStore() {
   const stateConfig = {
     seq: {
       label: "*x == 2", 
-      handler: barrierStoreStoreHandlers.seq
     },
     weak: {
       label: "*x ==1",
-      handler: barrierStoreStoreHandlers.weak
     }
   };
 

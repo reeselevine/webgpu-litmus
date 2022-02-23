@@ -8,6 +8,14 @@ import messagePassing from '../shaders/mp/message-passing-single.wgsl';
 import messagePassingResults from '../shaders/mp/message-passing-results-single.wgsl';
 import store from '../shaders/store/store-single.wgsl';
 import storeResults from '../shaders/store/store-results-single.wgsl';
+import read from '../shaders/read/read-single.wgsl';
+import readResults from '../shaders/read/read-results-single.wgsl';
+import loadBuffer from '../shaders/lb/load-buffer-single.wgsl';
+import loadBufferResults from '../shaders/lb/load-buffer-results-single.wgsl';
+import storeBuffer from '../shaders/sb/store-buffer-single.wgsl';
+import storeBufferResults from '../shaders/sb/store-buffer-results-single.wgsl';
+import twoPlusTwoWrite from '../shaders/2+2w/2+2-write-single.wgsl';
+import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results-single.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
@@ -165,6 +173,10 @@ export default function ConformanceTestSuite() {
   const tests = [
     buildTest("Message Passing", "message-passing", pageState, testParams, messagePassing, messagePassingResults, defaultKeys),
     buildTest("Store", "store", pageState, testParams, store, storeResults, defaultKeys),
+    buildTest("Read", "read", pageState, testParams, read, readResults, defaultKeys),
+    buildTest("Load Buffer", "load-buffer", pageState, testParams, loadBuffer, loadBufferResults, defaultKeys),
+    buildTest("Store Buffer", "store-buffer", pageState, testParams, storeBuffer, storeBufferResults, defaultKeys),
+    buildTest("2+2 Write", "2-plus-2-write", pageState, testParams, twoPlusTwoWrite, twoPlusTwoWriteResults, defaultKeys)
   ];
   let initialIterations = pageState.iterations.value;
   const stressPanel = getStressPanel(testParams, pageState);

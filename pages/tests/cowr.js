@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { coWRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coWR from '../../shaders/cowr/cowr.wgsl'
 import coWRRMW from '../../shaders/cowr/cowr-rmw.wgsl'
@@ -53,19 +53,15 @@ export default function CoWR() {
   const stateConfig = {
     seq0: {
       label: "r0 == 1 && *x == 2",
-      handler: coWRHandlers.seq0
     },
     seq1: {
       label: "r0 == 1 && *x == 1",
-      handler: coWRHandlers.seq1
     },
     interleaved: {
       label: "r0 == 2 && *x == 2",
-      handler: coWRHandlers.interleaved
     },
     weak: {
       label: "r0 == 2 && *x == 1",
-      handler: coWRHandlers.weak
     }
   };
 

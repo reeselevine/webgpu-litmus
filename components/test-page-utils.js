@@ -182,8 +182,7 @@ export function buildStateValues(config, state, updateFunc) {
     internalState: 0,
     syncUpdate: updateFunc,
     throttledUpdate: buildThrottle(updateFunc),
-    label: config.label,
-    resultHandler: config.handler
+    label: config.label
   }
 }
 

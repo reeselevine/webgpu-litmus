@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { twoPlusTwoWriteHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import twoPlusTwoWrite from '../../shaders/2+2w/2+2-write.wgsl'
 import twoPlusTwoWriteWorkgroup from '../../shaders/2+2w/2+2-write-workgroup.wgsl'
@@ -62,20 +62,16 @@ export default function TwoPlusTwoWrite() {
 
   const stateConfig = {
     seq0: {
-      label: "*x == 1 && *y == 2",
-      handler: twoPlusTwoWriteHandlers.seq0
+      label: "*x == 1 && *y == 2"
     },
     seq1: {
-      label: "*x == 2 && *y == 1",
-      handler: twoPlusTwoWriteHandlers.seq1
+      label: "*x == 2 && *y == 1"
     },
     interleaved: {
-      label: "*x == 1 && *y == 1",
-      handler: twoPlusTwoWriteHandlers.interleaved
+      label: "*x == 1 && *y == 1"
     },
     weak: {
-      label: "*x == 2 && *y == 2",
-      handler: twoPlusTwoWriteHandlers.weak
+      label: "*x == 2 && *y == 2"
     }
   };
 

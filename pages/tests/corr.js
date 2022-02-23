@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { coRRHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRR from '../../shaders/corr/corr.wgsl'
 import coRRRMW from '../../shaders/corr/corr-rmw.wgsl'
@@ -84,19 +84,15 @@ export default function CoRR() {
   const stateConfig = {
     seq0: {
       label: "r0 == 0 && r1 == 0",
-      handler: coRRHandlers.seq0
     },
     seq1: {
       label: "r0 == 1 && r1 == 1",
-      handler: coRRHandlers.seq1
     },
     interleaved: {
       label: "r0 == 0 && r1 == 1",
-      handler: coRRHandlers.interleaved
     },
     weak: {
       label: "r0 == 1 && r1 == 0",
-      handler: coRRHandlers.weak
     }
   };
 

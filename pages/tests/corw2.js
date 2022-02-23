@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { coRW2Handlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import coRW2 from '../../shaders/corw2/corw2.wgsl'
 import coRW2RMW from '../../shaders/corw2/corw2-rmw.wgsl'
@@ -49,19 +49,15 @@ export default function CoRW2() {
   const stateConfig = {
     seq0: {
       label: "r0 == 0 && *x == 2",
-      handler: coRW2Handlers.seq0
     },
     seq1: {
       label: "r0 == 2 && *x == 1",
-      handler: coRW2Handlers.seq1
     },
     interleaved: {
       label: "r0 == 0 && *x == 1",
-      handler: coRW2Handlers.interleaved
     },
     weak: {
       label: "r0 == 2 && *x == 2",
-      handler: coRW2Handlers.weak
     }
   };
 

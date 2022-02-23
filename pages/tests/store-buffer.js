@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import storeBuffer from '../../shaders/sb/store-buffer.wgsl'
 import storeBufferWorkgroup from '../../shaders/sb/store-buffer-workgroup.wgsl'
@@ -63,19 +63,15 @@ export default function StoreBuffer() {
   const stateConfig = {
     seq0: {
       label: "r0 == 1 && r1 == 0",
-      handler: commonHandlers.oneZero
     },
     seq1: {
       label: "r0 == 0 && r1 == 1",
-      handler: commonHandlers.zeroOne
     },
     interleaved: {
       label: "r0 == 1 && r1 == 1",
-      handler: commonHandlers.bothOne
     },
     weak: {
       label: "r0 == 0 && r1 == 0",
-      handler: commonHandlers.bothZero
     }
   };
 

@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { coWWHandlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coWW from '../../shaders/coww/coww.wgsl'
 import coWWRMW from '../../shaders/coww/coww-rmw.wgsl'
@@ -49,11 +49,9 @@ export default function CoWW() {
   const stateConfig = {
     seq: {
       label: "*x == 2", 
-      handler: coWWHandlers.seq
     },
     weak: {
       label: "*x == 1",
-      handler: coWWHandlers.weak
     }
   };
 

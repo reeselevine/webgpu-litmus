@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { commonHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import loadBuffer from '../../shaders/lb/load-buffer.wgsl'
 import barrierLoadBuffer from '../../shaders/lb/load-buffer-barrier.wgsl'
@@ -29,7 +29,7 @@ const thread1WB = `1.1: let r1 = atomicLoad(x)
 const thread0NB = `0.1: let r0 = atomicLoad(y)
 0.2: atomicStore(x, 1)`;
 
-const thread1NB = `1.1: let r0 = atomicLoad(x)
+const thread1NB = `1.1: let r1 = atomicLoad(x)
 1.2: atomicStore(y, 1)`;
 
 const variants = {
@@ -75,19 +75,15 @@ export default function LoadBuffer() {
   const stateConfig = {
     seq0: {
       label: "r0 == 1 && r1 == 0",
-      handler: commonHandlers.oneZero
     },
     seq1: {
       label: "r0 == 0 && r1 == 1",
-      handler: commonHandlers.zeroOne
     },
     interleaved: {
       label: "r0 == 0 && r1 == 0",
-      handler: commonHandlers.bothZero
     },
     weak: {
       label: "r0 == 1 && r1 == 1",
-      handler: commonHandlers.bothOne
     }
   };
 

@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { coRW1Handlers, makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeOneOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import { TestSetupPseudoCode, buildPseudoCode } from '../../components/testPseudoCode.js'
 import coRW1 from '../../shaders/corw1/corw1.wgsl'
 import coRW1Workgroup from '../../shaders/corw1/corw1-workgroup.wgsl'
@@ -41,11 +41,9 @@ export default function CoRW1() {
   const stateConfig = {
     seq: {
       label: "r0 == 0", 
-      handler: coRW1Handlers.seq
     },
     weak: {
       label: "r0 == 1",
-      handler: coRW1Handlers.weak
     }
   };
 

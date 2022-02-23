@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { atomicityHandlers, makeAtomicityLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeAtomicityLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import atom from '../../shaders/atom/atomicity.wgsl'
 import atomWorkgroup from '../../shaders/atom/atomicity-workgroup.wgsl'
@@ -38,20 +38,16 @@ export default function Atomicity() {
 
   const stateConfig = {
     seq0: {
-      label: "r0 == 0 && *x == 2",
-      handler: atomicityHandlers.seq0
+      label: "r0 == 0 && *x == 2"
     },
     seq1: {
-      label: "r0 == 2 && *x == 1",
-      handler: atomicityHandlers.seq1
+      label: "r0 == 2 && *x == 1"
     },
     interleaved: {
-      label: "N/A (same as weak)",
-      handler: atomicityHandlers.interleaved
+      label: "N/A (same as weak)"
     },
     weak: {
-      label: "r0 == 0 && *x == 1",
-      handler: atomicityHandlers.weak
+      label: "r0 == 0 && *x == 1"
     }
   };
 

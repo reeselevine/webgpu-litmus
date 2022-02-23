@@ -72,20 +72,16 @@ export default function MessagePassing() {
 
   const stateConfig = {
     seq0: {
-      label: "r0 == 0 && r1 == 0",
-      handler: commonHandlers.bothZero
+      label: "r0 == 0 && r1 == 0"
     },
     seq1: {
-      label: "r0 == 1 && r1 == 1",
-      handler: commonHandlers.bothOne
+      label: "r0 == 1 && r1 == 1"
     },
     interleaved: {
-      label: "r0 == 0 && r1 == 1",
-      handler: commonHandlers.zeroOne
+      label: "r0 == 0 && r1 == 1"
     },
     weak: {
-      label: "r0 == 1 && r1 == 0",
-      handler: commonHandlers.oneZero
+      label: "r0 == 1 && r1 == 0"
     }
   };
 

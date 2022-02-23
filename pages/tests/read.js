@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { readHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import read from '../../shaders/read/read.wgsl'
 import readWorkgroup from '../../shaders/read/read-workgroup.wgsl'
@@ -63,19 +63,15 @@ export default function Read() {
   const stateConfig = {
     seq0: {
       label: "r0 == 1 && *y == 2",
-      handler: readHandlers.seq0
     },
     seq1: {
       label: "r0 == 0 && *y == 1",
-      handler: readHandlers.seq1
     },
     interleaved: {
       label: "r0 == 1 && *y == 1",
-      handler: readHandlers.interleaved
     },
     weak: {
       label: "r0 == 0 && *y == 2",
-      handler: readHandlers.weak
     }
   };
 

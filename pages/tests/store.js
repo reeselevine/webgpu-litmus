@@ -1,5 +1,5 @@
 import { defaultTestParams } from '../../components/litmus-setup.js'
-import { storeHandlers, makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
+import { makeTwoOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import store from '../../shaders/store/store.wgsl'
 import barrierStore from '../../shaders/store/store-barrier.wgsl'
@@ -74,19 +74,15 @@ export default function Store() {
   const stateConfig = {
     seq0: {
       label: "r0 == 1 && *x == 1",
-      handler: storeHandlers.seq0
     },
     seq1: {
       label: "r0 == 0 && *x == 2",
-      handler: storeHandlers.seq1
     },
     interleaved: {
       label: "r0 == 0 && *x == 1",
-      handler: storeHandlers.interleaved
     },
     weak: {
       label: "r0 == 1 && *x == 2",
-      handler: storeHandlers.weak
     }
   };
 
