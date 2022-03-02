@@ -126,7 +126,7 @@ let workgroupXSize = 256u;
       let r0 = atomicLoad(&test_locations.value[y]);
       atomicStore(&results.value[0].r0, r0);
     }
-  } else if (shuffled_workgroup == 1u) {
+  } elseif (shuffled_workgroup == 1u) {
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
       if (stress_params.pre_stress == 1u) {
         do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, shuffled_workgroup);

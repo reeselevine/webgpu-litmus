@@ -4,51 +4,63 @@ import { buildThrottle, randomConfig } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 import messagePassing from '../shaders/mp/message-passing.wgsl'
+import messagePassingCoherency from '../shaders/mp/message-passing-coherency.wgsl'
 import barrierMessagePassing from '../shaders/mp/message-passing-barrier.wgsl'
 import workgroupMessagePassing from '../shaders/mp/message-passing-workgroup.wgsl';
 import storageWorkgroupMessagePassing from '../shaders/mp/message-passing-storage-workgroup.wgsl';
 import barrierWorkgroupMessagePassing from '../shaders/mp/message-passing-workgroup-barrier.wgsl';
 import barrierStorageWorkgroupMessagePassing from '../shaders/mp/message-passing-storage-workgroup-barrier.wgsl';
 import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
+import messagePassingCoherencyResults from '../shaders/mp/message-passing-coherency-results.wgsl';
 import store from '../shaders/store/store.wgsl'
+import storeCoherency from '../shaders/store/store-coherency.wgsl'
 import barrierStore from '../shaders/store/store-barrier.wgsl'
 import workgroupStore from '../shaders/store/store-workgroup.wgsl'
 import storageWorkgroupStore from '../shaders/store/store-storage-workgroup.wgsl'
 import barrierWorkgroupStore from '../shaders/store/store-workgroup-barrier.wgsl'
 import barrierStorageWorkgroupStore from '../shaders/store/store-storage-workgroup-barrier.wgsl'
 import storeResults from '../shaders/store/store-results.wgsl';
+import storeCoherencyResults from '../shaders/store/store-coherency-results.wgsl';
 import storeWorkgroupResults from '../shaders/store/store-workgroup-results.wgsl';
 import read from '../shaders/read/read.wgsl'
+import readCoherency from '../shaders/read/read-coherency.wgsl'
 import readWorkgroup from '../shaders/read/read-workgroup.wgsl'
 import readStorageWorkgroup from '../shaders/read/read-storage-workgroup.wgsl'
 import readRMWBarrier from '../shaders/read/read-rmw-barrier.wgsl'
 import readWorkgroupRMWBarrier from '../shaders/read/read-workgroup-rmw-barrier.wgsl'
 import readStorageWorkgroupRMWBarrier from '../shaders/read/read-storage-workgroup-rmw-barrier.wgsl'
 import readResults from '../shaders/read/read-results.wgsl'
+import readCoherencyResults from '../shaders/read/read-coherency-results.wgsl'
 import readWorkgroupResults from '../shaders/read/read-workgroup-results.wgsl'
 import loadBuffer from '../shaders/lb/load-buffer.wgsl'
+import loadBufferCoherency from '../shaders/lb/load-buffer-coherency.wgsl'
 import barrierLoadBuffer from '../shaders/lb/load-buffer-barrier.wgsl'
 import workgroupLoadBuffer from '../shaders/lb/load-buffer-workgroup.wgsl';
 import storageWorkgroupLoadBuffer from '../shaders/lb/load-buffer-storage-workgroup.wgsl';
 import barrierWorkgroupLoadBuffer from '../shaders/lb/load-buffer-workgroup-barrier.wgsl';
 import barrierStorageWorkgroupLoadBuffer from '../shaders/lb/load-buffer-storage-workgroup-barrier.wgsl';
 import loadBufferResults from '../shaders/lb/load-buffer-results.wgsl';
+import loadBufferCoherencyResults from '../shaders/lb/load-buffer-coherency-results.wgsl';
 import loadBufferWorkgroupResults from '../shaders/lb/load-buffer-workgroup-results.wgsl';
 import storeBuffer from '../shaders/sb/store-buffer.wgsl'
+import storeBufferCoherency from '../shaders/sb/store-buffer-coherency.wgsl'
 import storeBufferWorkgroup from '../shaders/sb/store-buffer-workgroup.wgsl'
 import storeBufferStorageWorkgroup from '../shaders/sb/store-buffer-storage-workgroup.wgsl'
 import storeBufferRMWBarrier from '../shaders/sb/store-buffer-rmw-barrier.wgsl'
 import storeBufferWorkgroupRMWBarrier from '../shaders/sb/store-buffer-workgroup-rmw-barrier.wgsl'
 import storeBufferStorageWorkgroupRMWBarrier from '../shaders/sb/store-buffer-storage-workgroup-rmw-barrier.wgsl'
 import storeBufferResults from '../shaders/sb/store-buffer-results.wgsl'
+import storeBufferCoherencyResults from '../shaders/sb/store-buffer-coherency-results.wgsl'
 import storeBufferWorkgroupResults from '../shaders/sb/store-buffer-workgroup-results.wgsl'
 import twoPlusTwoWrite from '../shaders/2+2w/2+2-write.wgsl'
+import twoPlusTwoWriteCoherency from '../shaders/2+2w/2+2-write-coherency.wgsl'
 import twoPlusTwoWriteWorkgroup from '../shaders/2+2w/2+2-write-workgroup.wgsl'
 import twoPlusTwoWriteStorageWorkgroup from '../shaders/2+2w/2+2-write-storage-workgroup.wgsl'
 import twoPlusTwoWriteRMWBarrier from '../shaders/2+2w/2+2-write-rmw-barrier.wgsl'
 import twoPlusTwoWriteWorkgroupRMWBarrier from '../shaders/2+2w/2+2-write-workgroup-rmw-barrier.wgsl'
 import twoPlusTwoWriteStorageWorkgroupRMWBarrier from '../shaders/2+2w/2+2-write-storage-workgroup-rmw-barrier.wgsl'
 import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl'
+import twoPlusTwoWriteCoherencyResults from '../shaders/2+2w/2+2-write-coherency-results.wgsl'
 import twoPlusTwoWriteWorkgroupResults from '../shaders/2+2w/2+2-write-workgroup-results.wgsl'
 import coRR from '../shaders/corr/corr.wgsl'
 import coRRRMW from '../shaders/corr/corr-rmw.wgsl'
@@ -128,6 +140,18 @@ import storeBufferRMWBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl
 import twoPlusTwoWriteRMW from '../shaders/2+2w/2+2-write-rmw.wgsl';
 import twoPlusTwoWriteRMWBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
 import twoPlusTwoWriteRMWBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
+import messagePassingSingle from '../shaders/mp/message-passing-single.wgsl';
+import messagePassingSingleResults from '../shaders/mp/message-passing-results-single.wgsl';
+import storeSingle from '../shaders/store/store-single.wgsl';
+import storeSingleResults from '../shaders/store/store-results-single.wgsl';
+import readSingle from '../shaders/read/read-single.wgsl';
+import readSingleResults from '../shaders/read/read-results-single.wgsl';
+import loadBufferSingle from '../shaders/lb/load-buffer-single.wgsl';
+import loadBufferSingleResults from '../shaders/lb/load-buffer-results-single.wgsl';
+import storeBufferSingle from '../shaders/sb/store-buffer-single.wgsl';
+import storeBufferSingleResults from '../shaders/sb/store-buffer-results-single.wgsl';
+import twoPlusTwoWriteSingle from '../shaders/2+2w/2+2-write-single.wgsl';
+import twoPlusTwoWriteSingleResults from '../shaders/2+2w/2+2-write-results-single.wgsl';
 
 
 import { filteredParams } from '../components/tuningTable.js';
@@ -424,7 +448,9 @@ function getTestSelector(pageState) {
     buildTest(mpName, "Workgroup (workgroup memory)", workgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Workgroup (storage memory)", storageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
-    buildTest(mpName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys)
+    buildTest(mpName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
+    buildTest(mpName, "Coherency", messagePassingCoherency, messagePassingCoherencyResults, pageState, defaultKeys),
+    buildTest(mpName, "Single Instance", messagePassingSingle, messagePassingSingleResults, pageState, defaultKeys)
   ];
   const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
   let storeName = "Store";
@@ -436,7 +462,9 @@ function getTestSelector(pageState) {
     buildTest(storeName, "Workgroup (workgroup memory)", workgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Workgroup (storage memory)", storageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
-    buildTest(storeName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys)
+    buildTest(storeName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
+    buildTest(storeName, "Coherency", storeCoherency, storeCoherencyResults, pageState, defaultKeys),
+    buildTest(storeName, "Single Instance", storeSingle, storeSingleResults, pageState, defaultKeys)
   ];
   let readName = "Read";
   const storeJsx = <SelectorTest key="store" testName={storeName} tests={storeTests} />;
@@ -449,7 +477,9 @@ function getTestSelector(pageState) {
     buildTest(readName, "RMW Barrier 1", readRMWBarrier1, readResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier 2", readRMWBarrier2, readResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (workgroup memory)", readWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
-    buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys)
+    buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
+    buildTest(readName, "Coherency", readCoherency, readCoherencyResults, pageState, defaultKeys),
+    buildTest(readName, "Single Instance", readSingle, readSingleResults, pageState, defaultKeys)
   ];
   const readJsx = <SelectorTest key="read" testName={readName} tests={readTests} />;
   let lbName = "Load Buffer";
@@ -461,7 +491,9 @@ function getTestSelector(pageState) {
     buildTest(lbName, "Workgroup (workgroup memory)", workgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Barrier Workgroup (workgroup memory)", barrierWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Workgroup (storage memory)", storageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
-    buildTest(lbName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys)
+    buildTest(lbName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(lbName, "Coherency", loadBufferCoherency, loadBufferCoherencyResults, pageState, defaultKeys),
+    buildTest(lbName, "Single Instance", loadBufferSingle, loadBufferSingleResults, pageState, defaultKeys)
   ];
   const lbJsx = <SelectorTest key="lb" testName={lbName} tests={lbTests} />;
   let sbName = "Store Buffer";
@@ -474,7 +506,9 @@ function getTestSelector(pageState) {
     buildTest(sbName, "RMW Barrier 1", storeBufferRMWBarrier1, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier 2", storeBufferRMWBarrier2, storeBufferResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (workgroup memory)", storeBufferWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
-    buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys)
+    buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
+    buildTest(sbName, "Coherency", storeBufferCoherency, storeBufferCoherencyResults, pageState, defaultKeys),
+    buildTest(sbName, "Single Instance", storeBufferSingle, storeBufferSingleResults, pageState, defaultKeys)
   ];
   const sbJsx = <SelectorTest key="sb" testName={sbName} tests={sbTests} />;
   let tptName = "2+2 Write";
@@ -487,7 +521,9 @@ function getTestSelector(pageState) {
     buildTest(tptName, "RMW Barrier 1", twoPlusTwoWriteRMWBarrier1, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier 2", twoPlusTwoWriteRMWBarrier2, twoPlusTwoWriteResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
-    buildTest(tptName, "RMW Barrier Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys)
+    buildTest(tptName, "RMW Barrier Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
+    buildTest(tptName, "Coherency", twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherencyResults, pageState, defaultKeys),
+    buildTest(tptName, "Single Instance", twoPlusTwoWriteSingle, twoPlusTwoWriteSingleResults, pageState, defaultKeys)
   ];
   const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
@@ -669,54 +705,48 @@ function getTestSelector(pageState) {
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
                       mpTests[0].setIsChecked(true);
-                      storeTests[0].setIsChecked(true);
-                      readTests[0].setIsChecked(true);
-                      readTests[3].setIsChecked(true);
-                      lbTests[0].setIsChecked(true);
-                      sbTests[0].setIsChecked(true);
-                      sbTests[3].setIsChecked(true);
-                      twoPlusTwoWriteTests[0].setIsChecked(true);
-                      twoPlusTwoWriteTests[3].setIsChecked(true);
-                      rrTests[0].setIsChecked(true);
-                      rrTests[1].setIsChecked(true);
-                      rwTests[0].setIsChecked(true);
-                      rwTests[1].setIsChecked(true);
-                      wrTests[0].setIsChecked(true);
-                      wrTests[1].setIsChecked(true);
-                      wwTests[0].setIsChecked(true);
-                      wwTests[1].setIsChecked(true);
-                    }} disabled={pageState.running.value}>
-                      Evaluation Minimal
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      tests.map(test => test.setIsChecked(false));
-                      mpTests[0].setIsChecked(true);
                       mpTests[2].setIsChecked(true);
                       mpTests[3].setIsChecked(true);
+                      mpTests[8].setIsChecked(true);
                       storeTests[0].setIsChecked(true);
                       storeTests[2].setIsChecked(true);
                       storeTests[3].setIsChecked(true);
-                      readTests[0].setIsChecked(true);
+                      storeTests[8].setIsChecked(true);
                       readTests[3].setIsChecked(true);
                       readTests[5].setIsChecked(true);
                       readTests[6].setIsChecked(true);
+                      readTests[9].setIsChecked(true);
                       lbTests[0].setIsChecked(true);
                       lbTests[2].setIsChecked(true);
                       lbTests[3].setIsChecked(true);
-                      sbTests[0].setIsChecked(true);
+                      lbTests[8].setIsChecked(true);
                       sbTests[3].setIsChecked(true);
                       sbTests[5].setIsChecked(true);
                       sbTests[6].setIsChecked(true);
-                      twoPlusTwoWriteTests[0].setIsChecked(true);
+                      sbTests[9].setIsChecked(true);
                       twoPlusTwoWriteTests[3].setIsChecked(true);
                       twoPlusTwoWriteTests[5].setIsChecked(true);
                       twoPlusTwoWriteTests[6].setIsChecked(true);
-                      rrTests.map(test => test.setIsChecked(true));
-                      rwTests.map(test => test.setIsChecked(true));
-                      wrTests.map(test => test.setIsChecked(true));
-                      wwTests.map(test => test.setIsChecked(true));
+                      twoPlusTwoWriteTests[9].setIsChecked(true);
+                      rrTests[0].setIsChecked(true);
+                      rrTests[1].setIsChecked(true);
+                      rwTests[0].setIsChecked(true);
+                      wrTests[0].setIsChecked(true);
+                      wwTests[0].setIsChecked(true);
+                      wwTests[1].setIsChecked(true);
                     }} disabled={pageState.running.value}>
-                      Evaluation All
+                      Evaluation
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[9].setIsChecked(true);
+                      storeTests[9].setIsChecked(true);
+                      readTests[10].setIsChecked(true);
+                      lbTests[9].setIsChecked(true);
+                      sbTests[10].setIsChecked(true);
+                      twoPlusTwoWriteTests[10].setIsChecked(true);
+                    }} disabled={pageState.running.value}>
+                      Evaluation Legacy
                     </button>
                   </div>
                 </div>
