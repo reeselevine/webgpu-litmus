@@ -361,9 +361,9 @@ function getPercentage(generator, smoothedParameters) {
   }
 }
 
-export function randomConfig(generator, smoothedParameters=true) {
-  let testingWorkgroups = randomGenerator(2, 1024, generator);
-  let maxWorkgroups =  randomGenerator(testingWorkgroups, 1024, generator);
+export function randomConfig(generator, smoothedParameters=true, workgroupLimiter=1024) {
+  let testingWorkgroups = randomGenerator(2, workgroupLimiter, generator);
+  let maxWorkgroups =  randomGenerator(testingWorkgroups, workgroupLimiter, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
   let memStride = randomGenerator(1, 7, generator);

@@ -166,6 +166,7 @@ function getPageState() {
   const [iterations, setIterations] = useState(100);
   const [randomSeed, setRandomSeed] = useState("");
   const [smoothedParameters, setSmoothedParameters] = useState(true);
+  const [maxWorkgroups, setMaxWorkgroups] = useState(1024);
   const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
@@ -196,6 +197,10 @@ function getPageState() {
     smoothedParameters: {
       value: smoothedParameters,
       update: setSmoothedParameters
+    },
+    maxWorkgroups: {
+      value: maxWorkgroups,
+      update: setMaxWorkgroups
     },
     tuningRows: {
       value: rows,
@@ -787,7 +792,7 @@ async function tune(tests, testParams, pageState) {
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
     let params = {
-      ...randomConfig(generator, pageState.smoothedParameters.value),
+      ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value),
       id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,
@@ -833,6 +838,7 @@ export default function TuningSuite() {
   const testSelector = getTestSelector(pageState);
   let initialIterations = pageState.iterations.value;
   let initialTuningTimes = pageState.tuningTimes.value;
+  let initialMaxWorkgroups = pageState.maxWorkgroups.value;
   return (
     <>
       <div className="columns">
@@ -877,6 +883,15 @@ export default function TuningSuite() {
             }} disabled={pageState.running.value} />
           </div>
         </div>
+        <div className="column" >
+          <div className="control">
+            <label><b>Max Workgroups:</b></label>
+            <input className="input" type="text" defaultValue={initialMaxWorkgroups} onInput={(e) => {
+              pageState.maxWorkgroups.update(e.target.value);
+            }} disabled={pageState.running.value} />
+          </div>
+        </div>
+
         <div className="column">
           <div className='control'>
             <label className="checkbox"><b>Smoothed Parameters:</b></label>
