@@ -106,18 +106,29 @@ import barrierSSWorkgroup from '../shaders/barrier-ss/barrier-store-store-workgr
 import barrierSSStorageWorkgroup from '../shaders/barrier-ss/barrier-store-store-storage-workgroup.wgsl';
 import barrierSSResults from '../shaders/barrier-ss/barrier-store-store-workgroup-results.wgsl';
 import rrMutation from '../shaders/evaluation/rr-mutation.wgsl';
+import rrMutationSingle from '../shaders/evaluation/rr-mutation-single.wgsl';
 import rrRMWMutation from '../shaders/evaluation/rr-rmw-mutation.wgsl';
+import rrRMWMutationSingle from '../shaders/evaluation/rr-rmw-mutation-single.wgsl';
 import rrRMW1Mutation from '../shaders/evaluation/rr-rmw1-mutation.wgsl';
 import rrRMW2Mutation from '../shaders/evaluation/rr-rmw2-mutation.wgsl';
 import rrResults from '../shaders/evaluation/rr-results.wgsl';
+import rrResultsSingle from '../shaders/evaluation/rr-results-single.wgsl';
 import rwMutation from '../shaders/evaluation/rw-mutation.wgsl';
+import rwMutationSingle from '../shaders/evaluation/rw-mutation-single.wgsl';
 import rwRMWMutation from '../shaders/evaluation/rw-rmw-mutation.wgsl';
+import rwRMWMutationSingle from '../shaders/evaluation/rw-rmw-mutation-single.wgsl';
 import rwResults from '../shaders/evaluation/rw-results.wgsl';
+import rwResultsSingle from '../shaders/evaluation/rw-results-single.wgsl';
 import wrMutation from '../shaders/evaluation/wr-mutation.wgsl';
+import wrMutationSingle from '../shaders/evaluation/wr-mutation-single.wgsl';
 import wrRMWMutation from '../shaders/evaluation/wr-rmw-mutation.wgsl';
+import wrRMWMutationSingle from '../shaders/evaluation/wr-rmw-mutation-single.wgsl';
 import wrResults from '../shaders/evaluation/wr-results.wgsl';
+import wrResultsSingle from '../shaders/evaluation/wr-results-single.wgsl';
 import wwMutation from '../shaders/evaluation/ww-mutation.wgsl';
+import wwMutationSingle from '../shaders/evaluation/ww-mutation-single.wgsl';
 import wwRMWMutation from '../shaders/evaluation/ww-rmw-mutation.wgsl';
+import wwRMWMutationSingle from '../shaders/evaluation/ww-rmw-mutation-single.wgsl';
 import wwRMW1Mutation from '../shaders/evaluation/ww-rmw1-mutation.wgsl';
 import wwRMW2Mutation from '../shaders/evaluation/ww-rmw2-mutation.wgsl';
 import wwRMW3Mutation from '../shaders/evaluation/ww-rmw3-mutation.wgsl';
@@ -125,6 +136,7 @@ import wwRMW4Mutation from '../shaders/evaluation/ww-rmw4-mutation.wgsl';
 import wwRMW5Mutation from '../shaders/evaluation/ww-rmw5-mutation.wgsl';
 import wwRMW6Mutation from '../shaders/evaluation/ww-rmw6-mutation.wgsl';
 import wwResults from '../shaders/evaluation/ww-results.wgsl';
+import wwResultsSingle from '../shaders/evaluation/ww-results-single.wgsl';
 import messagePassingBarrier1 from '../shaders/mp/message-passing-barrier1.wgsl'
 import messagePassingBarrier2 from '../shaders/mp/message-passing-barrier2.wgsl'
 import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
@@ -160,12 +172,25 @@ import readCoherencySingle from '../shaders/read/read-coherency-single.wgsl';
 import readSingleResults from '../shaders/read/read-results-single.wgsl';
 import readCoherencySingleResults from '../shaders/read/read-coherency-results-single.wgsl';
 import loadBufferSingle from '../shaders/lb/load-buffer-single.wgsl';
+import loadBufferSingleBarrier1 from '../shaders/lb/load-buffer-single-barrier1.wgsl';
+import loadBufferSingleBarrier2 from '../shaders/lb/load-buffer-single-barrier2.wgsl';
+import loadBufferCoherencySingle from '../shaders/lb/load-buffer-coherency-single.wgsl';
 import loadBufferSingleResults from '../shaders/lb/load-buffer-results-single.wgsl';
+import loadBufferCoherencySingleResults from '../shaders/lb/load-buffer-coherency-results-single.wgsl';
 import storeBufferSingle from '../shaders/sb/store-buffer-single.wgsl';
+import storeBufferRMWSingle from '../shaders/sb/store-buffer-rmw-single.wgsl';
+import storeBufferRMWSingleBarrier1 from '../shaders/sb/store-buffer-rmw-single-barrier1.wgsl';
+import storeBufferRMWSingleBarrier2 from '../shaders/sb/store-buffer-rmw-single-barrier2.wgsl';
+import storeBufferCoherencySingle from '../shaders/sb/store-buffer-single.wgsl';
 import storeBufferSingleResults from '../shaders/sb/store-buffer-results-single.wgsl';
+import storeBufferCoherencySingleResults from '../shaders/sb/store-buffer-coherency-results-single.wgsl';
 import twoPlusTwoWriteSingle from '../shaders/2+2w/2+2-write-single.wgsl';
+import twoPlusTwoWriteRMWSingle from '../shaders/2+2w/2+2-write-rmw-single.wgsl';
+import twoPlusTwoWriteRMWSingleBarrier1 from '../shaders/2+2w/2+2-write-rmw-single-barrier1.wgsl';
+import twoPlusTwoWriteRMWSingleBarrier2 from '../shaders/2+2w/2+2-write-rmw-single-barrier2.wgsl';
+import twoPlusTwoWriteCoherencySingle from '../shaders/2+2w/2+2-write-coherency-single.wgsl';
 import twoPlusTwoWriteSingleResults from '../shaders/2+2w/2+2-write-results-single.wgsl';
-
+import twoPlusTwoWriteCoherencySingleResults from '../shaders/2+2w/2+2-write-coherency-results-single.wgsl';
 
 import { filteredParams } from '../components/tuningTable.js';
 
@@ -521,7 +546,10 @@ function getTestSelector(pageState) {
     buildTest(lbName, "Workgroup (storage memory)", storageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupLoadBuffer, loadBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(lbName, "Coherency", loadBufferCoherency, loadBufferCoherencyResults, pageState, defaultKeys),
-    buildTest(lbName, "Single Instance", loadBufferSingle, loadBufferSingleResults, pageState, defaultKeys)
+    buildTest(lbName, "Single Instance", loadBufferSingle, loadBufferSingleResults, pageState, defaultKeys),
+    buildTest(lbName, "Single Instance Barrier 1", loadBufferSingleBarrier1, loadBufferSingleResults, pageState, defaultKeys),
+    buildTest(lbName, "Single Instance Barrier 2", loadBufferSingleBarrier2, loadBufferSingleResults, pageState, defaultKeys),
+    buildTest(lbName, "Single Instance Coherency", loadBufferCoherencySingle, loadBufferCoherencySingleResults, pageState, defaultKeys)
   ];
   const lbJsx = <SelectorTest key="lb" testName={lbName} tests={lbTests} />;
   let sbName = "Store Buffer";
@@ -536,7 +564,11 @@ function getTestSelector(pageState) {
     buildTest(sbName, "RMW Barrier Workgroup (workgroup memory)", storeBufferWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "RMW Barrier Workgroup (storage memory)", storeBufferStorageWorkgroupRMWBarrier, storeBufferWorkgroupResults, pageState, defaultKeys),
     buildTest(sbName, "Coherency", storeBufferCoherency, storeBufferCoherencyResults, pageState, defaultKeys),
-    buildTest(sbName, "Single Instance", storeBufferSingle, storeBufferSingleResults, pageState, defaultKeys)
+    buildTest(sbName, "Single Instance", storeBufferSingle, storeBufferSingleResults, pageState, defaultKeys),
+    buildTest(sbName, "Single Instance RMW", storeBufferRMWSingle, storeBufferSingleResults, pageState, defaultKeys),
+    buildTest(sbName, "Single Instance RMW Barrier 1", storeBufferRMWSingleBarrier1, storeBufferSingleResults, pageState, defaultKeys),
+    buildTest(sbName, "Single Instance RMW Barrier 2", storeBufferRMWSingleBarrier2, storeBufferSingleResults, pageState, defaultKeys),
+    buildTest(sbName, "Single Instance Coherency", storeBufferCoherencySingle, storeBufferCoherencySingleResults, pageState, defaultKeys)
   ];
   const sbJsx = <SelectorTest key="sb" testName={sbName} tests={sbTests} />;
   let tptName = "2+2 Write";
@@ -551,7 +583,11 @@ function getTestSelector(pageState) {
     buildTest(tptName, "RMW Barrier Workgroup (workgroup memory)", twoPlusTwoWriteWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
     buildTest(tptName, "RMW Barrier Workgroup (storage memory)", twoPlusTwoWriteStorageWorkgroupRMWBarrier, twoPlusTwoWriteWorkgroupResults, pageState, defaultKeys),
     buildTest(tptName, "Coherency", twoPlusTwoWriteCoherency, twoPlusTwoWriteCoherencyResults, pageState, defaultKeys),
-    buildTest(tptName, "Single Instance", twoPlusTwoWriteSingle, twoPlusTwoWriteSingleResults, pageState, defaultKeys)
+    buildTest(tptName, "Single Instance", twoPlusTwoWriteSingle, twoPlusTwoWriteSingleResults, pageState, defaultKeys),
+    buildTest(tptName, "Single Instance RMW", twoPlusTwoWriteRMWSingle, twoPlusTwoWriteSingleResults, pageState, defaultKeys),
+    buildTest(tptName, "Single Instance RMW Barrier 1", twoPlusTwoWriteRMWSingleBarrier1, twoPlusTwoWriteSingleResults, pageState, defaultKeys),
+    buildTest(tptName, "Single Instance RMW Barrier 2", twoPlusTwoWriteRMWSingleBarrier2, twoPlusTwoWriteSingleResults, pageState, defaultKeys),
+    buildTest(tptName, "Single Instance Coherency", twoPlusTwoWriteCoherencySingle, twoPlusTwoWriteCoherencySingleResults, pageState, defaultKeys)
   ];
   const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
@@ -640,19 +676,25 @@ function getTestSelector(pageState) {
     buildTest(rrName, "Default", rrMutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
     buildTest(rrName, "RMW", rrRMWMutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
     buildTest(rrName, "RMW1", rrRMW1Mutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
-    buildTest(rrName, "RMW2", rrRMW2Mutation, rrResults, pageState, mutationTestKeys, coherenceOverrides)
+    buildTest(rrName, "RMW2", rrRMW2Mutation, rrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rrName, "Single Instance", rrMutationSingle, rrResultsSingle, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rrName, "Single Instance RMW", rrRMWMutationSingle, rrResultsSingle, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const rrJsx = <SelectorTest key="rr" testName={rrName} tests={rrTests} />;
   let rwName = "RW Mutations";
   let rwTests = [
     buildTest(rwName, "Default", rwMutation, rwResults, pageState, mutationTestKeys, coherenceOverrides),
-    buildTest(rwName, "RMW", rwRMWMutation, rwResults, pageState, mutationTestKeys, coherenceOverrides)
+    buildTest(rwName, "RMW", rwRMWMutation, rwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rwName, "Single Instance", rwMutationSingle, rwResultsSingle, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(rwName, "Single Instance RMW", rwRMWMutationSingle, rwResultsSingle, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const rwJsx = <SelectorTest key="rw" testName={rwName} tests={rwTests} />;
   let wrName = "WR Mutations";
   let wrTests = [
     buildTest(wrName, "Default", wrMutation, wrResults, pageState, mutationTestKeys, coherenceOverrides),
-    buildTest(wrName, "RMW", wrRMWMutation, wrResults, pageState, mutationTestKeys, coherenceOverrides)
+    buildTest(wrName, "RMW", wrRMWMutation, wrResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wrName, "Single Instance", wrMutationSingle, wrResultsSingle, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wrName, "Single Instance RMW", wrRMWMutationSingle, wrResultsSingle, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const wrJsx = <SelectorTest key="wr" testName={wrName} tests={wrTests} />;
   let wwName = "WW Mutations";
@@ -664,7 +706,9 @@ function getTestSelector(pageState) {
     buildTest(wwName, "RMW 3", wwRMW3Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
     buildTest(wwName, "RMW 4", wwRMW4Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
     buildTest(wwName, "RMW 5", wwRMW5Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
-    buildTest(wwName, "RMW 6", wwRMW6Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides)
+    buildTest(wwName, "RMW 6", wwRMW6Mutation, wwResults, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "Single Instance", wwMutationSingle, wwResultsSingle, pageState, mutationTestKeys, coherenceOverrides),
+    buildTest(wwName, "Single Instance RMW", wwRMWMutationSingle, wwResultsSingle, pageState, mutationTestKeys, coherenceOverrides)
   ];
   const wwJsx = <SelectorTest key="ww" testName={wwName} tests={wwTests} />;
   const mutationJsx = [rrJsx, rwJsx, wrJsx, wwJsx];
@@ -759,7 +803,9 @@ function getTestSelector(pageState) {
                       rrTests[0].setIsChecked(true);
                       rrTests[1].setIsChecked(true);
                       rwTests[0].setIsChecked(true);
+                      rwTests[1].setIsChecked(true);
                       wrTests[0].setIsChecked(true);
+                      wrTests[1].setIsChecked(true);
                       wwTests[0].setIsChecked(true);
                       wwTests[1].setIsChecked(true);
                     }} disabled={pageState.running.value}>
@@ -780,8 +826,25 @@ function getTestSelector(pageState) {
                       readTests[13].setIsChecked(true);
                       readTests[14].setIsChecked(true);
                       lbTests[9].setIsChecked(true);
-                      sbTests[10].setIsChecked(true);
-                      twoPlusTwoWriteTests[10].setIsChecked(true);
+                      lbTests[10].setIsChecked(true);
+                      lbTests[11].setIsChecked(true);
+                      lbTests[12].setIsChecked(true);
+                      sbTests[11].setIsChecked(true);
+                      sbTests[12].setIsChecked(true);
+                      sbTests[13].setIsChecked(true);
+                      sbTests[14].setIsChecked(true);
+                      twoPlusTwoWriteTests[11].setIsChecked(true);
+                      twoPlusTwoWriteTests[12].setIsChecked(true);
+                      twoPlusTwoWriteTests[13].setIsChecked(true);
+                      twoPlusTwoWriteTests[14].setIsChecked(true);
+                      rrTests[4].setIsChecked(true);
+                      rrTests[5].setIsChecked(true);
+                      rwTests[2].setIsChecked(true);
+                      rwTests[3].setIsChecked(true);
+                      wrTests[2].setIsChecked(true);
+                      wrTests[3].setIsChecked(true);
+                      wwTests[8].setIsChecked(true);
+                      wwTests[9].setIsChecked(true);
                     }} disabled={pageState.running.value}>
                       Evaluation Legacy
                     </button>

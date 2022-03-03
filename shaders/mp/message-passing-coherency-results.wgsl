@@ -1,5 +1,7 @@
 [[block]] struct TestResults {
-  nonWeak: atomic<u32>;
+  seq0: atomic<u32>;
+  seq1: atomic<u32>;
+  interleaved: atomic<u32>;
   weak: atomic<u32>;
 };
 
