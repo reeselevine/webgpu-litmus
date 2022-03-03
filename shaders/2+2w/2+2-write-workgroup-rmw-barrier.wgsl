@@ -130,8 +130,8 @@ let workgroupXSize = 256;
     }
     atomicStore(&wg_test_locations[x_0], 2u);
     workgroupBarrier();
-    let unused = atomicExchange(&wg_test_locations[y_0], 1u);
-    let unused1 = atomicExchange(&wg_test_locations[y_1], 2u);
+    atomicStore(&wg_test_locations[y_0], 1u);
+    let unused = atomicExchange(&wg_test_locations[y_1], 2u);
     workgroupBarrier();
     atomicStore(&wg_test_locations[x_1], 1u);
     workgroupBarrier();

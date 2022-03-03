@@ -115,7 +115,7 @@ let workgroupXSize = 256u;
   let x = shuffled_workgroups.value[0u] * workgroupXSize;
   let y = x + (1u << stress_params.mem_stride);
   if (shuffled_workgroup == 0u) {
-    let r0;
+    var r0: u32;
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
       if (stress_params.pre_stress == 1u) {
         do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, shuffled_workgroup);

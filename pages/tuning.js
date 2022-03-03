@@ -181,7 +181,7 @@ import storeBufferSingle from '../shaders/sb/store-buffer-single.wgsl';
 import storeBufferRMWSingle from '../shaders/sb/store-buffer-rmw-single.wgsl';
 import storeBufferRMWSingleBarrier1 from '../shaders/sb/store-buffer-rmw-single-barrier1.wgsl';
 import storeBufferRMWSingleBarrier2 from '../shaders/sb/store-buffer-rmw-single-barrier2.wgsl';
-import storeBufferCoherencySingle from '../shaders/sb/store-buffer-single.wgsl';
+import storeBufferCoherencySingle from '../shaders/sb/store-buffer-coherency-single.wgsl';
 import storeBufferSingleResults from '../shaders/sb/store-buffer-results-single.wgsl';
 import storeBufferCoherencySingleResults from '../shaders/sb/store-buffer-coherency-results-single.wgsl';
 import twoPlusTwoWriteSingle from '../shaders/2+2w/2+2-write-single.wgsl';

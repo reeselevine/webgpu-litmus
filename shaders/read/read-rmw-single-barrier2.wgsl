@@ -126,7 +126,7 @@ let workgroupXSize = 256u;
     }
     storageBarrier();
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
-      let unused = atomicExchange(&test_locations.value[y], 1u);
+      atomicStore(&test_locations.value[y], 1u);
     }
   } elseif (shuffled_workgroup == 1u) {
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {

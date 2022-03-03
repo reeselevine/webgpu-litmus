@@ -129,8 +129,8 @@ let workgroupXSize = 256;
     }
     atomicStore(&test_locations.value[x_0], 1u);
     storageBarrier();
-    let unused = atomicExchange(&test_locations.value[y_0], 1u);
-    let unused1 = atomicExchange(&test_locations.value[y_1], 2u);
+    atomicStore(&test_locations.value[y_0], 1u);
+    let unused = atomicExchange(&test_locations.value[y_1], 2u);
     let r0 = atomicLoad(&test_locations.value[x_1]);
     workgroupBarrier();
     atomicStore(&results.value[id_1].r0, r0);

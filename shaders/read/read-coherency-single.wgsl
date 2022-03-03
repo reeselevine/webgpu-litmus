@@ -123,7 +123,7 @@ let workgroupXSize = 256u;
         spin(2u);
       }
       atomicStore(&test_locations.value[x], 1u);
-      atomicStore(&test_locations.value[y], wu);
+      atomicStore(&test_locations.value[y], 2u);
     }
   } elseif (shuffled_workgroup == 1u) {
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
