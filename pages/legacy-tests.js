@@ -16,10 +16,18 @@ import storeBuffer from '../shaders/sb/store-buffer-single.wgsl';
 import storeBufferResults from '../shaders/sb/store-buffer-results-single.wgsl';
 import twoPlusTwoWrite from '../shaders/2+2w/2+2-write-single.wgsl';
 import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results-single.wgsl';
+import rrSingle from '../shaders/evaluation/rr-mutation-single.wgsl';
+import rrSingleResults from '../shaders/evaluation/rr-results-single.wgsl';
+import rwSingle from '../shaders/evaluation/rw-mutation-single.wgsl';
+import rwSingleResults from '../shaders/evaluation/rw-results-single.wgsl';
+import wrSingle from '../shaders/evaluation/wr-mutation-single.wgsl';
+import wrSingleResults from '../shaders/evaluation/wr-results-single.wgsl';
+import wwSingle from '../shaders/evaluation/ww-mutation-single.wgsl';
+import wwSingleResults from '../shaders/evaluation/ww-results-single.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
-const oneThreadKeys = ["seq", "weak"];
+const mutationKeys = ["nonWeak", "weak"];
 const uiKeys = ["seq", "interleaved", "weak"];
 
 function getPageState() {
@@ -113,7 +121,7 @@ function handleConformanceResult(testState) {
   return function (result) {
     for (let i = 0; i < testState.keys.length; i++) {
       var key;
-      if (testState.keys[i].includes("seq")) {
+      if (testState.keys[i].includes("seq") || testState.keys[i] == "nonWeak") {
         key = "seq";
       } else {
         key = testState.keys[i];
@@ -127,7 +135,6 @@ function handleConformanceResult(testState) {
 function updateStateAndHandleResult(pageState, testState) {
   const fn = handleConformanceResult(testState);
   return function (result) {
-    console.log(result);
     let time = reportTime();
     let curIter = getCurrentIteration();
     var rate;
@@ -176,7 +183,11 @@ export default function ConformanceTestSuite() {
     buildTest("Read", "read", pageState, testParams, read, readResults, defaultKeys),
     buildTest("Load Buffer", "load-buffer", pageState, testParams, loadBuffer, loadBufferResults, defaultKeys),
     buildTest("Store Buffer", "store-buffer", pageState, testParams, storeBuffer, storeBufferResults, defaultKeys),
-    buildTest("2+2 Write", "2-plus-2-write", pageState, testParams, twoPlusTwoWrite, twoPlusTwoWriteResults, defaultKeys)
+    buildTest("2+2 Write", "2-plus-2-write", pageState, testParams, twoPlusTwoWrite, twoPlusTwoWriteResults, defaultKeys),
+    buildTest("RR", "surprise", pageState, testParams, rrSingle, rrSingleResults, mutationKeys, aliasOverride),
+    buildTest("RW", "surprise", pageState, testParams, rwSingle, rwSingleResults, mutationKeys, aliasOverride),
+    buildTest("WR", "surprise", pageState, testParams, wrSingle, wrSingleResults, mutationKeys, aliasOverride),
+    buildTest("WW", "surprise", pageState, testParams, wwSingle, wwSingleResults, mutationKeys, aliasOverride)
   ];
   let initialIterations = pageState.iterations.value;
   const stressPanel = getStressPanel(testParams, pageState);

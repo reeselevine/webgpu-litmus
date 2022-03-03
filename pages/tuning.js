@@ -141,11 +141,24 @@ import twoPlusTwoWriteRMW from '../shaders/2+2w/2+2-write-rmw.wgsl';
 import twoPlusTwoWriteRMWBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.wgsl';
 import twoPlusTwoWriteRMWBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl';
 import messagePassingSingle from '../shaders/mp/message-passing-single.wgsl';
+import messagePassingSingleBarrier1 from '../shaders/mp/message-passing-single-barrier1.wgsl';
+import messagePassingSingleBarrier2 from '../shaders/mp/message-passing-single-barrier2.wgsl';
+import messagePassingCoherencySingle from '../shaders/mp/message-passing-coherency-single.wgsl';
 import messagePassingSingleResults from '../shaders/mp/message-passing-results-single.wgsl';
+import messagePassingCoherencySingleResults from '../shaders/mp/message-passing-coherency-results-single.wgsl';
 import storeSingle from '../shaders/store/store-single.wgsl';
+import storeSingleBarrier1 from '../shaders/store/store-single-barrier1.wgsl';
+import storeSingleBarrier2 from '../shaders/store/store-single-barrier2.wgsl';
+import storeCoherencySingle from '../shaders/store/store-coherency-single.wgsl';
 import storeSingleResults from '../shaders/store/store-results-single.wgsl';
+import storeCoherencySingleResults from '../shaders/store/store-coherency-results-single.wgsl';
 import readSingle from '../shaders/read/read-single.wgsl';
+import readRMWSingle from '../shaders/read/read-rmw-single.wgsl';
+import readRMWSingleBarrier1 from '../shaders/read/read-rmw-single-barrier1.wgsl';
+import readRMWSingleBarrier2 from '../shaders/read/read-rmw-single-barrier2.wgsl';
+import readCoherencySingle from '../shaders/read/read-coherency-single.wgsl';
 import readSingleResults from '../shaders/read/read-results-single.wgsl';
+import readCoherencySingleResults from '../shaders/read/read-coherency-results-single.wgsl';
 import loadBufferSingle from '../shaders/lb/load-buffer-single.wgsl';
 import loadBufferSingleResults from '../shaders/lb/load-buffer-results-single.wgsl';
 import storeBufferSingle from '../shaders/sb/store-buffer-single.wgsl';
@@ -455,7 +468,10 @@ function getTestSelector(pageState) {
     buildTest(mpName, "Workgroup (storage memory)", storageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupMessagePassing, messagePassingResults, pageState, defaultKeys),
     buildTest(mpName, "Coherency", messagePassingCoherency, messagePassingCoherencyResults, pageState, defaultKeys),
-    buildTest(mpName, "Single Instance", messagePassingSingle, messagePassingSingleResults, pageState, defaultKeys)
+    buildTest(mpName, "Single Instance", messagePassingSingle, messagePassingSingleResults, pageState, defaultKeys),
+    buildTest(mpName, "Single Instance Barrier 1", messagePassingSingleBarrier1, messagePassingSingleResults, pageState, defaultKeys),
+    buildTest(mpName, "Single Instance Barrier 2", messagePassingSingleBarrier2, messagePassingSingleResults, pageState, defaultKeys),
+    buildTest(mpName, "Single Instance Coherency", messagePassingCoherencySingle, messagePassingCoherencySingleResults, pageState, defaultKeys)
   ];
   const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
   let storeName = "Store";
@@ -469,7 +485,10 @@ function getTestSelector(pageState) {
     buildTest(storeName, "Workgroup (storage memory)", storageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Barrier Workgroup (storage memory)", barrierStorageWorkgroupStore, storeWorkgroupResults, pageState, defaultKeys),
     buildTest(storeName, "Coherency", storeCoherency, storeCoherencyResults, pageState, defaultKeys),
-    buildTest(storeName, "Single Instance", storeSingle, storeSingleResults, pageState, defaultKeys)
+    buildTest(storeName, "Single Instance", storeSingle, storeSingleResults, pageState, defaultKeys),
+    buildTest(storeName, "Single Instance Barrier 1", storeSingleBarrier1, storeSingleResults, pageState, defaultKeys),
+    buildTest(storeName, "Single Instance Barrier 2", storeSingleBarrier2, storeSingleResults, pageState, defaultKeys),
+    buildTest(storeName, "Single Instance Coherency", storeCoherencySingle, storeCoherencySingleResults, pageState, defaultKeys)
   ];
   let readName = "Read";
   const storeJsx = <SelectorTest key="store" testName={storeName} tests={storeTests} />;
@@ -484,7 +503,11 @@ function getTestSelector(pageState) {
     buildTest(readName, "RMW Barrier Workgroup (workgroup memory)", readWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "RMW Barrier Workgroup (storage memory)", readStorageWorkgroupRMWBarrier, readWorkgroupResults, pageState, defaultKeys),
     buildTest(readName, "Coherency", readCoherency, readCoherencyResults, pageState, defaultKeys),
-    buildTest(readName, "Single Instance", readSingle, readSingleResults, pageState, defaultKeys)
+    buildTest(readName, "Single Instance", readSingle, readSingleResults, pageState, defaultKeys),
+    buildTest(readName, "Single Instance RMW", readRMWSingle, readSingleResults, pageState, defaultKeys),
+    buildTest(readName, "Single Instance RMW Barrier 1", readRMWSingleBarrier1, readSingleResults, pageState, defaultKeys),
+    buildTest(readName, "Single Instance RMW Barrier 2", readRMWSingleBarrier2, readSingleResults, pageState, defaultKeys),
+    buildTest(readName, "Single Instance Coherency", readCoherencySingle, readCoherencySingleResults, pageState, defaultKeys)
   ];
   const readJsx = <SelectorTest key="read" testName={readName} tests={readTests} />;
   let lbName = "Load Buffer";
@@ -745,8 +768,17 @@ function getTestSelector(pageState) {
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
                       mpTests[9].setIsChecked(true);
+                      mpTests[10].setIsChecked(true);
+                      mpTests[11].setIsChecked(true);
+                      mpTests[12].setIsChecked(true);
                       storeTests[9].setIsChecked(true);
-                      readTests[10].setIsChecked(true);
+                      storeTests[10].setIsChecked(true);
+                      storeTests[11].setIsChecked(true);
+                      storeTests[12].setIsChecked(true);
+                      readTests[11].setIsChecked(true);
+                      readTests[12].setIsChecked(true);
+                      readTests[13].setIsChecked(true);
+                      readTests[14].setIsChecked(true);
                       lbTests[9].setIsChecked(true);
                       sbTests[10].setIsChecked(true);
                       twoPlusTwoWriteTests[10].setIsChecked(true);

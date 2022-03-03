@@ -122,12 +122,11 @@ let workgroupXSize = 256u;
       if (stress_params.do_barrier == 1u) {
         spin(2u);
       }
-      atomicStore(&test_locations.value[x], 1u);
+      atomicStore(&test_locations.value[x], 2u);
       atomicStore(&test_locations.value[y], 1u);
     }
   } elseif (shuffled_workgroup == 1u) {
     let r0;
-    let r1;
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
       if (stress_params.pre_stress == 1u) {
         do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, shuffled_workgroup);
@@ -139,9 +138,8 @@ let workgroupXSize = 256u;
     }
     storageBarrier();
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
-      r1 = atomicLoad(&test_locations.value[x]);
+      atomicStore(&test_locations.value[x], 1u);
       atomicStore(&results.value[0].r0, r0);
-      atomicStore(&results.value[0].r1, r1);
     }
   } elseif (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
