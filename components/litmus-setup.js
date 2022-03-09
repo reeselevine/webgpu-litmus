@@ -435,14 +435,14 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const arrayBuffer = buffers.testResults.readBuffer.getMappedRange();
   const result = new Uint32Array(arrayBuffer).slice(0);
   buffers.testResults.readBuffer.unmap();
-  await buffers.readResults.readBuffer.mapAsync(GPUMapMode.READ);
-  const readResultsArrayBuffer = buffers.readResults.readBuffer.getMappedRange();
+  //await buffers.readResults.readBuffer.mapAsync(GPUMapMode.READ);
+  //const readResultsArrayBuffer = buffers.readResults.readBuffer.getMappedRange();
   //console.log(new Uint32Array(readResultsArrayBuffer).slice(0));
-  buffers.readResults.readBuffer.unmap();
-  await buffers.testLocations.readBuffer.mapAsync(GPUMapMode.READ);
-  const memArrayBuffer = buffers.testLocations.readBuffer.getMappedRange();
+  //buffers.readResults.readBuffer.unmap();
+  //await buffers.testLocations.readBuffer.mapAsync(GPUMapMode.READ);
+  //const memArrayBuffer = buffers.testLocations.readBuffer.getMappedRange();
   //console.log(new Uint32Array(memArrayBuffer).slice(0));
-  buffers.testLocations.readBuffer.unmap();
+  //buffers.testLocations.readBuffer.unmap();
   return result;
 }
 
