@@ -361,13 +361,13 @@ function getPercentage(generator, smoothedParameters) {
   }
 }
 
-export function randomConfig(generator, smoothedParameters=true, workgroupLimiter=1024) {
+export function randomConfig(generator, smoothedParameters=true, workgroupLimiter=1024, overrides={}) {
   let testingWorkgroups = randomGenerator(2, workgroupLimiter, generator);
   let maxWorkgroups =  randomGenerator(testingWorkgroups, workgroupLimiter, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
   let memStride = randomGenerator(1, 7, generator);
-  return {
+  let generated = {
     testingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
     shufflePct: getPercentage(generator, smoothedParameters),
@@ -386,4 +386,8 @@ export function randomConfig(generator, smoothedParameters=true, workgroupLimite
     preStressStoreFirstPct: getPercentage(generator, smoothedParameters),
     preStressStoreSecondPct: getPercentage(generator, smoothedParameters)
   };
+  for (let key of Object.keys(overrides)) {
+    generated[key] = overrides[key];
+  }
+  return generated;
 }

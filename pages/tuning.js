@@ -205,6 +205,7 @@ function getPageState() {
   const [randomSeed, setRandomSeed] = useState("");
   const [smoothedParameters, setSmoothedParameters] = useState(true);
   const [maxWorkgroups, setMaxWorkgroups] = useState(1024);
+  const [tuningOverrides, setTuningOverrides] = useState({});
   const [tuningTimes, setTuningTimes] = useState(10);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
@@ -240,6 +241,10 @@ function getPageState() {
       value: maxWorkgroups,
       update: setMaxWorkgroups
     },
+    tuningOverrides: {
+      value: tuningOverrides,
+      update: setTuningOverrides
+    },
     tuningRows: {
       value: rows,
       update: setRows
@@ -272,6 +277,36 @@ function getPageState() {
     activeTests: [],
     curParams: testParams
   }
+}
+
+function paramsInputOnChange(pageState) {
+  return function onChange(e) {
+    let file = e.target.files[0];
+    let reader = new FileReader();
+    reader.onload = function(event) {
+      let config = JSON.parse(event.target.result);
+      pageState.tuningOverrides.update(config);
+    };
+    reader.readAsText(file);
+    e.target.value = null;
+  }
+}
+
+function TuningOverrides(props) {
+  return (
+    <>
+      <div className="file is-primary">
+        <label className="file-label" data-tip="A JSON file with the same structure and parameters as the 'params' field when downloading tuning results.">
+          <input className="file-input" type="file" name="params" onChange={paramsInputOnChange(props.pageState)}/>
+          <span className="file-cta">
+            <span className="file-label">
+              Upload
+            </span>
+          </span>
+        </label>
+      </div>
+    </>
+  )
 }
 
 function TuningTest(props) {
@@ -887,7 +922,7 @@ async function tune(tests, testParams, pageState) {
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
     let params = {
-      ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value),
+      ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
       id: i,
       minWorkgroupSize: testParams.minWorkgroupSize,
       maxWorkgroupSize: testParams.maxWorkgroupSize,
@@ -950,7 +985,7 @@ export default function TuningSuite() {
       <div className="columns">
         <div className="column">
           <div className="control mb-2">
-            <label><b>Tuning Config Num:</b></label>
+            <label><b>Configurations:</b></label>
             <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
               pageState.tuningTimes.update(e.target.value);
             }} disabled={pageState.running.value} />
@@ -986,7 +1021,6 @@ export default function TuningSuite() {
             }} disabled={pageState.running.value} />
           </div>
         </div>
-
         <div className="column">
           <div className='control'>
             <label className="checkbox"><b>Smoothed Parameters:</b></label>
@@ -996,6 +1030,12 @@ export default function TuningSuite() {
               }} disabled={pageState.running.value} />
                 <b>Enabled</b>
             </div>
+          </div>
+        </div>
+        <div className="column">
+          <div className='control'>
+            <label className="checkbox"><b>Overrides:</b></label>
+            <TuningOverrides pageState={pageState}/>
           </div>
         </div>
       </div>
