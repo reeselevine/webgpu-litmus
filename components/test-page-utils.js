@@ -369,6 +369,7 @@ export function randomConfig(generator, smoothedParameters=true, workgroupLimite
   let memStride = randomGenerator(1, 7, generator);
   let generated = {
     testingWorkgroups: testingWorkgroups,
+    minTestingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
     shufflePct: getPercentage(generator, smoothedParameters),
     barrierPct: getPercentage(generator, smoothedParameters),
@@ -378,6 +379,7 @@ export function randomConfig(generator, smoothedParameters=true, workgroupLimite
     memStride: memStride,
     stressLineSize: stressLineSize,
     stressTargetLines: stressTargetLines,
+    minStressTargetLines: stressTargetLines,
     memStressIterations: randomGenerator(0, 1024, generator),
     preStressIterations: randomGenerator(0, 128, generator),
     stressStrategyBalancePct: getPercentage(generator, smoothedParameters),

@@ -1,6 +1,7 @@
 /** Default test parameters */
 export const defaultTestParams = {
   testingWorkgroups: 2,
+  minTestingWorkgroups: 2,
   maxWorkgroups: 4,
   minWorkgroupSize: 256,
   maxWorkgroupSize: 256,
@@ -20,6 +21,7 @@ export const defaultTestParams = {
   preStressStoreSecondPct: 100,
   stressLineSize: 64,
   stressTargetLines: 2,
+  minStressTargetLines: 2,
   stressStrategyBalancePct: 100,
   permuteFirst: 109,
   permuteSecond: 419,
@@ -129,28 +131,29 @@ function setShuffledWorkgroups(shuffledWorkgroups, testParams, numWorkgroups) {
 }
 
 function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
+  const stressTargetLines = getRandomInRange(testParams.minStressTargetLines, testParams.stressTargetLines);
   const scratchLocationsArrayBuffer = scratchLocations.writeBuffer.getMappedRange();
   const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
   const scratchUsedRegions = new Set();
   const scratchNumRegions = testParams.scratchMemorySize / testParams.stressLineSize;
-  for (let i = 0; i < testParams.stressTargetLines; i++) {
+  for (let i = 0; i < stressTargetLines; i++) {
     let region = getRandomInt(scratchNumRegions);
     while (scratchUsedRegions.has(region)) {
       region = getRandomInt(scratchNumRegions);
     }
     const locInRegion = getRandomInt(testParams.stressLineSize);
     if (getRandomInt(100) < testParams.stressStrategyBalancePct) {
-      for (let j = i; j < numWorkgroups; j += testParams.stressTargetLines) {
+      for (let j = i; j < numWorkgroups; j += stressTargetLines) {
         scratchLocationsArray[j] = region * testParams.stressLineSize + locInRegion;
 
       }
     } else {
-      const workgroupsPerLocation = numWorkgroups / testParams.stressTargetLines;
+      const workgroupsPerLocation = numWorkgroups / stressTargetLines;
       for (let j = 0; j < workgroupsPerLocation; j++) {
         scratchLocationsArray[i * workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
       }
-      if (i == testParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
-        for (let j = 0; j < numWorkgroups % testParams.stressTargetLines; j++) {
+      if (i == stressTargetLines - 1 && numWorkgroups % stressTargetLines != 0) {
+        for (let j = 0; j < numWorkgroups % stressTargetLines; j++) {
           scratchLocationsArray[numWorkgroups - j - 1] = region * testParams.stressLineSize + locInRegion;
         }
       }
@@ -161,7 +164,7 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
   scratchLocations.writeBuffer.unmap();
 }
 
-function setStressParams(stressParams, testParams) {
+function setStressParams(stressParams, testParams, numTestingWorkgroups) {
   const stressParamsArrayBuffer = stressParams.writeBuffer.getMappedRange();
   const stressParamsArray = new Uint32Array(stressParamsArrayBuffer);
   if (getRandomInt(100) < testParams.barrierPct) {
@@ -209,7 +212,7 @@ function setStressParams(stressParams, testParams) {
   stressParamsArray[6*uniformBufferAlignment] = preStressPattern;
   stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
   stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
-  stressParamsArray[9*uniformBufferAlignment] = testParams.testingWorkgroups;
+  stressParamsArray[9*uniformBufferAlignment] = numTestingWorkgroups;
   stressParamsArray[10*uniformBufferAlignment] = testParams.memStride;
   if (testParams.aliasedMemory) {
     stressParamsArray[11*uniformBufferAlignment] = 0;
@@ -351,8 +354,9 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 
 async function runTestIteration(device, computePipeline, bindGroup, resultComputePipeline, resultBindGroup, buffers, testParams, workgroupSize) {
   // Commands submission
-  const numWorkgroups = getRandomInRange(testParams.testingWorkgroups, testParams.maxWorkgroups);
-  let testingThreads = workgroupSize * testParams.testingWorkgroups;
+  const numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
+  const numWorkgroups = getRandomInRange(numTestingWorkgroups, testParams.maxWorkgroups);
+  let testingThreads = workgroupSize * numTestingWorkgroups;
   let testLocationsSize = testingThreads * testParams.numMemLocations * testParams.memStride;
   let resultsSize = 4;
 
@@ -379,7 +383,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   await p6;
   clearBuffer(buffers.readResults, testingThreads * testParams.numOutputs);
   await p7;
-  setStressParams(buffers.stressParams, testParams);
+  setStressParams(buffers.stressParams, testParams, numTestingWorkgroups);
 
   const commandEncoder = device.createCommandEncoder();
   commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, testLocationsSize * uint32ByteSize);
@@ -399,7 +403,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const resultPassEncoder = commandEncoder.beginComputePass();
   resultPassEncoder.setPipeline(resultComputePipeline);
   resultPassEncoder.setBindGroup(0, resultBindGroup);
-  resultPassEncoder.dispatch(testParams.testingWorkgroups);
+  resultPassEncoder.dispatch(numTestingWorkgroups);
   resultPassEncoder.endPass();
 
   commandEncoder.copyBufferToBuffer(
