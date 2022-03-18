@@ -32,7 +32,7 @@ struct ReadResult {
 
 [[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
 [[group(0), binding(1)]] var<storage, read_write> results : ReadResults;
-[[group(0), binding(2)]] var<storage, read_write> shuffled_workgroups : Memory;
+[[group(0), binding(2)]] var<storage, read> shuffled_workgroups : Memory;
 [[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
 [[group(0), binding(4)]] var<storage, read_write> scratchpad : Memory;
 [[group(0), binding(5)]] var<storage, read_write> scratch_locations : Memory;
@@ -112,7 +112,7 @@ let workgroupXSize = 256u;
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
   let shuffled_workgroup = shuffled_workgroups.value[workgroup_id[0]];
-  let x = shuffled_workgroups.value[0u] * workgroupXSize;
+  let x = shuffled_workgroups.value[0u] * workgroupXSize % (workgroupXSize * stress_params.testing_workgroups);
   let y = x + (1u << stress_params.mem_stride) * stress_params.location_offset;
   if (shuffled_workgroup == 0u) {
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {

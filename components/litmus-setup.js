@@ -243,7 +243,7 @@ function createBindGroupLayout(device) {
         binding: 2,
         visibility: GPUShaderStage.COMPUTE,
         buffer: {
-          type: "storage"
+          type: "read-only-storage"
         }
       },
       {
@@ -506,7 +506,7 @@ async function setupTest(testParams) {
         binding: 4,
         visibility: GPUShaderStage.COMPUTE,
         buffer: {
-          type: "storage"
+          type: "read-only-storage"
         }
       }
     ]

@@ -32,7 +32,7 @@ struct ReadResult {
 
 [[group(0), binding(0)]] var<storage, read_write> test_locations : Memory;
 [[group(0), binding(1)]] var<storage, read_write> results : ReadResults;
-[[group(0), binding(2)]] var<storage, read_write> shuffled_workgroups : Memory;
+[[group(0), binding(2)]] var<storage, read> shuffled_workgroups : Memory;
 [[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
 [[group(0), binding(4)]] var<storage, read_write> scratchpad : Memory;
 [[group(0), binding(5)]] var<storage, read_write> scratch_locations : Memory;

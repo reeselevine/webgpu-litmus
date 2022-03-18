@@ -41,7 +41,7 @@ struct ReadResult {
 [[group(0), binding(1)]] var<storage, read_write> read_results : ReadResults;
 [[group(0), binding(2)]] var<storage, read_write> test_results : TestResults;
 [[group(0), binding(3)]] var<uniform> stress_params : StressParamsMemory;
-[[group(0), binding(4)]] var<storage, read_write> shuffled_workgroups : Memory;
+[[group(0), binding(4)]] var<storage, read> shuffled_workgroups : Memory;
 
 fn permute_id(id: u32, factor: u32, mask: u32) -> u32 {
   return (id * factor) % mask;
