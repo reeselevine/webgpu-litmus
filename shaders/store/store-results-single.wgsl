@@ -56,7 +56,7 @@ let workgroupXSize = 1u;
   [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
   [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
   if (workgroup_id[0] == 0u && local_invocation_id[0] == 0u) {
-    let x = shuffled_workgroups.value[0u] * 256u;
+    let x = shuffled_workgroups.value[0u] * 256u % (256u * stress_params.testing_workgroups);
     let mem_x_0 = atomicLoad(&test_locations.value[x]);
     let r0 = atomicLoad(&read_results.value[0u].r0);
     if ((r0 == 1u && mem_x_0 == 1u)) {
