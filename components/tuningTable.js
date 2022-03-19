@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { reportTime, getCurrentIteration } from '../components/litmus-setup.js'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
-let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','aliasedMemory', 'permuteFirst', 'permuteSecond']
+let filterOutList = ['id', 'minWorkgroupSize','maxWorkgroupSize','numMemLocations','numOutputs','aliasedMemory', 'permuteFirst', 'permuteSecond', 'minTestingWorkgroups', 'minStressTargetLines']
 
 function replacer(key, value) {
   // Filtering out properties

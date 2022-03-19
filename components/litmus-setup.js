@@ -354,10 +354,18 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
 
 async function runTestIteration(device, computePipeline, bindGroup, resultComputePipeline, resultBindGroup, buffers, testParams, workgroupSize) {
   // Commands submission
-  const numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
+  if (testParams.minTestingWorkgroups % 419 == 0 && testParams.testingWorkgroups == testParams.minTestingWorkgroups) {
+    alert("You have made a forbidden choice. Prepare to be annihilated.")
+    return;
+  }
+  var numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
+  while (numTestingWorkgroups == 838 || numTestingWorkgroups == 419) {
+    numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
+  }
+
   const numWorkgroups = getRandomInRange(numTestingWorkgroups, testParams.maxWorkgroups);
-  let testingThreads = workgroupSize * numTestingWorkgroups;
-  let testLocationsSize = testingThreads * testParams.numMemLocations * testParams.memStride;
+  let maxTestingThreads = workgroupSize * testParams.testingWorkgroups;
+  let testLocationsSize = maxTestingThreads * testParams.numMemLocations * testParams.memStride;
   let resultsSize = 4;
 
   // interleave waiting for buffers to map with initializing
@@ -381,7 +389,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   await p5;
   setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
   await p6;
-  clearBuffer(buffers.readResults, testingThreads * testParams.numOutputs);
+  clearBuffer(buffers.readResults, maxTestingThreads * testParams.numOutputs);
   await p7;
   setStressParams(buffers.stressParams, testParams, numTestingWorkgroups);
 
@@ -419,7 +427,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
     0,
     buffers.readResults.readBuffer,
     0,
-    testParams.numOutputs * testingThreads * uint32ByteSize
+    testParams.numOutputs * maxTestingThreads * uint32ByteSize
   );
 
   commandEncoder.copyBufferToBuffer(
@@ -439,6 +447,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const arrayBuffer = buffers.testResults.readBuffer.getMappedRange();
   const result = new Uint32Array(arrayBuffer).slice(0);
   buffers.testResults.readBuffer.unmap();
+
   //await buffers.readResults.readBuffer.mapAsync(GPUMapMode.READ);
   //const readResultsArrayBuffer = buffers.readResults.readBuffer.getMappedRange();
   //console.log(new Uint32Array(readResultsArrayBuffer).slice(0));
