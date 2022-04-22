@@ -33,6 +33,20 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
+const delay = (backoff) => new Promise((res) => setTimeout(res, backoff));
+
+const retryWithBackoff = async (fn, retries = 0) => {
+	try {
+		return await fn();
+	} catch(e) {
+		if (retries > 5) {
+			throw e;
+		}
+		await delay(2 ** retries * 10);
+		return retryWithBackoff(fn, retries + 1);
+	}
+}
+
 /** Used to set buffer sizes/clear buffers. */
 const uint32ByteSize = 4;
 
@@ -104,7 +118,7 @@ function createBuffer(device, bufferSize, copySrc, copyDst, bufferUsage = GPUBuf
 }
 
 function map_buffer(buffer) {
-  return buffer.writeBuffer.mapAsync(GPUMapMode.WRITE);
+  return retryWithBackoff(async () => { return buffer.writeBuffer.mapAsync(GPUMapMode.WRITE) });
 }
 
 function clearBuffer(buffer, bufferSize) {
@@ -443,7 +457,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   device.queue.submit([gpuCommands]);
 
   // Read buffer.
-  await buffers.testResults.readBuffer.mapAsync(GPUMapMode.READ);
+  await retryWithBackoff(async () => { return buffers.testResults.readBuffer.mapAsync(GPUMapMode.READ) });
   const arrayBuffer = buffers.testResults.readBuffer.getMappedRange();
   const result = new Uint32Array(arrayBuffer).slice(0);
   buffers.testResults.readBuffer.unmap();
