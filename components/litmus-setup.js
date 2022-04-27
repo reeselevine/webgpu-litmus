@@ -50,8 +50,6 @@ const retryWithBackoff = async (fn, retries = 0) => {
 /** Used to set buffer sizes/clear buffers. */
 const uint32ByteSize = 4;
 
-/** Uniform buffer elements must align to a 16 byte boundary (see https://www.w3.org/TR/WGSL/#storage-class-layout-constraints). */
-const uniformBufferAlignment = 4;
 /** Number of individual stresss parameters. */
 const numStressParams = 12;
 
@@ -187,11 +185,11 @@ function setStressParams(stressParams, testParams, numTestingWorkgroups) {
     stressParamsArray[0] = 0;
   }
   if (getRandomInt(100) < testParams.memStressPct) {
-    stressParamsArray[1*uniformBufferAlignment] = 1;
+    stressParamsArray[1] = 1;
   } else {
-    stressParamsArray[1*uniformBufferAlignment] = 0;
+    stressParamsArray[1] = 0;
   }
-  stressParamsArray[2*uniformBufferAlignment] = testParams.memStressIterations;
+  stressParamsArray[2] = testParams.memStressIterations;
   const memStressStoreFirst = getRandomInt(100) < testParams.memStressStoreFirstPct;
   const memStressStoreSecond = getRandomInt(100) < testParams.memStressStoreSecondPct;
   let memStressPattern;
@@ -204,13 +202,13 @@ function setStressParams(stressParams, testParams, numTestingWorkgroups) {
   } else {
     memStressPattern = 3;
   }
-  stressParamsArray[3*uniformBufferAlignment] = memStressPattern;
+  stressParamsArray[3] = memStressPattern;
   if (getRandomInt(100) < testParams.preStressPct) {
-    stressParamsArray[4*uniformBufferAlignment] = 1;
+    stressParamsArray[4] = 1;
   } else {
-    stressParamsArray[4*uniformBufferAlignment] = 0;
+    stressParamsArray[4] = 0;
   }
-  stressParamsArray[5*uniformBufferAlignment] = testParams.preStressIterations;
+  stressParamsArray[5] = testParams.preStressIterations;
   const preStressStoreFirst = getRandomInt(100) < testParams.preStressStoreFirstPct;
   const preStressStoreSecond = getRandomInt(100) < testParams.preStressStoreSecondPct;
   let preStressPattern;
@@ -223,15 +221,15 @@ function setStressParams(stressParams, testParams, numTestingWorkgroups) {
   } else {
     preStressPattern = 3;
   }
-  stressParamsArray[6*uniformBufferAlignment] = preStressPattern;
-  stressParamsArray[7*uniformBufferAlignment] = testParams.permuteFirst;
-  stressParamsArray[8*uniformBufferAlignment] = testParams.permuteSecond;
-  stressParamsArray[9*uniformBufferAlignment] = numTestingWorkgroups;
-  stressParamsArray[10*uniformBufferAlignment] = testParams.memStride;
+  stressParamsArray[6] = preStressPattern;
+  stressParamsArray[7] = testParams.permuteFirst;
+  stressParamsArray[8] = testParams.permuteSecond;
+  stressParamsArray[9] = numTestingWorkgroups;
+  stressParamsArray[10] = testParams.memStride;
   if (testParams.aliasedMemory) {
-    stressParamsArray[11*uniformBufferAlignment] = 0;
+    stressParamsArray[11] = 0;
   } else {
-    stressParamsArray[11*uniformBufferAlignment] = testParams.memStride;
+    stressParamsArray[11] = testParams.memStride;
   }
   stressParams.writeBuffer.unmap();
 }
@@ -414,19 +412,19 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   commandEncoder.copyBufferToBuffer(buffers.shuffledWorkgroups.writeBuffer, 0, buffers.shuffledWorkgroups.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchpad.writeBuffer, 0, buffers.scratchpad.deviceBuffer, 0, testParams.scratchMemorySize * uint32ByteSize);
   commandEncoder.copyBufferToBuffer(buffers.scratchLocations.writeBuffer, 0, buffers.scratchLocations.deviceBuffer, 0, testParams.maxWorkgroups * uint32ByteSize);
-  commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, numStressParams * uniformBufferAlignment * uint32ByteSize);
+  commandEncoder.copyBufferToBuffer(buffers.stressParams.writeBuffer, 0, buffers.stressParams.deviceBuffer, 0, numStressParams * uint32ByteSize);
 
   const passEncoder = commandEncoder.beginComputePass();
   passEncoder.setPipeline(computePipeline);
   passEncoder.setBindGroup(0, bindGroup);
   passEncoder.dispatch(numWorkgroups);
-  passEncoder.endPass();
+  passEncoder.end();
 
   const resultPassEncoder = commandEncoder.beginComputePass();
   resultPassEncoder.setPipeline(resultComputePipeline);
   resultPassEncoder.setBindGroup(0, resultBindGroup);
   resultPassEncoder.dispatch(numTestingWorkgroups);
-  resultPassEncoder.endPass();
+  resultPassEncoder.end();
 
   commandEncoder.copyBufferToBuffer(
     buffers.testResults.deviceBuffer,
@@ -489,7 +487,7 @@ async function setupTest(testParams) {
     barrier: createBuffer(device, 1, false, true),
     scratchpad: createBuffer(device, testParams.scratchMemorySize, false, true),
     scratchLocations: createBuffer(device, testParams.maxWorkgroups, false, true),
-    stressParams: createBuffer(device, numStressParams*uniformBufferAlignment, false, true, GPUBufferUsage.UNIFORM)
+    stressParams: createBuffer(device, numStressParams, false, true, GPUBufferUsage.UNIFORM)
   }
 
   const bindGroupLayout = createBindGroupLayout(device);
@@ -697,7 +695,7 @@ export async function runPrefixSum(numWorkgroups, workgroupSize, n_seq, shader, 
     passEncoder.setPipeline(computePipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(numWorkgroups);
-    passEncoder.endPass();
+    passEncoder.end();
     commandEncoder.copyBufferToBuffer(dataBuffer.deviceBuffer, 0, dataBuffer.readBuffer, 0, dataBufSize * uint32ByteSize);
 
     // Submit GPU commands.

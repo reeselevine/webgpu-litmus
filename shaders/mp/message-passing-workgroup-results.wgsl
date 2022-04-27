@@ -59,9 +59,8 @@ let workgroupXSize = 256u;
   let mem_x_0 = atomicLoad(&test_locations.value[x_0]);
   let r0 = atomicLoad(&read_results.value[id_0].r0);
   let r1 = atomicLoad(&read_results.value[id_0].r1);
-  let total_ids = workgroupXSize * stress_params.testing_workgroups;
-  let y_0 = permute_id(id_0, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset;
-  let mem_y_0 = atomicLoad(&test_locations.value[y_0]);
+  let total_ids = workgroupXSize;
+  let y_0 = (workgroup_id[0] * workgroupXSize + permute_id(local_invocation_id[0], stress_params.permute_second, total_ids)) * stress_params.mem_stride * 2u + stress_params.location_offset;
   if ((r0 == 0u && r1 == 0u)) {
     atomicAdd(&test_results.seq0, 1u);
   } else if ((r0 == 1u && r1 == 1u)) {
