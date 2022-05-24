@@ -9,7 +9,7 @@ export default function App({ Component, pageProps }) {
       <Head>
         <title>WebGPU Memory Model Testing</title>
         <link rel="stylesheet" href="https://www.jsdelivr.com/package/npm/bulma"></link>
-        <meta name="originToken" httpEquiv="origin-trial" content="At7ZfxpwxGMlaA1gEbZTXExHo2gp951QbRcDj56Ez1NLMPY/vSWsTvethUJWjEPs6/3hAMv2OR+Jl2pHwY6TfwgAAABSeyJvcmlnaW4iOiJodHRwczovL2dwdWhhcmJvci51Y3NjLmVkdTo0NDMiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjUyODMxOTk5fQ=="></meta>
+        <meta name="originToken" httpEquiv="origin-trial" content="ApO4IazeSuCcS5v41qvQiAQLEM2uAe/LOOzNYOSBaGpdQxGdC6fLRi5KwP3sSYFT0hjx4PZxzL/kIbwD6hfLOgMAAABSeyJvcmlnaW4iOiJodHRwczovL2dwdWhhcmJvci51Y3NjLmVkdTo0NDMiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjYzNzE4Mzk5fQ=="></meta>
       </Head>
       <div className="columns">
         <div className="column is-one-fifth">
