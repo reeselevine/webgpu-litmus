@@ -1,42 +1,42 @@
-[[block]] struct Memory {
-  value: array<u32>;
+struct Memory {
+  value: array<u32>,
 };
 
-[[block]] struct AtomicMemory {
-  value: array<atomic<u32>>;
+struct AtomicMemory {
+  value: array<atomic<u32>>,
 };
 
 struct ReadResult {
-  r0: atomic<u32>;
-  r1: atomic<u32>;
+  r0: atomic<u32>,
+  r1: atomic<u32>,
 };
 
-[[block]] struct ReadResults {
-  value: array<ReadResult>;
+struct ReadResults {
+  value: array<ReadResult>,
 };
 
-[[block]] struct StressParamsMemory {
-  [[size(16)]] do_barrier: u32;
-  [[size(16)]] mem_stress: u32;
-  [[size(16)]] mem_stress_iterations: u32;
-  [[size(16)]] mem_stress_pattern: u32;
-  [[size(16)]] pre_stress: u32;
-  [[size(16)]] pre_stress_iterations: u32;
-  [[size(16)]] pre_stress_pattern: u32;
-  [[size(16)]] permute_first: u32;
-  [[size(16)]] permute_second: u32;
-  [[size(16)]] testing_workgroups: u32;
-  [[size(16)]] mem_stride: u32;
-  [[size(16)]] location_offset: u32;
+struct StressParamsMemory {
+  do_barrier: u32,
+  mem_stress: u32,
+  mem_stress_iterations: u32,
+  mem_stress_pattern: u32,
+  pre_stress: u32,
+  pre_stress_iterations: u32,
+  pre_stress_pattern: u32,
+  permute_first: u32,
+  permute_second: u32,
+  testing_workgroups: u32,
+  mem_stride: u32,
+  location_offset: u32,
 };
 
-[[group(0), binding(0)]] var<storage, read_write> test_locations : AtomicMemory;
-[[group(0), binding(1)]] var<storage, read_write> results : ReadResults;
-[[group(0), binding(2)]] var<storage, read> shuffled_workgroups : Memory;
-[[group(0), binding(3)]] var<storage, read_write> barrier : AtomicMemory;
-[[group(0), binding(4)]] var<storage, read_write> scratchpad : Memory;
-[[group(0), binding(5)]] var<storage, read_write> scratch_locations : Memory;
-[[group(0), binding(6)]] var<uniform> stress_params : StressParamsMemory;
+@group(0) @binding(1) var<storage, read_write> results : ReadResults;
+@group(0) @binding(2) var<storage, read> shuffled_workgroups : Memory;
+@group(0) @binding(3) var<storage, read_write> barrier : AtomicMemory;
+@group(0) @binding(4) var<storage, read_write> scratchpad : Memory;
+@group(0) @binding(5) var<storage, read_write> scratch_locations : Memory;
+@group(0) @binding(6) var<uniform> stress_params : StressParamsMemory;
+@group(0) @binding(0) var<storage, read_write> test_locations : AtomicMemory;
 
 fn permute_id(id: u32, factor: u32, mask: u32) -> u32 {
   return (id * factor) % mask;
@@ -108,9 +108,9 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
 }
 
 let workgroupXSize = 256u;
-[[stage(compute), workgroup_size(workgroupXSize)]] fn main(
-  [[builtin(local_invocation_id)]] local_invocation_id : vec3<u32>,
-  [[builtin(workgroup_id)]] workgroup_id : vec3<u32>) {
+@stage(compute) @workgroup_size(workgroupXSize) fn main(
+  @builtin(local_invocation_id) local_invocation_id : vec3<u32>,
+  @builtin(workgroup_id) workgroup_id : vec3<u32>) {
   let shuffled_workgroup = shuffled_workgroups.value[workgroup_id[0]];
   let x = shuffled_workgroups.value[0u] * workgroupXSize % (workgroupXSize * stress_params.testing_workgroups);
   let y = x + (1u << stress_params.mem_stride);
@@ -125,7 +125,7 @@ let workgroupXSize = 256u;
       atomicStore(&test_locations.value[x], 2u);
       atomicStore(&test_locations.value[y], 1u);
     }
-  } elseif (shuffled_workgroup == 1u) {
+  } else if (shuffled_workgroup == 1u) {
     var r0: u32;
     if (local_invocation_id[0] == workgroup_id[0] % workgroupXSize) {
       if (stress_params.pre_stress == 1u) {
@@ -141,7 +141,7 @@ let workgroupXSize = 256u;
       atomicStore(&test_locations.value[x], 1u);
       atomicStore(&results.value[0].r0, r0);
     }
-  } elseif (stress_params.mem_stress == 1u) {
+  } else if (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }
 }

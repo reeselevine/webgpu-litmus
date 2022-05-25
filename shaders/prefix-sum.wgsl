@@ -14,12 +14,12 @@
 //
 // Also licensed under MIT license, at your choice.
 
-[[block]]
+
 struct DataBuf {
     data: [[stride(4)]] array<u32>;
 };
 
-[[block]]
+
 struct StateBuf {
     state: [[stride(4)]] array<atomic<u32>>;
 };
@@ -100,7 +100,7 @@ fn main([[builtin(local_invocation_id)]] local_id: vec3<u32>) {
                     exclusive_prefix = their_prefix + exclusive_prefix;
                 }
                 break;
-            } elseif (flag == FLAG_AGGREGATE_READY) {
+            } else if (flag == FLAG_AGGREGATE_READY) {
                 if (local_id.x == workgroup_size - 1u) {
                     let their_agg = atomicOr(&state_buf.state[look_back_ix * 3u + 2u], 0u);
                     exclusive_prefix = their_agg + exclusive_prefix;
