@@ -133,7 +133,6 @@ let workgroupXSize = 256;
     let r0 = atomicLoad(&test_locations.value[y_1]);
     storageBarrier();
     let r1 = atomicLoad(&test_locations.value[x_1]);
-    workgroupBarrier();
     atomicStore(&results.value[id_1].r0, r0);
     atomicStore(&results.value[id_1].r1, r1);
   } else if (stress_params.mem_stress == 1u) {

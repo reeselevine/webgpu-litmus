@@ -514,6 +514,11 @@ function SelectorCategory(props) {
     </>
   )
 }
+  // Coherence tests
+  const coherenceOverrides = {
+    aliasedMemory: true,
+    permuteSecond: 1
+  };
 
 function getTestSelector(pageState) {
   // Weak memory tests
@@ -531,7 +536,8 @@ function getTestSelector(pageState) {
     buildTest(mpName, "Single Instance", messagePassingSingle, messagePassingSingleResults, pageState, defaultKeys),
     buildTest(mpName, "Single Instance Barrier 1", messagePassingSingleBarrier1, messagePassingSingleResults, pageState, defaultKeys),
     buildTest(mpName, "Single Instance Barrier 2", messagePassingSingleBarrier2, messagePassingSingleResults, pageState, defaultKeys),
-    buildTest(mpName, "Single Instance Coherency", messagePassingCoherencySingle, messagePassingCoherencySingleResults, pageState, defaultKeys)
+    buildTest(mpName, "Single Instance Coherency", messagePassingCoherencySingle, messagePassingCoherencySingleResults, pageState, defaultKeys),
+    buildTest(mpName, "Coherency One-Loc", messagePassingCoherency, messagePassingCoherencyResults, pageState, defaultKeys, coherenceOverrides),
   ];
   const mpJsx = <SelectorTest key="mp" testName={mpName} tests={mpTests} />;
   let storeName = "Store";
@@ -627,11 +633,6 @@ function getTestSelector(pageState) {
   const twoPlusTwoWriteJsx = <SelectorTest key="tpt" testName={tptName} tests={twoPlusTwoWriteTests} />;
   let weakMemoryJsx = [mpJsx, storeJsx, readJsx, lbJsx, sbJsx, twoPlusTwoWriteJsx];
 
-  // Coherence tests
-  const coherenceOverrides = {
-    aliasedMemory: true,
-    permuteSecond: 1
-  };
 
   let corrName = "CoRR";
   let corrTests = [
