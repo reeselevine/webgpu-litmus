@@ -50,7 +50,7 @@ fn permute_id(id: u32, factor: u32, mask: u32) -> u32 {
    return (workgroup_id + 1u + local_id % (stress_params.testing_workgroups - 1u)) % stress_params.testing_workgroups;
  }
 
-let workgroupXSize = 256u;
+let workgroupXSize = 32u;
 @stage(compute) @workgroup_size(workgroupXSize) fn main(
   @builtin(local_invocation_id) local_invocation_id : vec3<u32>,
   @builtin(workgroup_id) workgroup_id : vec3<u32>) {
