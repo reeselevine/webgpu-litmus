@@ -203,7 +203,7 @@ function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(100);
   const [randomSeed, setRandomSeed] = useState("");
-  const [smoothedParameters, setSmoothedParameters] = useState(true);
+  const [smoothedParameters, setSmoothedParameters] = useState(false);
   const [maxWorkgroups, setMaxWorkgroups] = useState(1024);
   const [tuningOverrides, setTuningOverrides] = useState({});
   const [tuningTimes, setTuningTimes] = useState(10);
@@ -283,7 +283,7 @@ function paramsInputOnChange(pageState) {
   return function onChange(e) {
     let file = e.target.files[0];
     let reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       let config = JSON.parse(event.target.result);
       pageState.tuningOverrides.update(config);
     };
@@ -297,7 +297,7 @@ function TuningOverrides(props) {
     <>
       <div className="file is-primary">
         <label className="file-label" data-tip="A JSON file with the same structure and parameters as the 'params' field when downloading tuning results.">
-          <input className="file-input" type="file" name="params" onChange={paramsInputOnChange(props.pageState)}/>
+          <input className="file-input" type="file" name="params" onChange={paramsInputOnChange(props.pageState)} />
           <span className="file-cta">
             <span className="file-label">
               Upload
@@ -514,11 +514,11 @@ function SelectorCategory(props) {
     </>
   )
 }
-  // Coherence tests
-  const coherenceOverrides = {
-    aliasedMemory: true,
-    permuteSecond: 1
-  };
+// Coherence tests
+const coherenceOverrides = {
+  aliasedMemory: true,
+  permuteSecond: 1
+};
 
 function getTestSelector(pageState) {
   // Weak memory tests
@@ -749,6 +749,75 @@ function getTestSelector(pageState) {
   const wwJsx = <SelectorTest key="ww" testName={wwName} tests={wwTests} />;
   const mutationJsx = [rrJsx, rwJsx, wrJsx, wwJsx];
 
+  function selectPTETests() {
+    mpTests[0].setIsChecked(true);
+    mpTests[2].setIsChecked(true);
+    mpTests[3].setIsChecked(true);
+    mpTests[8].setIsChecked(true);
+    storeTests[0].setIsChecked(true);
+    storeTests[2].setIsChecked(true);
+    storeTests[3].setIsChecked(true);
+    storeTests[8].setIsChecked(true);
+    readTests[3].setIsChecked(true);
+    readTests[5].setIsChecked(true);
+    readTests[6].setIsChecked(true);
+    readTests[9].setIsChecked(true);
+    lbTests[0].setIsChecked(true);
+    lbTests[2].setIsChecked(true);
+    lbTests[3].setIsChecked(true);
+    lbTests[8].setIsChecked(true);
+    sbTests[3].setIsChecked(true);
+    sbTests[5].setIsChecked(true);
+    sbTests[6].setIsChecked(true);
+    sbTests[9].setIsChecked(true);
+    twoPlusTwoWriteTests[3].setIsChecked(true);
+    twoPlusTwoWriteTests[5].setIsChecked(true);
+    twoPlusTwoWriteTests[6].setIsChecked(true);
+    twoPlusTwoWriteTests[9].setIsChecked(true);
+    rrTests[0].setIsChecked(true);
+    rrTests[1].setIsChecked(true);
+    rwTests[0].setIsChecked(true);
+    rwTests[1].setIsChecked(true);
+    wrTests[0].setIsChecked(true);
+    wrTests[1].setIsChecked(true);
+    wwTests[0].setIsChecked(true);
+    wwTests[1].setIsChecked(true);
+  }
+
+  function selectSITETests() {
+    mpTests[9].setIsChecked(true);
+    mpTests[10].setIsChecked(true);
+    mpTests[11].setIsChecked(true);
+    mpTests[12].setIsChecked(true);
+    storeTests[9].setIsChecked(true);
+    storeTests[10].setIsChecked(true);
+    storeTests[11].setIsChecked(true);
+    storeTests[12].setIsChecked(true);
+    readTests[11].setIsChecked(true);
+    readTests[12].setIsChecked(true);
+    readTests[13].setIsChecked(true);
+    readTests[14].setIsChecked(true);
+    lbTests[9].setIsChecked(true);
+    lbTests[10].setIsChecked(true);
+    lbTests[11].setIsChecked(true);
+    lbTests[12].setIsChecked(true);
+    sbTests[11].setIsChecked(true);
+    sbTests[12].setIsChecked(true);
+    sbTests[13].setIsChecked(true);
+    sbTests[14].setIsChecked(true);
+    twoPlusTwoWriteTests[11].setIsChecked(true);
+    twoPlusTwoWriteTests[12].setIsChecked(true);
+    twoPlusTwoWriteTests[13].setIsChecked(true);
+    twoPlusTwoWriteTests[14].setIsChecked(true);
+    rrTests[4].setIsChecked(true);
+    rrTests[5].setIsChecked(true);
+    rwTests[2].setIsChecked(true);
+    rwTests[3].setIsChecked(true);
+    wrTests[2].setIsChecked(true);
+    wrTests[3].setIsChecked(true);
+    wwTests[8].setIsChecked(true);
+    wwTests[9].setIsChecked(true);
+  }
 
   let tests = [...mpTests, ...storeTests, ...readTests, ...lbTests, ...sbTests, ...twoPlusTwoWriteTests,
   ...corrTests, ...cowwTests, ...cowrTests, ...corw1Tests, ...corw2Tests, ...atomicityTests,
@@ -778,111 +847,70 @@ function getTestSelector(pageState) {
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
-                      mpTests[0].setIsChecked(true);
-                      storeTests[0].setIsChecked(true);
-                      readTests[0].setIsChecked(true);
-                      lbTests[0].setIsChecked(true);
-                      sbTests[0].setIsChecked(true);
-                      twoPlusTwoWriteTests[0].setIsChecked(true);
+                      selectPTETests();
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(100);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
                     }} disabled={pageState.running.value}>
-                      Weak Memory Defaults
+                      PTE Mutants
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
-                      corrTests.map(test => test.setIsChecked(true));
-                      cowwTests.map(test => test.setIsChecked(true));
-                      cowrTests.map(test => test.setIsChecked(true));
-                      corw1Tests.map(test => test.setIsChecked(true));
-                      corw2Tests.map(test => test.setIsChecked(true));
+                      selectSITETests();
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(300);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
                     }} disabled={pageState.running.value}>
-                      Coherence All
+                      SITE Mutants
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
-                      barrierSLTests.map(test => test.setIsChecked(true));
-                      barrierLSTests.map(test => test.setIsChecked(true));
-                      barrierSSTests.map(test => test.setIsChecked(true));
+                      selectSITETests();
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(300);
+                      pageState.maxWorkgroups.update(32);
+                      pageState.randomSeed.update("webgpu");
+                      pageState.tuningOverrides.update(
+                        {
+                          "testingWorkgroups": 32,
+                          "minTestingWorkgroups": 32,
+                          "maxWorkgroups": 32,
+                          "shufflePct": 0,
+                          "barrierPct": 0,
+                          "memStressPct": 0,
+                          "preStressPct": 0
+                        }
+                      );
                     }} disabled={pageState.running.value}>
-                      Barrier All
+                      SITE Baseline Mutants
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      selectPTETests();
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(100);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
+                      pageState.tuningOverrides.update(
+                        {
+                          "testingWorkgroups": 1024,
+                          "minTestingWorkgroups": 1024,
+                          "maxWorkgroups": 1024,
+                          "shufflePct": 0,
+                          "barrierPct": 0,
+                          "memStressPct": 0,
+                          "preStressPct": 0
+                        }
+                      );
+                    }} disabled={pageState.running.value}>
+                      PTE Baseline Mutants
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       tests.map(test => test.setIsChecked(false));
                     }} disabled={pageState.running.value}>
                       Clear all
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      tests.map(test => test.setIsChecked(false));
-                      mpTests[0].setIsChecked(true);
-                      mpTests[2].setIsChecked(true);
-                      mpTests[3].setIsChecked(true);
-                      mpTests[8].setIsChecked(true);
-                      storeTests[0].setIsChecked(true);
-                      storeTests[2].setIsChecked(true);
-                      storeTests[3].setIsChecked(true);
-                      storeTests[8].setIsChecked(true);
-                      readTests[3].setIsChecked(true);
-                      readTests[5].setIsChecked(true);
-                      readTests[6].setIsChecked(true);
-                      readTests[9].setIsChecked(true);
-                      lbTests[0].setIsChecked(true);
-                      lbTests[2].setIsChecked(true);
-                      lbTests[3].setIsChecked(true);
-                      lbTests[8].setIsChecked(true);
-                      sbTests[3].setIsChecked(true);
-                      sbTests[5].setIsChecked(true);
-                      sbTests[6].setIsChecked(true);
-                      sbTests[9].setIsChecked(true);
-                      twoPlusTwoWriteTests[3].setIsChecked(true);
-                      twoPlusTwoWriteTests[5].setIsChecked(true);
-                      twoPlusTwoWriteTests[6].setIsChecked(true);
-                      twoPlusTwoWriteTests[9].setIsChecked(true);
-                      rrTests[0].setIsChecked(true);
-                      rrTests[1].setIsChecked(true);
-                      rwTests[0].setIsChecked(true);
-                      rwTests[1].setIsChecked(true);
-                      wrTests[0].setIsChecked(true);
-                      wrTests[1].setIsChecked(true);
-                      wwTests[0].setIsChecked(true);
-                      wwTests[1].setIsChecked(true);
-                    }} disabled={pageState.running.value}>
-                      Evaluation
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      tests.map(test => test.setIsChecked(false));
-                      mpTests[9].setIsChecked(true);
-                      mpTests[10].setIsChecked(true);
-                      mpTests[11].setIsChecked(true);
-                      mpTests[12].setIsChecked(true);
-                      storeTests[9].setIsChecked(true);
-                      storeTests[10].setIsChecked(true);
-                      storeTests[11].setIsChecked(true);
-                      storeTests[12].setIsChecked(true);
-                      readTests[11].setIsChecked(true);
-                      readTests[12].setIsChecked(true);
-                      readTests[13].setIsChecked(true);
-                      readTests[14].setIsChecked(true);
-                      lbTests[9].setIsChecked(true);
-                      lbTests[10].setIsChecked(true);
-                      lbTests[11].setIsChecked(true);
-                      lbTests[12].setIsChecked(true);
-                      sbTests[11].setIsChecked(true);
-                      sbTests[12].setIsChecked(true);
-                      sbTests[13].setIsChecked(true);
-                      sbTests[14].setIsChecked(true);
-                      twoPlusTwoWriteTests[11].setIsChecked(true);
-                      twoPlusTwoWriteTests[12].setIsChecked(true);
-                      twoPlusTwoWriteTests[13].setIsChecked(true);
-                      twoPlusTwoWriteTests[14].setIsChecked(true);
-                      rrTests[4].setIsChecked(true);
-                      rrTests[5].setIsChecked(true);
-                      rwTests[2].setIsChecked(true);
-                      rwTests[3].setIsChecked(true);
-                      wrTests[2].setIsChecked(true);
-                      wrTests[3].setIsChecked(true);
-                      wwTests[8].setIsChecked(true);
-                      wwTests[9].setIsChecked(true);
-                    }} disabled={pageState.running.value}>
-                      Evaluation Legacy
                     </button>
                   </div>
                 </div>
@@ -967,9 +995,6 @@ async function tune(tests, testParams, pageState) {
 export default function TuningSuite() {
   const pageState = getPageState();
   const testSelector = getTestSelector(pageState);
-  let initialIterations = pageState.iterations.value;
-  let initialTuningTimes = pageState.tuningTimes.value;
-  let initialMaxWorkgroups = pageState.maxWorkgroups.value;
   return (
     <>
       <div className="columns">
@@ -987,7 +1012,7 @@ export default function TuningSuite() {
         <div className="column">
           <div className="control mb-2">
             <label><b>Configurations:</b></label>
-            <input className="input" type="text" defaultValue={initialTuningTimes} onInput={(e) => {
+            <input className="input" type="text" value={pageState.tuningTimes.value} onInput={(e) => {
               pageState.tuningTimes.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
@@ -1001,7 +1026,7 @@ export default function TuningSuite() {
         <div className="column" >
           <div className="control">
             <label><b>Iterations:</b></label>
-            <input className="input" type="text" defaultValue={initialIterations} onInput={(e) => {
+            <input className="input" type="text" value={pageState.iterations.value} onInput={(e) => {
               pageState.iterations.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
@@ -1009,7 +1034,7 @@ export default function TuningSuite() {
         <div className="column" >
           <div className="control">
             <label><b>Random Seed:</b></label>
-            <input className="input" type="text" defaultValue={""} onInput={(e) => {
+            <input className="input" type="text" value={pageState.randomSeed.value} onInput={(e) => {
               pageState.randomSeed.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
@@ -1017,7 +1042,7 @@ export default function TuningSuite() {
         <div className="column" >
           <div className="control">
             <label><b>Max Workgroups:</b></label>
-            <input className="input" type="text" defaultValue={initialMaxWorkgroups} onInput={(e) => {
+            <input className="input" type="text" value={pageState.maxWorkgroups.value} onInput={(e) => {
               pageState.maxWorkgroups.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
@@ -1029,14 +1054,14 @@ export default function TuningSuite() {
               <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
                 pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
               }} disabled={pageState.running.value} />
-                <b>Enabled</b>
+              <b>Enabled</b>
             </div>
           </div>
         </div>
         <div className="column">
           <div className='control'>
             <label className="checkbox"><b>Overrides:</b></label>
-            <TuningOverrides pageState={pageState}/>
+            <TuningOverrides pageState={pageState} />
           </div>
         </div>
       </div>
