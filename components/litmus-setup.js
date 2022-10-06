@@ -414,13 +414,13 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const passEncoder = commandEncoder.beginComputePass();
   passEncoder.setPipeline(computePipeline);
   passEncoder.setBindGroup(0, bindGroup);
-  passEncoder.dispatch(numWorkgroups);
+  passEncoder.dispatchWorkgroups(numWorkgroups);
   passEncoder.end();
 
   const resultPassEncoder = commandEncoder.beginComputePass();
   resultPassEncoder.setPipeline(resultComputePipeline);
   resultPassEncoder.setBindGroup(0, resultBindGroup);
-  resultPassEncoder.dispatch(numTestingWorkgroups);
+  resultPassEncoder.dispatchWorkgroups(numTestingWorkgroups);
   resultPassEncoder.end();
 
   commandEncoder.copyBufferToBuffer(
@@ -691,7 +691,7 @@ export async function runPrefixSum(numWorkgroups, workgroupSize, n_seq, shader, 
     const passEncoder = commandEncoder.beginComputePass();
     passEncoder.setPipeline(computePipeline);
     passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(numWorkgroups);
+    passEncoder.dispatchWorkgroups(numWorkgroups);
     passEncoder.end();
     commandEncoder.copyBufferToBuffer(dataBuffer.deviceBuffer, 0, dataBuffer.readBuffer, 0, dataBufSize * uint32ByteSize);
 

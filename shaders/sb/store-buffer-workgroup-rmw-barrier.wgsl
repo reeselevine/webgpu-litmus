@@ -109,8 +109,8 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
   }
 }
 
-let workgroupXSize = 256;
-@stage(compute) @workgroup_size(workgroupXSize) fn main(
+const workgroupXSize = 256;
+@compute @workgroup_size(workgroupXSize) fn main(
   @builtin(local_invocation_id) local_invocation_id : vec3<u32>,
   @builtin(workgroup_id) workgroup_id : vec3<u32>) {
   let shuffled_workgroup = shuffled_workgroups.value[workgroup_id[0]];
