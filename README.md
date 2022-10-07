@@ -1,12 +1,21 @@
-### To run on Mac OSX:
+## Installation
+
+### OSX
 
 `brew install node`
+
+### Ubuntu
+`sudo apt update`
+
+`sudo apt install nodejs npm`
+
+### To Run
 
 `npm install`
 
 `npm run dev`
 
-Then the site should be located at: `localhost:3000`
+The site should be located at: `localhost:3000`
 
 ### To build:
 
@@ -16,4 +25,4 @@ modify `next.config.js` with the path you want to host from, then run
 
 ### From the base template:
 
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+https://nextjs.org/learn
