@@ -916,6 +916,51 @@ function getTestSelector(pageState) {
                 </div>
               </div>
             </div>
+            <div className="panel-block p-2">
+              <div className="columns is-2 ">
+                <div className="column ">
+                  <b> Correlation Tests </b>
+                  <div className="buttons are-small">
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      corrTests[0].setIsChecked(true);
+                      rrTests[0].setIsChecked(true);
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(100);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
+                    }} disabled={pageState.running.value}>
+                      Intel CoRR
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[0].setIsChecked(true);
+                      mpTests[1].setIsChecked(true);
+                      mpTests[2].setIsChecked(true);
+                      mpTests[3].setIsChecked(true);
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(100);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
+                    }} disabled={pageState.running.value}>
+                      AMD MP-relacq 
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      tests.map(test => test.setIsChecked(false));
+                      mpTests[8].setIsChecked(true);
+                      mpTests[13].setIsChecked(true);
+                      pageState.tuningTimes.update(150);
+                      pageState.iterations.update(100);
+                      pageState.maxWorkgroups.update(1024);
+                      pageState.randomSeed.update("webgpu");
+                    }} disabled={pageState.running.value}>
+                      Nvidia MP-CO
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </nav>
         </div>
       </>
