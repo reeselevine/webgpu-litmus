@@ -129,7 +129,7 @@ function chartConfig(pageState, testParams, uiParams, tooltipFilter) {
         axis: 'y',
         type: 'logarithmic',
         min: 0.1,
-        max: pageState.iterations.value * testParams.maxWorkgroupSize * testParams.testingWorkgroups,
+        max: pageState.iterations.value * testParams.workgroupSize * testParams.testingWorkgroups,
         ticks: {
           callback: function (value, index, values) {
             var val = value;
@@ -191,8 +191,6 @@ async function random(pageState, testState, testParams, keys, buildStaticRowOutp
     let params = {
       ...randomConfig(Math.random),
       id: i,
-      minWorkgroupSize: testParams.minWorkgroupSize,
-      maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
       numOutputs: testParams.numOutputs,
       permuteFirst: testParams.permuteFirst,

@@ -31,15 +31,12 @@ function handleInput(setVal) {
   }
 }
 
-function buildIntStressParam(name, description, paramName, params, pageState, min, max, extraNames = []) {
+function buildIntStressParam(name, description, paramName, params, pageState, min, max) {
   const [val, setVal] = useState(params[paramName]);
 
   function validate(e) {
     if (validateWrapper(name, paramName, val, min, max)(e)) {
       params[paramName] = val;
-      for (const key in extraNames) {
-        params[key] = val
-      }
     } else {
       setVal(params[paramName]);
     }
@@ -147,7 +144,6 @@ function StressParamsInput(props) {
 
 const noStressConfig = {
   testingWorkgroups: 2,
-  minTestingWorkgroups: 2,
   maxWorkgroups: 4,
   shufflePct: 0,
   barrierPct: 0,
@@ -158,7 +154,6 @@ const noStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  minStressTargetLines: 2,
   preStressPct: 0,
   stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 0,
@@ -169,7 +164,6 @@ const noStressConfig = {
 
 const someStressConfig = {
   testingWorkgroups: 256,
-  minTestingWorkgroups: 256,
   maxWorkgroups: 1024,
   shufflePct: 100,
   barrierPct: 100,
@@ -180,7 +174,6 @@ const someStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  minStressTargetLines: 2,
   preStressPct: 0,
   stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 0,
@@ -191,7 +184,6 @@ const someStressConfig = {
 
 const allStressConfig = {
   testingWorkgroups: 512,
-  minTestingWorkgroups: 512,
   maxWorkgroups: 1024,
   shufflePct: 100,
   barrierPct: 100,
@@ -202,7 +194,6 @@ const allStressConfig = {
   preStressIterations: 128,
   stressLineSize: 64,
   stressTargetLines: 2,
-  minStressTargetLines: 2,
   preStressPct: 100,
   stressStrategyBalancePct: 100,
   memStressStoreFirstPct: 50,
@@ -226,7 +217,7 @@ function powOf2(n) {
 
 export function getStressPanel(params, pageState) {
   const uiParams = {
-    testingWorkgroups: buildIntStressParam("Testing Workgroups", "The number of workgroups that will execute testing instructions. Must be less than or equal to the number of running workgroups", "testingWorkgroups", params, pageState, 2, 1024, ["minTestingWorkgroups"]),
+    testingWorkgroups: buildIntStressParam("Testing Workgroups", "The number of workgroups that will execute testing instructions. Must be less than or equal to the number of running workgroups", "testingWorkgroups", params, pageState, 2, 1024),
     maxWorkgroups: buildIntStressParam("Maximum Workgroups", "Each stress iteration is launched with a random number of workgroups between testing workgroups and Maximum Workgroups (values should be between 4 and 1024)", "maxWorkgroups", params, pageState, 4, 1024),
     shufflePct: buildIntStressParam("Workgroup Shuffle Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)", "shufflePct", params, pageState, 0, 100),
     barrierPct: buildIntStressParam("Barrier Percentage", "The percentage of iterations that the workgroup ids are randomly shuffled (values should be between 0 and 100)", "barrierPct", params, pageState, 0, 100),
@@ -237,7 +228,7 @@ export function getStressPanel(params, pageState) {
     preStressIterations: buildIntStressParam("Pre Stress Loops", "How many times the testing threads perform their accesses on the scratch memory region before performing the litmus test  (values should be between 0 and 2048)", "preStressIterations", params, pageState, 0, 2048),
     scratchMemorySize: buildIntStressParam("Scratch Memory Size", "The size of the memory buffer where threads stress the memory", "scratchMemorySize", params, pageState, 256, 524288),
     stressLineSize: buildIntStressParam("Stress Line Size", "The non-testing threads will access disjoint memory locations at seperatated by at least this many bytes (values should be between 4 and 1024)", "stressLineSize", params, pageState, 4, 1024),
-    stressTargetLines: buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 16, ["minStressTargetLines"]),
+    stressTargetLines: buildIntStressParam("Stress Target Lines", "How many disjoint memory locations the non-testing threads access in the scratch memory region (values should be between 1 and 128)", "stressTargetLines", params, pageState, 1, 16),
     stressStrategyBalancePct: buildIntStressParam("Memory Stress Assignment Balance", "How non-testing threads are assigned to stressing locations. 100 means all iterations use a round robin approach, 0 means all use a chunking approach.", "stressStrategyBalancePct", params, pageState, 0, 100),
     memStressStoreFirstPct: buildIntStressParam("Memory Stress Store First Percentage", "The percentage of iterations the first instruction in the stress pattern should be a store", "memStressStoreFirstPct", params, pageState, 0, 100),
     memStressStoreSecondPct: buildIntStressParam("Memory Stress Store Second Percentage", "The percentage of iterations the second instruction in the stress pattern should be a store", "memStressStoreSecondPct", params, pageState, 0, 100),

@@ -1,10 +1,8 @@
 /** Default test parameters */
 export const defaultTestParams = {
   testingWorkgroups: 2,
-  minTestingWorkgroups: 2,
   maxWorkgroups: 4,
-  minWorkgroupSize: 256,
-  maxWorkgroupSize: 256,
+  workgroupSize: 256,
   shufflePct: 0,
   barrierPct: 0,
   numMemLocations: 2,
@@ -21,10 +19,9 @@ export const defaultTestParams = {
   preStressStoreSecondPct: 100,
   stressLineSize: 64,
   stressTargetLines: 2,
-  minStressTargetLines: 2,
   stressStrategyBalancePct: 100,
-  permuteFirst: 109,
-  permuteSecond: 419,
+  permuteFirst: 419,
+  permuteSecond: 1031,
   aliasedMemory: false
 }
 let currentIteration = 0;
@@ -143,29 +140,28 @@ function setShuffledWorkgroups(shuffledWorkgroups, testParams, numWorkgroups) {
 }
 
 function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
-  const stressTargetLines = getRandomInRange(testParams.minStressTargetLines, testParams.stressTargetLines);
   const scratchLocationsArrayBuffer = scratchLocations.writeBuffer.getMappedRange();
   const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
   const scratchUsedRegions = new Set();
   const scratchNumRegions = testParams.scratchMemorySize / testParams.stressLineSize;
-  for (let i = 0; i < stressTargetLines; i++) {
+  for (let i = 0; i < testParams.stressTargetLines; i++) {
     let region = getRandomInt(scratchNumRegions);
     while (scratchUsedRegions.has(region)) {
       region = getRandomInt(scratchNumRegions);
     }
     const locInRegion = getRandomInt(testParams.stressLineSize);
     if (getRandomInt(100) < testParams.stressStrategyBalancePct) {
-      for (let j = i; j < numWorkgroups; j += stressTargetLines) {
+      for (let j = i; j < numWorkgroups; j += testParams.stressTargetLines) {
         scratchLocationsArray[j] = region * testParams.stressLineSize + locInRegion;
 
       }
     } else {
-      const workgroupsPerLocation = numWorkgroups / stressTargetLines;
+      const workgroupsPerLocation = numWorkgroups / testParams.stressTargetLines;
       for (let j = 0; j < workgroupsPerLocation; j++) {
         scratchLocationsArray[i * workgroupsPerLocation + j] = region * testParams.stressLineSize + locInRegion;
       }
-      if (i == stressTargetLines - 1 && numWorkgroups % stressTargetLines != 0) {
-        for (let j = 0; j < numWorkgroups % stressTargetLines; j++) {
+      if (i == testParams.stressTargetLines - 1 && numWorkgroups % testParams.stressTargetLines != 0) {
+        for (let j = 0; j < numWorkgroups % testParams.stressTargetLines; j++) {
           scratchLocationsArray[numWorkgroups - j - 1] = region * testParams.stressLineSize + locInRegion;
         }
       }
@@ -364,19 +360,10 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
   return computePipeline;
 }
 
-async function runTestIteration(device, computePipeline, bindGroup, resultComputePipeline, resultBindGroup, buffers, testParams, workgroupSize) {
+async function runTestIteration(device, computePipeline, bindGroup, resultComputePipeline, resultBindGroup, buffers, testParams) {
   // Commands submission
-  if (testParams.minTestingWorkgroups % 419 == 0 && testParams.testingWorkgroups == testParams.minTestingWorkgroups) {
-    alert("You have made a forbidden choice. Prepare to be annihilated.")
-    return;
-  }
-  var numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
-  while (numTestingWorkgroups == 838 || numTestingWorkgroups == 419) {
-    numTestingWorkgroups = getRandomInRange(testParams.minTestingWorkgroups, testParams.testingWorkgroups);
-  }
-
-  const numWorkgroups = getRandomInRange(numTestingWorkgroups, testParams.maxWorkgroups);
-  let maxTestingThreads = workgroupSize * testParams.testingWorkgroups;
+  const numWorkgroups = getRandomInRange(testParams.testingWorkgroups, testParams.maxWorkgroups);
+  let maxTestingThreads = testParams.workgroupSize * testParams.testingWorkgroups;
   let testLocationsSize = maxTestingThreads * testParams.numMemLocations * testParams.memStride;
   let resultsSize = 4;
 
@@ -403,7 +390,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   await p6;
   clearBuffer(buffers.readResults, maxTestingThreads * testParams.numOutputs);
   await p7;
-  setStressParams(buffers.stressParams, testParams, numTestingWorkgroups);
+  setStressParams(buffers.stressParams, testParams, testParams.testingWorkgroups);
 
   const commandEncoder = device.createCommandEncoder();
   commandEncoder.copyBufferToBuffer(buffers.testLocations.writeBuffer, 0, buffers.testLocations.deviceBuffer, 0, testLocationsSize * uint32ByteSize);
@@ -423,7 +410,7 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   const resultPassEncoder = commandEncoder.beginComputePass();
   resultPassEncoder.setPipeline(resultComputePipeline);
   resultPassEncoder.setBindGroup(0, resultBindGroup);
-  resultPassEncoder.dispatchWorkgroups(numTestingWorkgroups);
+  resultPassEncoder.dispatchWorkgroups(testParams.testingWorkgroups);
   resultPassEncoder.end();
 
   commandEncoder.copyBufferToBuffer(
@@ -477,8 +464,7 @@ async function setupTest(testParams) {
     alert("WebGPU not enabled or supported!")
     return;
   }
-  const workgroupSize = getRandomInRange(testParams.minWorkgroupSize, testParams.maxWorkgroupSize);
-  let testingThreads = workgroupSize * testParams.testingWorkgroups;
+  let testingThreads = testParams.workgroupSize * testParams.testingWorkgroups;
   const buffers = {
     testLocations: createBuffer(device, testingThreads * testParams.numMemLocations * testParams.memStride, true, true),
     readResults: createBuffer(device, testParams.numOutputs*testingThreads, true, true),
@@ -580,20 +566,19 @@ async function setupTest(testParams) {
     bindGroup: bindGroup,
     resultBindGroupLayout: resultBindGroupLayout,
     resultBindGroup: resultBindGroup,
-    buffers: buffers,
-    workgroupSize: workgroupSize
+    buffers: buffers
   }
 
 }
 
 export async function runLitmusTest(shaderCode, resultShaderCode, testParams, iterations, handleResult) {
   const setup = await setupTest(testParams);
-  const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, setup.workgroupSize);
-  const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShaderCode, setup.workgroupSize);
+  const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, testParams.workgroupSize);
+  const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShaderCode, testParams.workgroupSize);
   const start = Date.now();
   for (let i = 0; i < iterations; i++) {
     currentIteration = i;
-    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, setup.resultBindGroup, setup.buffers, testParams, setup.workgroupSize);
+    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, setup.resultBindGroup, setup.buffers, testParams);
     handleResult(result);
     duration = Date.now() - start;
   }
@@ -609,7 +594,7 @@ export async function runEvaluationLitmusTest(
   buggyPercentage,
   handleResult) {
   const setup = await setupTest(testParams);
-  const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShader, setup.workgroupSize);
+  const resultComputePipeline = createComputePipeline(setup.device, setup.resultBindGroupLayout, resultShader, testParams.workgroupSize);
   const start = Date.now();
   for (let i = 0; i < iterations; i++) {
     let shaderCode;
@@ -621,9 +606,9 @@ export async function runEvaluationLitmusTest(
       shaderCode = validShader;
       params = testParams;
     }
-    const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, setup.workgroupSize);
+    const computePipeline = createComputePipeline(setup.device, setup.bindGroupLayout, shaderCode, testParams.workgroupSize);
     currentIteration = i;
-    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, setup.resultBindGroup, setup.buffers, params, setup.workgroupSize);
+    const result = await runTestIteration(setup.device, computePipeline, setup.bindGroup, resultComputePipeline, setup.resultBindGroup, setup.buffers, params, testParams.workgroupSize);
     handleResult(result);
     duration = Date.now() - start;
   }

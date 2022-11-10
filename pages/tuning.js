@@ -875,7 +875,6 @@ function getTestSelector(pageState) {
                       pageState.tuningOverrides.update(
                         {
                           "testingWorkgroups": 32,
-                          "minTestingWorkgroups": 32,
                           "maxWorkgroups": 32,
                           "shufflePct": 0,
                           "barrierPct": 0,
@@ -896,7 +895,6 @@ function getTestSelector(pageState) {
                       pageState.tuningOverrides.update(
                         {
                           "testingWorkgroups": 1024,
-                          "minTestingWorkgroups": 1024,
                           "maxWorkgroups": 1024,
                           "shufflePct": 0,
                           "barrierPct": 0,
@@ -998,8 +996,6 @@ async function tune(tests, testParams, pageState) {
     let params = {
       ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
       id: i,
-      minWorkgroupSize: testParams.minWorkgroupSize,
-      maxWorkgroupSize: testParams.maxWorkgroupSize,
       numMemLocations: testParams.numMemLocations,
       numOutputs: testParams.numOutputs,
       permuteFirst: testParams.permuteFirst,

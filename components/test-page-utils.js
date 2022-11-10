@@ -357,20 +357,21 @@ function getPercentage(generator, smoothedParameters) {
   if (smoothedParameters) {
     return roundedPercentage(generator);
   } else {
-    return randomGenerator(0, 1, generator) * 100;
+    return randomGenerator(0, 100, generator);
   }
 }
 
-export function randomConfig(generator, smoothedParameters=true, workgroupLimiter=1024, overrides={}) {
+export function randomConfig(generator, smoothedParameters=true, workgroupLimiter=1024, overrides={}, workgroupSizeLimiter=256) {
   let testingWorkgroups = randomGenerator(2, workgroupLimiter, generator);
+  let workgroupSize = randomGenerator(1, workgroupSizeLimiter, generator);
   let maxWorkgroups =  randomGenerator(testingWorkgroups, workgroupLimiter, generator);
   let stressLineSize = Math.pow(2, randomGenerator(2,10, generator));
   let stressTargetLines = randomGenerator(1,16, generator);
   let memStride = randomGenerator(1, 7, generator);
   let generated = {
     testingWorkgroups: testingWorkgroups,
-    minTestingWorkgroups: testingWorkgroups,
     maxWorkgroups: maxWorkgroups,
+    workgroupSize: workgroupSize,
     shufflePct: getPercentage(generator, smoothedParameters),
     barrierPct: getPercentage(generator, smoothedParameters),
     memStressPct: getPercentage(generator, smoothedParameters),
@@ -379,7 +380,6 @@ export function randomConfig(generator, smoothedParameters=true, workgroupLimite
     memStride: memStride,
     stressLineSize: stressLineSize,
     stressTargetLines: stressTargetLines,
-    minStressTargetLines: stressTargetLines,
     memStressIterations: randomGenerator(0, 1024, generator),
     preStressIterations: randomGenerator(0, 128, generator),
     stressStrategyBalancePct: getPercentage(generator, smoothedParameters),
