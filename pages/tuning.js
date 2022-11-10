@@ -369,12 +369,13 @@ function handleResult(test, pageState) {
   }
 }
 
-function getRunStats(activeTests, params) {
+function getRunStats(activeTests, params, iterations) {
   let stats = {};
   for (const test of activeTests) {
     stats[test.testName + " " + test.testVariant] = JSON.parse(JSON.stringify(test.state));
   }
   stats["params"] = JSON.parse(filteredParams(params));
+  stats["params"]["iterations"] = parseInt(iterations);
   return stats;
 }
 
@@ -1024,7 +1025,7 @@ async function tune(tests, testParams, pageState) {
         pageState.logSum.update(pageState.logSum.internalState);
       }
     }
-    let stats = getRunStats(pageState.activeTests, params);
+    let stats = getRunStats(pageState.activeTests, params, pageState.iterations.value);
     let row = <StaticRow pageState={pageState} key={params.id} stats={stats} />;
     pageState.allStats.internalState[i] = stats;
     pageState.tuningRows.update(oldRows => [...oldRows, row]);

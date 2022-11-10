@@ -144,13 +144,14 @@ function setScratchLocations(scratchLocations, testParams, numWorkgroups) {
   const scratchLocationsArray = new Uint32Array(scratchLocationsArrayBuffer);
   const scratchUsedRegions = new Set();
   const scratchNumRegions = testParams.scratchMemorySize / testParams.stressLineSize;
+  const roundRobinAssignStrategy = getRandomInt(100) < testParams.stressStrategyBalancePct;
   for (let i = 0; i < testParams.stressTargetLines; i++) {
     let region = getRandomInt(scratchNumRegions);
     while (scratchUsedRegions.has(region)) {
       region = getRandomInt(scratchNumRegions);
     }
     const locInRegion = getRandomInt(testParams.stressLineSize);
-    if (getRandomInt(100) < testParams.stressStrategyBalancePct) {
+    if (roundRobinAssignStrategy) {
       for (let j = i; j < numWorkgroups; j += testParams.stressTargetLines) {
         scratchLocationsArray[j] = region * testParams.stressLineSize + locInRegion;
 
