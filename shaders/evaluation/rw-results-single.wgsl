@@ -49,7 +49,7 @@ fn stripe_workgroup(workgroup_id: u32, local_id: u32) -> u32 {
   return (workgroup_id + 1u + local_id % (stress_params.testing_workgroups - 1u)) % stress_params.testing_workgroups;
 }
 
-const workgroupXSize = 1u;
+override workgroupXSize: u32;
 @compute @workgroup_size(workgroupXSize) fn main(
   @builtin(local_invocation_id) local_invocation_id : vec3<u32>,
   @builtin(workgroup_id) workgroup_id : vec3<u32>) {
