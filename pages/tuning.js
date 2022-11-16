@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import * as seedrandom from 'seedrandom';
+import { PRNG } from '../components/prng.js';
 import { buildThrottle, randomConfig } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
@@ -987,9 +987,9 @@ async function tune(tests, testParams, pageState) {
   pageState.totalTests.update(pageState.activeTests.length);
   let generator;
   if (pageState.randomSeed.value.length === 0) {
-    generator = seedrandom();
+    generator = Math.random;
   } else {
-    generator = seedrandom(pageState.randomSeed.value);
+    generator = PRNG(pageState.randomSeed.value);
     pageState.allStats.internalState["randomSeed"] = pageState.randomSeed.value;
   }
   for (let i = 0; i < pageState.tuningTimes.value; i++) {

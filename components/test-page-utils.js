@@ -344,7 +344,7 @@ export function handleResult(state, keys) {
 // random config generation
 // Generates a random number between min and max (inclusive)
 function randomGenerator(min, max, generator){
-  return Math.floor(generator() * (max - min + 1) + min);
+  return generator() % (max - min + 1) + min;
 }
 
 // Rounds a percentage to the closest lower multiple of 5, to provide a smaller search space.
