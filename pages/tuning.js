@@ -987,7 +987,7 @@ async function tune(tests, testParams, pageState) {
   pageState.totalTests.update(pageState.activeTests.length);
   let generator;
   if (pageState.randomSeed.value.length === 0) {
-    generator = Math.random;
+    generator = PRNG(Math.floor(Math.random() * 2147483647), false);
   } else {
     generator = PRNG(pageState.randomSeed.value);
     pageState.allStats.internalState["randomSeed"] = pageState.randomSeed.value;
