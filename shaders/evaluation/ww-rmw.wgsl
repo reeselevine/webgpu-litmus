@@ -132,9 +132,9 @@ override workgroupXSize: u32;
     if (stress_params.do_barrier == 1u) {
       spin(u32(workgroupXSize) * stress_params.testing_workgroups);
     }
-    atomicStore(&test_locations.value[x_0], 1u);
-    let unused = atomicExchange(&test_locations.value[y_0], 2u);
-    let unused = atomicExchange(&test_locations.value[x_1], 3u);
+    atomicExchange(&test_locations.value[x_0], 1u);
+    atomicStore(&test_locations.value[y_0], 2u);
+    atomicExchange(&test_locations.value[x_1], 3u);
     let r0 = atomicLoad(&test_locations.value[x_2]);
     let r1 = atomicAdd(&test_locations.value[y_2], 0u);
     workgroupBarrier();
