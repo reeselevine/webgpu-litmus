@@ -6,6 +6,7 @@ import messagePassingBarrier1 from '../shaders/mp/message-passing-barrier1.wgsl'
 import messagePassingBarrier2 from '../shaders/mp/message-passing-barrier2.wgsl'
 import messagePassingResults from '../shaders/mp/message-passing-results.wgsl';
 import messagePassingCoherencyResults from '../shaders/mp/message-passing-coherency-results.wgsl';
+import messagePassingCoherencyTuningResults from '../shaders/mp/message-passing-coherency-tuning-results.wgsl';
 
 // Store tests
 import store from '../shaders/store/store.wgsl'
@@ -294,7 +295,7 @@ export const tuningTests = {
   messagePassingCoherencyTuning: {
     testName: "message_passing_coherency_tuning",
     shader: messagePassingCoherency,
-    resultShader: messagePassingCoherencyResults,
+    resultShader: messagePassingCoherencyTuningResults,
     coherency: false 
   },
 
