@@ -120,12 +120,51 @@ function TuningOverrides(props) {
   )
 }
 
+function TestCode(props) {
+  const [isActive, setIsActive] = useState(false);
+  let json = JSON.stringify(props.stats, null, 2);
+  return (
+    <>
+      <a onClick={() => {
+        setIsActive(!isActive);
+      }}>
+        {props.testName} 
+      </a>
+      <div className={"modal " + (isActive ? "is-active" : "")}>
+        <div className="modal-background" onClick={() => {
+          setIsActive(!isActive)
+        }}></div>
+        <div className="modal-card">
+          <header className="modal-card-head">
+            <p className="modal-card-title">Shaders</p>
+            <button className="delete" aria-label="close" onClick={() => {
+              setIsActive(!isActive)
+            }}></button>
+          </header>
+          <section className="modal-card-body">
+            Shader
+            <pre>
+              {props.shader}
+            </pre>
+            Result Shader
+            <pre>
+              {props.resultShader}
+            </pre>
+          </section>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function TuningTest(props) {
   return (
     <>
       <div>
-        <input type="checkbox" checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value} />
-        {props.testName}
+        <input type="checkbox" name={props.testName} checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value} />
+        <label for={props.testName}>
+          <TestCode testName={props.testName} shader={props.shader} resultShader={props.resultShader}/>
+        </label>
       </div>
     </>
   )
@@ -157,7 +196,7 @@ function buildTest(testInfo, pageState) {
     isChecked: isChecked,
     setIsChecked: setIsChecked,
     testParamOverrides: testParamOverrides,
-    jsx: <TuningTest key={testInfo.testName} testName={testInfo.testName} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
+    jsx: <TuningTest key={testInfo.testName} testName={testInfo.testName} shader={testInfo.shader} resultShader={testInfo.resultShader} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
   }
 }
 
@@ -359,6 +398,13 @@ function getTestSelector(pageState) {
       tests[test].setIsChecked(val);
     }
   }
+
+  function presetTuningConfig(pageState) {
+    pageState.tuningTimes.update(150);
+    pageState.iterations.update(100);
+    pageState.maxWorkgroups.update(1024);
+    pageState.randomSeed.update("webgpu");
+  }
   
   let allTests = {
     ...conformanceTestsComponent,
@@ -369,12 +415,12 @@ function getTestSelector(pageState) {
     tests: allTests,
     jsx: (
       <>
-        <div className="column is-one-third mr-2">
+        <div className="column is-two-fifths mr-2">
           <nav className="panel">
             <p className="panel-heading">
               Selected Tests
             </p>
-            <div className="container" style={{ overflowY: 'scroll', overflowX: 'hidden', height: '350px' }}>
+            <div className="container" style={{ overflowY: 'scroll', overflowX: 'scroll', height: '190px' }}>
               <aside className="menu">
                 <SelectorCategory category="Conformance Tests" tests={conformanceJsX} />
                 <SelectorCategory category="Tuning Tests" tests={tuningJsX} />
@@ -388,22 +434,22 @@ function getTestSelector(pageState) {
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, false);
                       setTests(conformanceTestsComponent, true);
-                      pageState.tuningTimes.update(150);
-                      pageState.iterations.update(100);
-                      pageState.maxWorkgroups.update(1024);
-                      pageState.randomSeed.update("webgpu");
+                      presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
                       Conformance Tests 
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, false);
                       setTests(tuningTestsComponent, true);
-                      pageState.tuningTimes.update(150);
-                      pageState.iterations.update(100);
-                      pageState.maxWorkgroups.update(1024);
-                      pageState.randomSeed.update("webgpu");
+                      presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
                       Tuning Tests 
+                    </button>
+                    <button className="button is-link is-outlined " onClick={() => {
+                      setTests(allTests, true);
+                      presetTuningConfig(pageState);
+                    }} disabled={pageState.running.value}>
+                      All Tests 
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, false);
