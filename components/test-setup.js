@@ -16,6 +16,7 @@ import storeBarrier1 from '../shaders/store/store-barrier1.wgsl'
 import storeBarrier2 from '../shaders/store/store-barrier2.wgsl'
 import storeResults from '../shaders/store/store-results.wgsl';
 import storeCoherencyResults from '../shaders/store/store-coherency-results.wgsl';
+import storeCoherencyTuningResults from '../shaders/store/store-coherency-tuning-results.wgsl';
 
 // Load Buffer tests
 import loadBuffer from '../shaders/lb/load-buffer.wgsl'
@@ -25,6 +26,7 @@ import loadBufferBarrier1 from '../shaders/lb/load-buffer-barrier1.wgsl'
 import loadBufferBarrier2 from '../shaders/lb/load-buffer-barrier2.wgsl'
 import loadBufferResults from '../shaders/lb/load-buffer-results.wgsl';
 import loadBufferCoherencyResults from '../shaders/lb/load-buffer-coherency-results.wgsl';
+import loadBufferCoherencyTuningResults from '../shaders/lb/load-buffer-coherency-tuning-results.wgsl';
 
 // Read tests
 import readRMW from '../shaders/read/read-rmw.wgsl'
@@ -34,6 +36,7 @@ import readRMWBarrier1 from '../shaders/read/read-rmw-barrier1.wgsl'
 import readRMWBarrier2 from '../shaders/read/read-rmw-barrier2.wgsl'
 import readResults from '../shaders/read/read-results.wgsl'
 import readCoherencyResults from '../shaders/read/read-coherency-results.wgsl'
+import readCoherencyTuningResults from '../shaders/read/read-coherency-tuning-results.wgsl'
 
 // Store Buffer tests
 import storeBufferRMW from '../shaders/sb/store-buffer-rmw.wgsl'
@@ -43,6 +46,7 @@ import storeBufferRMWBarrier1 from '../shaders/sb/store-buffer-rmw-barrier1.wgsl
 import storeBufferRMWBarrier2 from '../shaders/sb/store-buffer-rmw-barrier2.wgsl'
 import storeBufferResults from '../shaders/sb/store-buffer-results.wgsl'
 import storeBufferCoherencyResults from '../shaders/sb/store-buffer-coherency-results.wgsl'
+import storeBufferCoherencyTuningResults from '../shaders/sb/store-buffer-coherency-tuning-results.wgsl'
 
 // 2+2 Write tests
 import twoPlusTwoWriteRMW from '../shaders/2+2w/2+2-write-rmw.wgsl'
@@ -52,6 +56,7 @@ import twoPlusTwoWriteRMWBarrier1 from '../shaders/2+2w/2+2-write-rmw-barrier1.w
 import twoPlusTwoWriteRMWBarrier2 from '../shaders/2+2w/2+2-write-rmw-barrier2.wgsl'
 import twoPlusTwoWriteResults from '../shaders/2+2w/2+2-write-results.wgsl';
 import twoPlusTwoWriteCoherencyResults from '../shaders/2+2w/2+2-write-coherency-results.wgsl';
+import twoPlusTwoWriteCoherencyTuningResults from '../shaders/2+2w/2+2-write-coherency-tuning-results.wgsl';
 
 // RR tests
 import rr from '../shaders/rr/rr.wgsl';
@@ -308,7 +313,7 @@ export const tuningTests = {
   loadBufferCoherencyTuning: {
     testName: "load_buffer_coherency_tuning",
     shader: loadBufferCoherency,
-    resultShader: loadBufferCoherencyResults,
+    resultShader: loadBufferCoherencyTuningResults,
     coherency: false 
   },
 
@@ -321,7 +326,7 @@ export const tuningTests = {
   storeCoherencyTuning: {
     testName: "store_coherency_tuning",
     shader: storeCoherency,
-    resultShader: storeCoherencyResults,
+    resultShader: storeCoherencyTuningResults,
     coherency: false 
   },
 
@@ -334,7 +339,7 @@ export const tuningTests = {
   readCoherencyTuning: {
     testName: "read_coherency_tuning",
     shader: readCoherency,
-    resultShader: readCoherencyResults,
+    resultShader: readCoherencyTuningResults,
     coherency: false 
   },
 
@@ -347,7 +352,7 @@ export const tuningTests = {
   storeBufferCoherencyTuning: {
     testName: "store_buffer_coherency_tuning",
     shader: storeBufferCoherency,
-    resultShader: storeBufferCoherencyResults,
+    resultShader: storeBufferCoherencyTuningResults,
     coherency: false 
   },
 
@@ -360,7 +365,7 @@ export const tuningTests = {
   twoPlusTwoWriteCoherencyTuning: {
     testName: "write_22_coherency_tuning",
     shader: twoPlusTwoWriteCoherency,
-    resultShader: twoPlusTwoWriteCoherencyResults,
+    resultShader: twoPlusTwoWriteCoherencyTuningResults,
     coherency: false 
   },
 

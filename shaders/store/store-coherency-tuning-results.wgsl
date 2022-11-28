@@ -62,11 +62,13 @@ override workgroupXSize: u32;
   let total_ids = workgroupXSize * stress_params.testing_workgroups;
   let y_0 = permute_id(id_0, stress_params.permute_second, total_ids) * stress_params.mem_stride * 2u + stress_params.location_offset;
   let mem_y_0 = atomicLoad(&test_locations.value[y_0]);
-  if ((mem_x_0 == 4u && mem_y_0 == 4u)) {
+  if ((r0 == 1u && mem_x_0 == 3u)) {
     atomicAdd(&test_results.seq0, 1u);
-  } else if ((mem_x_0 == 1u && mem_y_0 == 1u)) {
+  } else if ((r0 == 0u && mem_x_0 == 2u)) {
     atomicAdd(&test_results.seq1, 1u);
-  } else {
+  } else if ((r0 == 0u && mem_x_0 == 3u)) {
+    atomicAdd(&test_results.interleaved, 1u);
+  } else if ((r0 == 1u && mem_x_0 == 2u)) {
     atomicAdd(&test_results.weak, 1u);
   }
 }
