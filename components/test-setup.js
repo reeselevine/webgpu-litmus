@@ -71,6 +71,7 @@ import rwMutant from '../shaders/rw/rw-mutant.wgsl';
 import rwRMW from '../shaders/rw/rw-rmw.wgsl';
 import rwRMWMutant from '../shaders/rw/rw-rmw-mutant.wgsl';
 import rwResults from '../shaders/rw/rw-results.wgsl';
+import rwMutantResults from '../shaders/rw/rw-mutant-results.wgsl';
 
 // WR tests
 import wr from '../shaders/wr/wr.wgsl';
@@ -78,6 +79,7 @@ import wrMutant from '../shaders/wr/wr-mutant.wgsl';
 import wrRMW from '../shaders/wr/wr-rmw.wgsl';
 import wrRMWMutant from '../shaders/wr/wr-rmw-mutant.wgsl';
 import wrResults from '../shaders/wr/wr-results.wgsl';
+import wrMutantResults from '../shaders/wr/wr-mutant-results.wgsl';
 
 // WW tests
 import ww from '../shaders/ww/ww.wgsl';
@@ -88,202 +90,110 @@ import wwResults from '../shaders/ww/ww-results.wgsl';
 
 export const conformanceTests = {
   messagePassingCoherency: {
-    testName: "message_passing_coherency",
     shader: messagePassingCoherency,
     resultShader: messagePassingCoherencyResults,
-    coherency: true 
+    coherency: true
   },
   messagePassingBarrier: {
-    testName: "message_passing_barrier",
     shader: messagePassingBarrier,
-    resultShader: messagePassingResults,
-    coherency: false
-  },
-  messagePassingBarrier1: {
-    testName: "message_passing_barrier1",
-    shader: messagePassingBarrier1,
-    resultShader: messagePassingResults,
-    coherency: false
-  },
-  messagePassingBarrier2: {
-    testName: "message_passing_barrier2",
-    shader: messagePassingBarrier2,
     resultShader: messagePassingResults,
     coherency: false
   },
 
   loadBufferCoherency: {
-    testName: "load_buffer_coherency",
     shader: loadBufferCoherency,
     resultShader: loadBufferCoherencyResults,
     coherency: true 
   },
   loadBufferBarrier: {
-    testName: "load_buffer_barrier",
     shader: loadBufferBarrier,
-    resultShader: loadBufferResults,
-    coherency: false
-  },
-  loadBufferBarrier1: {
-    testName: "load_buffer_barrier1",
-    shader: loadBufferBarrier1,
-    resultShader: loadBufferResults,
-    coherency: false
-  },
-  loadBufferBarrier2: {
-    testName: "load_buffer_barrier2",
-    shader: loadBufferBarrier2,
     resultShader: loadBufferResults,
     coherency: false
   },
 
   storeCoherency: {
-    testName: "store_coherency",
     shader: storeCoherency,
     resultShader: storeCoherencyResults,
     coherency: true 
   },
   storeBarrier: {
-    testName: "store_barrier",
     shader: storeBarrier,
-    resultShader: storeResults,
-    coherency: false
-  },
-  storeBarrier1: {
-    testName: "store_barrier1",
-    shader: storeBarrier1,
-    resultShader: storeResults,
-    coherency: false
-  },
-  storeBarrier2: {
-    testName: "store_barrier2",
-    shader: storeBarrier2,
     resultShader: storeResults,
     coherency: false
   },
 
   readCoherency: {
-    testName: "read_coherency",
     shader: readCoherency,
     resultShader: readCoherencyResults,
     coherency: true 
   },
   readRMWBarrier: {
-    testName: "read_rmw_barrier",
     shader: readRMWBarrier,
-    resultShader: readResults,
-    coherency: false
-  },
-  readRMWBarrier1: {
-    testName: "read_rmw_barrier1",
-    shader: readRMWBarrier1,
-    resultShader: readResults,
-    coherency: false
-  },
-  readRMWBarrier2: {
-    testName: "read_rmw_barrier2",
-    shader: readRMWBarrier2,
     resultShader: readResults,
     coherency: false
   },
 
   storeBufferCoherency: {
-    testName: "store_buffer_coherency",
     shader: storeBufferCoherency,
     resultShader: storeBufferCoherencyResults,
     coherency: true 
   },
   storeBufferRMWBarrier: {
-    testName: "store_buffer_rmw_barrier",
     shader: storeBufferRMWBarrier,
-    resultShader: storeBufferResults,
-    coherency: false
-  },
-  storeBufferRMWBarrier1: {
-    testName: "store_buffer_rmw_barrier1",
-    shader: storeBufferRMWBarrier1,
-    resultShader: storeBufferResults,
-    coherency: false
-  },
-  storeBufferRMWBarrier2: {
-    testName: "store_buffer_rmw_barrier2",
-    shader: storeBufferRMWBarrier2,
     resultShader: storeBufferResults,
     coherency: false
   },
 
   twoPlusTwoWriteCoherency: {
-    testName: "write_22_coherency",
     shader: twoPlusTwoWriteCoherency,
     resultShader: twoPlusTwoWriteCoherencyResults,
     coherency: true 
   },
   twoPlusTwoWriteRMWBarrier: {
-    testName: "write_22_rmw_barrier",
     shader: twoPlusTwoWriteRMWBarrier,
-    resultShader: twoPlusTwoWriteResults,
-    coherency: false
-  },
-  twoPlusTwoWriteRMWBarrier1: {
-    testName: "write_22_rmw_barrier1",
-    shader: twoPlusTwoWriteRMWBarrier1,
-    resultShader: twoPlusTwoWriteResults,
-    coherency: false
-  },
-  twoPlusTwoWriteRMWBarrier2: {
-    testName: "write_22_rmw_barrier2",
-    shader: twoPlusTwoWriteRMWBarrier2,
     resultShader: twoPlusTwoWriteResults,
     coherency: false
   },
 
   rr: {
-    testName: "rr",
     shader: rr,
     resultShader: rrResults,
     coherency: true
   },
   rrRMW: {
-    testName: "rr_rmw",
     shader: rrRMW,
     resultShader: rrResults,
     coherency: true
   },
 
   rw: {
-    testName: "rw",
     shader: rw,
     resultShader: rwResults,
     coherency: true
   },
   rwRMW: {
-    testName: "rw_rmw",
     shader: rwRMW,
     resultShader: rwResults,
     coherency: true
   },
 
   wr: {
-    testName: "wr",
     shader: wr,
     resultShader: wrResults,
     coherency: true
   },
   wrRMW: {
-    testName: "wr_rmw",
     shader: wrRMW,
     resultShader: wrResults,
     coherency: true
   },
 
   ww: {
-    testName: "ww",
     shader: ww,
     resultShader: wwResults,
     coherency: true
   },
   wwRMW: {
-    testName: "ww_rmw",
     shader: wwRMW,
     resultShader: wwResults,
     coherency: true
@@ -292,134 +202,204 @@ export const conformanceTests = {
 
 export const tuningTests = {
   messagePassing: {
-    testName: "message_passing",
     shader: messagePassing,
     resultShader: messagePassingResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "messagePassingBarrier"
+  },
+  messagePassingBarrier1: {
+    shader: messagePassingBarrier1,
+    resultShader: messagePassingResults,
+    coherency: false,
+    conformanceTest: "messagePassingBarrier"
+  },
+  messagePassingBarrier2: {
+    shader: messagePassingBarrier2,
+    resultShader: messagePassingResults,
+    coherency: false,
+    conformanceTest: "messagePassingBarrier"
   },
   messagePassingCoherencyTuning: {
-    testName: "message_passing_coherency_tuning",
     shader: messagePassingCoherency,
     resultShader: messagePassingCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "messagePassingCoherency"
   },
 
   loadBuffer: {
-    testName: "load_buffer",
     shader: loadBuffer,
     resultShader: loadBufferResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "loadBufferBarrier"
+  },
+  loadBufferBarrier1: {
+    shader: loadBufferBarrier1,
+    resultShader: loadBufferResults,
+    coherency: false,
+    conformanceTest: "loadBufferBarrier"
+  },
+  loadBufferBarrier2: {
+    shader: loadBufferBarrier2,
+    resultShader: loadBufferResults,
+    coherency: false,
+    conformanceTest: "loadBufferBarrier"
   },
   loadBufferCoherencyTuning: {
-    testName: "load_buffer_coherency_tuning",
     shader: loadBufferCoherency,
     resultShader: loadBufferCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "loadBufferCoherency"
   },
 
   store: {
-    testName: "store",
     shader: store,
     resultShader: storeResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "storeBarrier"
+  },
+  storeBarrier1: {
+    shader: storeBarrier1,
+    resultShader: storeResults,
+    coherency: false,
+    conformanceTest: "storeBarrier"
+  },
+  storeBarrier2: {
+    shader: storeBarrier2,
+    resultShader: storeResults,
+    coherency: false,
+    conformanceTest: "storeBarrier"
   },
   storeCoherencyTuning: {
-    testName: "store_coherency_tuning",
     shader: storeCoherency,
     resultShader: storeCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "storeCoherency"
   },
 
   readRMW: {
-    testName: "read_rmw",
     shader: readRMW,
     resultShader: readResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "readRMWBarrier"
+  },
+  readRMWBarrier1: {
+    shader: readRMWBarrier1,
+    resultShader: readResults,
+    coherency: false,
+    conformanceTest: "readRMWBarrier"
+  },
+  readRMWBarrier2: {
+    shader: readRMWBarrier2,
+    resultShader: readResults,
+    coherency: false,
+    conformanceTest: "readRMWBarrier"
   },
   readCoherencyTuning: {
-    testName: "read_coherency_tuning",
     shader: readCoherency,
     resultShader: readCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "readCoherency"
   },
 
   storeBufferRMW: {
-    testName: "store_buffer_rmw",
     shader: storeBufferRMW,
     resultShader: storeBufferResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "storeBufferRMWBarrier"
+  },
+  storeBufferRMWBarrier1: {
+    shader: storeBufferRMWBarrier1,
+    resultShader: storeBufferResults,
+    coherency: false,
+    conformanceTest: "storeBufferRMWBarrier"
+  },
+  storeBufferRMWBarrier2: {
+    shader: storeBufferRMWBarrier2,
+    resultShader: storeBufferResults,
+    coherency: false,
+    conformanceTest: "storeBufferRMWBarrier"
   },
   storeBufferCoherencyTuning: {
-    testName: "store_buffer_coherency_tuning",
     shader: storeBufferCoherency,
     resultShader: storeBufferCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "storeBufferCoherency"
   },
 
   twoPlusTwoWriteRMW: {
-    testName: "write_22_rmw",
     shader: twoPlusTwoWriteRMW,
     resultShader: twoPlusTwoWriteResults,
-    coherency: false
+    coherency: false,
+    conformanceTest: "twoPlusTwoWriteRMWBarrier"
+  },
+  twoPlusTwoWriteRMWBarrier1: {
+    shader: twoPlusTwoWriteRMWBarrier1,
+    resultShader: twoPlusTwoWriteResults,
+    coherency: false,
+    conformanceTest: "twoPlusTwoWriteRMWBarrier"
+  },
+  twoPlusTwoWriteRMWBarrier2: {
+    shader: twoPlusTwoWriteRMWBarrier2,
+    resultShader: twoPlusTwoWriteResults,
+    coherency: false,
+    conformanceTest: "twoPlusTwoWriteRMWBarrier"
   },
   twoPlusTwoWriteCoherencyTuning: {
-    testName: "write_22_coherency_tuning",
     shader: twoPlusTwoWriteCoherency,
     resultShader: twoPlusTwoWriteCoherencyTuningResults,
-    coherency: false 
+    coherency: false,
+    conformanceTest: "twoPlusTwoWriteCoherency"
   },
 
   rrMutant: {
-    testName: "rr_mutant",
     shader: rrMutant,
     resultShader: rrResults,
-    coherency: true
+    coherency: true,
+    conformanceTest: "rr"
   },
   rrRMWMutant: {
-    testName: "rr_rmw_mutant",
     shader: rrRMWMutant,
     resultShader: rrResults,
-    coherency: true
+    coherency: true,
+    conformanceTest: "rrRMW"
   },
 
   rwMutant: {
-    testName: "rw_mutant",
     shader: rwMutant,
-    resultShader: rwResults,
-    coherency: true
+    resultShader: rwMutantResults,
+    coherency: true,
+    conformanceTest: "rw"
   },
   rwRMWMutant: {
-    testName: "rw_rmw_mutant",
     shader: rwRMWMutant,
-    resultShader: rwResults,
-    coherency: true
+    resultShader: rwMutantResults,
+    coherency: true,
+    conformanceTest: "rwRMW"
   },
 
   wrMutant: {
-    testName: "wr_mutant",
     shader: wrMutant,
-    resultShader: wrResults,
-    coherency: true
+    resultShader: wrMutantResults,
+    coherency: true,
+    conformanceTest: "wr"
   },
   wrRMWMutant: {
-    testName: "wr_rmw_mutant",
     shader: wrRMWMutant,
-    resultShader: wrResults,
-    coherency: true
+    resultShader: wrMutantResults,
+    coherency: true,
+    conformanceTest: "wrRMW"
   },
 
   wwMutant: {
-    testName: "ww_mutant",
     shader: wwMutant,
     resultShader: wwResults,
-    coherency: true
+    coherency: true,
+    conformanceTest: "ww"
   },
   wwRMWMutant: {
-    testName: "ww_rmw_mutant",
     shader: wwRMWMutant,
     resultShader: wwResults,
-    coherency: true
+    coherency: true,
+    conformanceTest: "wwRMW"
   }
 }
-
-

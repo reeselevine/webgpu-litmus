@@ -9,15 +9,19 @@ import { conformanceTests, tuningTests } from '../components/test-setup.js';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
+const coherenceOverrides = {
+  aliasedMemory: true,
+  permuteSecond: 1
+};
 
 function getPageState() {
   const [running, setRunning] = useState(false);
   const [iterations, setIterations] = useState(100);
-  const [randomSeed, setRandomSeed] = useState("");
+  const [randomSeed, setRandomSeed] = useState("webgpu");
   const [smoothedParameters, setSmoothedParameters] = useState(false);
   const [maxWorkgroups, setMaxWorkgroups] = useState(1024);
   const [tuningOverrides, setTuningOverrides] = useState({});
-  const [tuningTimes, setTuningTimes] = useState(10);
+  const [tuningTimes, setTuningTimes] = useState(150);
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
@@ -162,7 +166,7 @@ function TuningTest(props) {
     <>
       <div>
         <input type="checkbox" name={props.testName} checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value} />
-        <label for={props.testName}>
+        <label>
           <TestCode testName={props.testName} shader={props.shader} resultShader={props.resultShader}/>
         </label>
       </div>
@@ -170,7 +174,7 @@ function TuningTest(props) {
   )
 }
 
-function buildTest(testInfo, pageState) {
+function buildTest(testName, testInfo, pageState) {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleOnChange = () => {
@@ -183,7 +187,7 @@ function buildTest(testInfo, pageState) {
   }
 
   return {
-    testName: testInfo.testName,
+    testName: testName,
     shader: testInfo.shader,
     resultShader: testInfo.resultShader,
     state: {
@@ -196,7 +200,7 @@ function buildTest(testInfo, pageState) {
     isChecked: isChecked,
     setIsChecked: setIsChecked,
     testParamOverrides: testParamOverrides,
-    jsx: <TuningTest key={testInfo.testName} testName={testInfo.testName} shader={testInfo.shader} resultShader={testInfo.resultShader} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
+    jsx: <TuningTest key={testName} testName={testName} shader={testInfo.shader} resultShader={testInfo.resultShader} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
   }
 }
 
@@ -374,38 +378,33 @@ function SelectorCategory(props) {
     </>
   )
 }
-// Coherence tests
-const coherenceOverrides = {
-  aliasedMemory: true,
-  permuteSecond: 1
-};
+
+function setTests(tests, val) {
+  for (const test in tests) {
+    tests[test].setIsChecked(val);
+  }
+}
+
+function presetTuningConfig(pageState) {
+  pageState.tuningTimes.update(150);
+  pageState.iterations.update(100);
+  pageState.maxWorkgroups.update(1024);
+  pageState.randomSeed.update("webgpu");
+}
 
 function getTestSelector(pageState) {
   let conformanceTestsComponent = {};
   for (const key in conformanceTests) {
-    conformanceTestsComponent[key] = buildTest(conformanceTests[key], pageState);
+    conformanceTestsComponent[key] = buildTest(key, conformanceTests[key], pageState);
   }
   const conformanceJsX = <SelectorTest key="conformance" tests={conformanceTestsComponent} />;
   
   let tuningTestsComponent = {};
   for (const key in tuningTests) {
-    tuningTestsComponent[key] = buildTest(tuningTests[key], pageState);
+    tuningTestsComponent[key] = buildTest(key, tuningTests[key], pageState);
   }
   const tuningJsX = <SelectorTest key="tuning" tests={tuningTestsComponent} />;
 
-  function setTests(tests, val) {
-    for (const test in tests) {
-      tests[test].setIsChecked(val);
-    }
-  }
-
-  function presetTuningConfig(pageState) {
-    pageState.tuningTimes.update(150);
-    pageState.iterations.update(100);
-    pageState.maxWorkgroups.update(1024);
-    pageState.randomSeed.update("webgpu");
-  }
-  
   let allTests = {
     ...conformanceTestsComponent,
     ...tuningTestsComponent
@@ -420,7 +419,7 @@ function getTestSelector(pageState) {
             <p className="panel-heading">
               Selected Tests
             </p>
-            <div className="container" style={{ overflowY: 'scroll', overflowX: 'scroll', height: '190px' }}>
+            <div className="container" style={{ overflowY: 'scroll', overflowX: 'scroll', height: '250px' }}>
               <aside className="menu">
                 <SelectorCategory category="Conformance Tests" tests={conformanceJsX} />
                 <SelectorCategory category="Tuning Tests" tests={tuningJsX} />
@@ -474,15 +473,10 @@ function clearState(pageState, keys) {
   }
 }
 
-async function tune(tests, testParams, pageState) {
+function initializeRun(tests, pageState) {
   pageState.tuningRows.update([]);
   pageState.allStats.internalState = {};
-  pageState.activeTests = [];
-  for (let test in tests) {
-    if (tests[test].isChecked) {
-      pageState.activeTests.push(tests[test]);
-    }
-  }
+  pageState.activeTests = tests; 
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
   let generator;
@@ -492,43 +486,85 @@ async function tune(tests, testParams, pageState) {
     generator = PRNG(pageState.randomSeed.value);
     pageState.allStats.internalState["randomSeed"] = pageState.randomSeed.value;
   }
+  return generator;
+}
+
+async function doTuningIteration(i, testParams, generator, pageState) {
+  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
+  let params = {
+    ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
+    id: i,
+    numMemLocations: testParams.numMemLocations,
+    numOutputs: testParams.numOutputs,
+    permuteFirst: testParams.permuteFirst,
+    permuteSecond: testParams.permuteSecond,
+    aliasedMemory: testParams.aliasedMemory
+  };
+  pageState.curParams = params;
+  for (let j = 0; j < pageState.activeTests.length; j++) {
+    let curTest = pageState.activeTests[j];
+    curTest.state.seq = 0;
+    curTest.state.interleaved = 0;
+    curTest.state.weak = 0;
+    curTest.state.durationSeconds = 0;
+    let newParams = JSON.parse(JSON.stringify(params));
+    for (const key in curTest.testParamOverrides) {
+      newParams[key] = curTest.testParamOverrides[key];
+    }
+    await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
+    pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
+    curTest.state.durationSeconds = reportTime();
+    pageState.totalTime.update(pageState.totalTime.internalState);
+    pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
+    pageState.completedTests.update(pageState.completedTests.internalState);
+    if (curTest.state.weak != 0) {
+      pageState.logSum.internalState += Math.log(curTest.state.weak + 1);
+      pageState.logSum.update(pageState.logSum.internalState);
+    }
+  }
+  let stats = getRunStats(pageState.activeTests, params, pageState.iterations.value);
+  let row = <StaticRow pageState={pageState} key={params.id} stats={stats} />;
+  pageState.allStats.internalState[i] = stats;
+  pageState.tuningRows.update(oldRows => [...oldRows, row]);
+}
+
+async function tuneAndConform(tests, pageState) {
+  let bestConfigs = {};
+  setTests(tests, false);
+  let testsToRun = [];
+  for (let test in tuningTests) {
+    tests[test].setIsChecked(true);
+    testsToRun.push(tests[test]);
+  }
+  const generator = initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
-    let params = {
-      ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
-      id: i,
-      numMemLocations: testParams.numMemLocations,
-      numOutputs: testParams.numOutputs,
-      permuteFirst: testParams.permuteFirst,
-      permuteSecond: testParams.permuteSecond,
-      aliasedMemory: testParams.aliasedMemory
-    };
-    pageState.curParams = params;
+    await doTuningIteration(i, testParams, generator, pageState);
     for (let j = 0; j < pageState.activeTests.length; j++) {
       let curTest = pageState.activeTests[j];
-      curTest.state.seq = 0;
-      curTest.state.interleaved = 0;
-      curTest.state.weak = 0;
-      curTest.state.durationSeconds = 0;
-      let newParams = JSON.parse(JSON.stringify(params));
-      for (const key in curTest.testParamOverrides) {
-        newParams[key] = curTest.testParamOverrides[key];
-      }
-      await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
-      pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
-      curTest.state.durationSeconds = reportTime();
-      pageState.totalTime.update(pageState.totalTime.internalState);
-      pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
-      pageState.completedTests.update(pageState.completedTests.internalState);
-      if (curTest.state.weak != 0) {
-        pageState.logSum.internalState += Math.log(curTest.state.weak + 1);
-        pageState.logSum.update(pageState.logSum.internalState);
+      let curRate = curTest.state.weak/curTest.state.durationSeconds;
+      if (!(curTest.testName in bestConfigs) || bestConfigs[curTest.testName].maxRate < curRate) {
+        bestConfigs[curTest.testName] = {
+          rate: curRate,
+          params: JSON.parse(JSON.stringify(pageState.curParams))
+        };
       }
     }
-    let stats = getRunStats(pageState.activeTests, params, pageState.iterations.value);
-    let row = <StaticRow pageState={pageState} key={params.id} stats={stats} />;
-    pageState.allStats.internalState[i] = stats;
-    pageState.tuningRows.update(oldRows => [...oldRows, row]);
+  }
+  console.log(bestConfigs);
+  pageState.allStats.update(pageState.allStats.internalState);
+  pageState.running.update(false);
+}
+
+async function tune(tests, pageState) {
+  let testsToRun = [];
+  for (let test in tests) {
+    if (tests[test].isChecked) {
+      testsToRun.push(tests[test]);
+    }
+  }
+  const generator = initializeRun(testsToRun, pageState);
+  for (let i = 0; i < pageState.tuningTimes.value; i++) {
+    await doTuningIteration(i, testParams, generator, pageState);
   }
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
@@ -560,18 +596,24 @@ export default function TuningSuite() {
           </div>
           <button className="button is-primary" onClick={() => {
             pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-            tune(testSelector.tests, testParams, pageState);
+            tune(testSelector.tests, pageState);
           }} disabled={pageState.running.value}>
-            Start Tuning
+            Tune
           </button>
         </div>
         <div className="column" >
-          <div className="control">
+          <div className="control mb-2">
             <label><b>Iterations:</b></label>
             <input className="input" type="text" value={pageState.iterations.value} onInput={(e) => {
               pageState.iterations.update(e.target.value);
             }} disabled={pageState.running.value} />
           </div>
+          <button className="button is-primary" onClick={() => {
+            pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
+            tuneAndConform(testSelector.tests, pageState);
+          }} disabled={pageState.running.value}>
+            Tune/Conform
+          </button>
         </div>
         <div className="column" >
           <div className="control">
