@@ -489,8 +489,7 @@ function initializeRun(tests, pageState) {
   return generator;
 }
 
-async function doTuningIteration(i, testParams, generator, pageState) {
-  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
+function randomizeParams(testParams, i, generator, pageState) {
   let params = {
     ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
     id: i,
@@ -500,14 +499,19 @@ async function doTuningIteration(i, testParams, generator, pageState) {
     permuteSecond: testParams.permuteSecond,
     aliasedMemory: testParams.aliasedMemory
   };
-  pageState.curParams = params;
+  return params;
+}
+
+async function doTuningIteration(i, testParams, pageState) {
+  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
+  pageState.curParams = testParams;
   for (let j = 0; j < pageState.activeTests.length; j++) {
     let curTest = pageState.activeTests[j];
     curTest.state.seq = 0;
     curTest.state.interleaved = 0;
     curTest.state.weak = 0;
     curTest.state.durationSeconds = 0;
-    let newParams = JSON.parse(JSON.stringify(params));
+    let newParams = JSON.parse(JSON.stringify(testParams));
     for (const key in curTest.testParamOverrides) {
       newParams[key] = curTest.testParamOverrides[key];
     }
@@ -522,8 +526,8 @@ async function doTuningIteration(i, testParams, generator, pageState) {
       pageState.logSum.update(pageState.logSum.internalState);
     }
   }
-  let stats = getRunStats(pageState.activeTests, params, pageState.iterations.value);
-  let row = <StaticRow pageState={pageState} key={params.id} stats={stats} />;
+  let stats = getRunStats(pageState.activeTests, testParams, pageState.iterations.value);
+  let row = <StaticRow pageState={pageState} key={testParams.id} stats={stats} />;
   pageState.allStats.internalState[i] = stats;
   pageState.tuningRows.update(oldRows => [...oldRows, row]);
 }
@@ -538,19 +542,29 @@ async function tuneAndConform(tests, pageState) {
   }
   const generator = initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    await doTuningIteration(i, testParams, generator, pageState);
+    let params = randomizeParams(testParams, i, generator, pageState);
+    await doTuningIteration(i, params, pageState);
     for (let j = 0; j < pageState.activeTests.length; j++) {
       let curTest = pageState.activeTests[j];
       let curRate = curTest.state.weak/curTest.state.durationSeconds;
       if (!(curTest.testName in bestConfigs) || bestConfigs[curTest.testName].maxRate < curRate) {
         bestConfigs[curTest.testName] = {
-          rate: curRate,
+          maxRate: curRate,
           params: JSON.parse(JSON.stringify(pageState.curParams))
         };
       }
     }
   }
-  console.log(bestConfigs);
+  let i = pageState.tuningTimes.value;
+  pageState.totalTests.update(1);
+  for (let test in bestConfigs) {
+    pageState.activeTests = [tests[test]];
+    bestConfigs[test].params.id = i;
+    await doTuningIteration(i, bestConfigs[test].params, pageState);
+    i++;
+  }
+
+
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
 }
@@ -564,7 +578,8 @@ async function tune(tests, pageState) {
   }
   const generator = initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    await doTuningIteration(i, testParams, generator, pageState);
+    let params = randomizeParams(testParams, i, generator, pageState);
+    await doTuningIteration(i, params, pageState);
   }
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
