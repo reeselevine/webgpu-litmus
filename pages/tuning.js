@@ -558,7 +558,7 @@ async function tuneAndConform(tests, pageState) {
   let i = pageState.tuningTimes.value;
   pageState.totalTests.update(1);
   for (let test in bestConfigs) {
-    pageState.activeTests = [tests[test]];
+    pageState.activeTests = [tests[tuningTests[test].conformanceTest]];
     bestConfigs[test].params.id = i;
     await doTuningIteration(i, bestConfigs[test].params, pageState);
     i++;
