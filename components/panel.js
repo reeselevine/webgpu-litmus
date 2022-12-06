@@ -8,18 +8,8 @@ export default function Panel({ children }) {
         </Link>
       </div>
       <div className="panel-block">
-        <Link href="/conformance">
-          <a>Conformance Test Suite</a>
-        </Link>
-      </div>
-      <div className="panel-block">
         <Link href="/tuning">
-          <a>Tuning Suite</a>
-        </Link>
-      </div>
-      <div className="panel-block">
-        <Link href="/gallery">
-          <a>Results Gallery</a>
+          <a>Tune/Conform</a>
         </Link>
       </div>
       <div className="panel-block">
