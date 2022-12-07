@@ -6,6 +6,7 @@ import { defaultTestParams } from '../components/litmus-setup.js'
 
 import { filteredParams } from '../components/tuningTable.js';
 import { conformanceTests, tuningTests } from '../components/test-setup.js';
+import platform from 'platform';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
 const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
@@ -238,8 +239,113 @@ function getRunStats(activeTests, params, iterations) {
   return stats;
 }
 
+function getPlatformInfoValue(outerKey, innerKey, stats) {
+  if (stats.platformInfo) {
+    if (outerKey in stats.platformInfo) {
+      return stats.platformInfo[outerKey][innerKey];
+    }
+  }
+  return "";
+}
+
+function SubmitForm(props) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gpuInfo, setGpuInfo] = useState("");
+  const [browserInfo, setBrowserInfo] = useState("");
+  const [osInfo, setOsInfo] = useState("");
+
+  return (
+    <>
+      <div className={"modal " + ((props.submitFormIsActive) ? "is-active" : "")}>
+        <div className="modal-background" onClick={() => {
+          props.setSubmitFormIsActive(!props.submitFormIsActive)
+        }}></div>
+        <div className="modal-card">
+          <header className="modal-card-head">
+            <p className="modal-card-title">Submit Your Results</p>
+            <button className="delete" aria-label="close" onClick={() => {
+              props.setSubmitFormIsActive(!props.submitFormIsActive)
+            }}></button>
+          </header>
+          <section className="modal-card-body">
+            <p>
+              Submit your results, and optionally include your name and email for potential follow up.
+              Additionally, if the detected information about your platform is incorrect, or if you'd like to provide more info,
+              submit that as well!
+            </p>
+            <div className="columns">            
+              <div className="column" >
+                <div className="control mb-2">
+                  <label><b>Name:</b></label>
+                    <input className="input" type="text" value={name} onInput={(e) => {
+                      setName(e.target.value);
+                    }}/>
+                </div>
+              </div>
+              <div className="column" >
+                <div className="control mb-2">
+                  <label><b>Email:</b></label>
+                    <input className="input" type="email" value={email} onInput={(e) => {
+                      setEmail(e.target.value);
+                    }}/>
+                </div>
+              </div>
+            </div>
+            <div className="columns">            
+              <div className="column" >
+                <div className="control mb-2">
+                  <label><b>GPU:</b></label>
+                    <p>Detected: {getPlatformInfoValue("gpu", "vendor", props.stats)} {getPlatformInfoValue("gpu", "architecture", props.stats)} </p>
+                    <input className="input" type="text" value={gpuInfo} onInput={(e) => {
+                      setGpuInfo(e.target.value);
+                    }}/>
+                </div>
+              </div>
+              <div className="column" >
+                <div className="control mb-2">
+                  <label><b>Browser:</b></label>
+                    <p>Detected: {getPlatformInfoValue("browser", "vendor", props.stats)} {getPlatformInfoValue("browser", "version", props.stats)} </p>
+                    <input className="input" type="text" value={browserInfo} onInput={(e) => {
+                      setBrowserInfo(e.target.value);
+                    }}/>
+                </div>
+              </div>
+              <div className="column" >
+                <div className="control mb-2">
+                  <label><b>Operating System:</b></label>
+                    <p>Detected: {getPlatformInfoValue("os", "vendor", props.stats)} {getPlatformInfoValue("os", "version", props.stats)} </p>
+                    <input className="input" type="email" value={osInfo} onInput={(e) => {
+                      setOsInfo(e.target.value);
+                    }}/>
+                </div>
+              </div>
+            </div>
+          </section>
+          <footer className="modal-card-foot">
+            <button className="button is-success" onClick={() => {
+              console.log({
+                userInfo: {
+                  name: name,
+                  email: email,
+                  gpu: gpuInfo,
+                  browser: browserInfo,
+                  os: osInfo
+                }
+              });
+            }}>
+              Submit
+            </button>
+          </footer>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function RunStatistics(props) {
   const [isActive, setIsActive] = useState(false);
+  const [submitFormIsActive, setSubmitFormIsActive] = useState(false);
   let json = JSON.stringify(props.stats, null, 2);
   return (
     <>
@@ -268,8 +374,14 @@ function RunStatistics(props) {
             <a className="button is-success" href={`data:text/json;charset=utf-8,${encodeURIComponent(json)}`} download="stats.json">
               Download
             </a>
+            <button className={"button is-success " + (props.finalResult ? "" : "is-hidden" )} onClick={() => {
+              setSubmitFormIsActive(!submitFormIsActive);
+            }}>
+              Submit
+            </button>
           </footer>
         </div>
+        <SubmitForm stats={props.stats} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive}/>
       </div>
     </>
   )
@@ -320,7 +432,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <RunStatistics stats={props.stats} />
+        <RunStatistics stats={props.stats} finalResult={false} />
       </td>
       <td>
         {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
@@ -473,12 +585,36 @@ function clearState(pageState, keys) {
   }
 }
 
-function initializeRun(tests, pageState) {
+async function initializeRun(tests, pageState) {
   pageState.tuningRows.update([]);
   pageState.allStats.internalState = {};
   pageState.activeTests = tests; 
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
+  // get platform info
+  const highEntropyHints = ["platformVersion"]
+  const userAgentData = await navigator.userAgentData.getHighEntropyValues(highEntropyHints);
+  const gpuAdapter = await navigator.gpu.requestAdapter();
+  const unmaskHints = ['vendor', 'architecture', 'device', 'description'];
+  const adapterInfo = await gpuAdapter.requestAdapterInfo(unmaskHints);
+  pageState.allStats.internalState["platformInfo"] = {
+    gpu: {
+      vendor: adapterInfo.vendor,
+      architecture: adapterInfo.architecture,
+      device: adapterInfo.device,
+      description: adapterInfo.description
+    },
+    browser: {
+      vendor: platform.name,
+      version: platform.version
+    },
+    os: {
+      vendor: userAgentData.platform,
+      version: userAgentData.platformVersion,
+      mobile: userAgentData.mobile
+    }
+  };
+
   let generator;
   if (pageState.randomSeed.value.length === 0) {
     generator = PRNG(Math.floor(Math.random() * 2147483647), false);
@@ -540,7 +676,7 @@ async function tuneAndConform(tests, pageState) {
     tests[test].setIsChecked(true);
     testsToRun.push(tests[test]);
   }
-  const generator = initializeRun(testsToRun, pageState);
+  const generator = await initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     let params = randomizeParams(testParams, i, generator, pageState);
     await doTuningIteration(i, params, pageState);
@@ -576,7 +712,7 @@ async function tune(tests, pageState) {
       testsToRun.push(tests[test]);
     }
   }
-  const generator = initializeRun(testsToRun, pageState);
+  const generator = await initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
     let params = randomizeParams(testParams, i, generator, pageState);
     await doTuningIteration(i, params, pageState);
@@ -666,7 +802,7 @@ export default function TuningSuite() {
       </div>
       <div>
         <label><b>All Runs:</b></label>
-        <RunStatistics stats={pageState.allStats.visibleState} />
+        <RunStatistics stats={pageState.allStats.visibleState} finalResult={true} />
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
