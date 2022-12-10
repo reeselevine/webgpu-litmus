@@ -248,19 +248,15 @@ function getPlatformInfoValue(outerKey, innerKey, stats) {
   return "";
 }
 
-async function submit(data) {
-
-}
-
 function SubmitForm(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gpuInfo, setGpuInfo] = useState("");
   const [browserInfo, setBrowserInfo] = useState("");
   const [osInfo, setOsInfo] = useState("");
-
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitErr, setSubmitErr] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
 
   const submit = async () => {
     props.stats["userInfo"] = {
@@ -270,21 +266,20 @@ function SubmitForm(props) {
       browser: browserInfo,
       os: osInfo
     };
-    console.log(props.stats);
+    setSubmitSuccess("");
     setSubmitErr("");
     setSubmitLoading(true);
     try {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'React POST Request Example' })
+        body: JSON.stringify(props.stats)
       };
-      const response = await fetch(process.env.dataApi + "/hello");
+      const response = await fetch(process.env.dataApi + "/submit", requestOptions);
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`);
       }
-      const result = await response.json();
-      console.log('result is: ', JSON.stringify(result, null, 4));
+      setSubmitSuccess("Submit Succeeded!");
     } catch (err) {
       console.log(err.message);
       setSubmitErr(err.message);
@@ -364,8 +359,8 @@ function SubmitForm(props) {
             <button className={"button is-success " + (submitLoading ? "is-loading" : "")} onClick={submit}>
               Submit
             </button>
+            {submitSuccess && <p>{submitSuccess}</p>}
             {submitErr && <p>{submitErr}</p>}
-
           </footer>
         </div>
       </div>

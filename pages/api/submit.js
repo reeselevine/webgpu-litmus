@@ -1,4 +1,5 @@
 import Cors from 'cors'
+import fs from 'fs'
 
 // Initializing the cors middleware
 // You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
@@ -22,8 +23,15 @@ function runMiddleware( req, res, fn) {
 
 export default async function handler(req, res) {
   // Run the middleware
-  await runMiddleware(req, res, cors)
-
-  // Rest of the API logic
-  res.json({ message: 'Hello World!' })
+  await runMiddleware(req, res, cors);
+  if (req.method !== 'POST') {
+    res.status(405).send({ message: 'Only POST requests allowed' });
+    return;
+  }
+  fs.writeFile('/Users/reeselevine/dev/webgpu-litmus/test.txt', JSON.stringify(req.body), err => {
+    if (err) {
+      console.error(err);
+    }
+  });
+  res.status(200).send();
 }
