@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev2": "next dev -p 8080",
     "build": "next build",
     "start": "next start"
   },
@@ -12,6 +13,7 @@
     "bootstrap": "^4.6.0",
     "bulma": "^0.9.3",
     "chart.js": "^3.4.1",
+    "cors": "^2.8.5",
     "jquery": "^3.6.0",
     "lodash.throttle": "^4.1.1",
     "next": "^10.2.3",

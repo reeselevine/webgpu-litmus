@@ -14,7 +14,11 @@ module.exports = (phase, { defaultConfig }) => {
 
   if (phase === PHASE_DEVELOPMENT_SERVER) {
     return {
-      ...loader
+      ...loader,
+      env: {
+        corsAllow: "http://localhost:3000",
+        dataApi: "http://localhost:8080/api"
+      }
     }
   }
 
@@ -22,6 +26,10 @@ module.exports = (phase, { defaultConfig }) => {
     assetPrefix: '/webgpu-mem-testing',
     basePath: '/webgpu-mem-testing',
     trailingSlash: true,
+    env: {
+      corsAllow: "https://gpuharbor.ucsc.edu/webgpu-mem-testing/",
+        dataApi: "http://localhost:8080/api"
+    },
     ...loader
   }
 }

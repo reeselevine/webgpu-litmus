@@ -248,12 +248,50 @@ function getPlatformInfoValue(outerKey, innerKey, stats) {
   return "";
 }
 
+async function submit(data) {
+
+}
+
 function SubmitForm(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gpuInfo, setGpuInfo] = useState("");
   const [browserInfo, setBrowserInfo] = useState("");
   const [osInfo, setOsInfo] = useState("");
+
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitErr, setSubmitErr] = useState('');
+
+  const submit = async () => {
+    props.stats["userInfo"] = {
+      name: name,
+      email: email,
+      gpu: gpuInfo,
+      browser: browserInfo,
+      os: osInfo
+    };
+    console.log(props.stats);
+    setSubmitErr("");
+    setSubmitLoading(true);
+    try {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'React POST Request Example' })
+      };
+      const response = await fetch(process.env.dataApi + "/hello");
+      if (!response.ok) {
+        throw new Error(`Error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('result is: ', JSON.stringify(result, null, 4));
+    } catch (err) {
+      console.log(err.message);
+      setSubmitErr(err.message);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   return (
     <>
@@ -323,19 +361,11 @@ function SubmitForm(props) {
             </div>
           </section>
           <footer className="modal-card-foot">
-            <button className="button is-success" onClick={() => {
-              console.log({
-                userInfo: {
-                  name: name,
-                  email: email,
-                  gpu: gpuInfo,
-                  browser: browserInfo,
-                  os: osInfo
-                }
-              });
-            }}>
+            <button className={"button is-success " + (submitLoading ? "is-loading" : "")} onClick={submit}>
               Submit
             </button>
+            {submitErr && <p>{submitErr}</p>}
+
           </footer>
         </div>
       </div>
@@ -699,8 +729,6 @@ async function tuneAndConform(tests, pageState) {
     await doTuningIteration(i, bestConfigs[test].params, pageState);
     i++;
   }
-
-
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
 }
