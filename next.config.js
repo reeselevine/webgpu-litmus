@@ -17,7 +17,7 @@ module.exports = (phase, { defaultConfig }) => {
       ...loader,
       env: {
         corsAllow: "http://localhost:3000",
-        dataApi: "http://localhost:8080/api"
+        dataApi: "http://localhost:3000/api"
       }
     }
   }
@@ -28,7 +28,7 @@ module.exports = (phase, { defaultConfig }) => {
     trailingSlash: true,
     env: {
       corsAllow: "https://gpuharbor.ucsc.edu/webgpu-mem-testing/",
-        dataApi: "http://localhost:8080/api"
+        dataApi: "http://localhost:3000/api"
     },
     ...loader
   }

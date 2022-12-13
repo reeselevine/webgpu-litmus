@@ -617,8 +617,16 @@ async function initializeRun(tests, pageState) {
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
   // get platform info
-  const highEntropyHints = ["platformVersion"]
-  const userAgentData = await navigator.userAgentData.getHighEntropyValues(highEntropyHints);
+  let osVendor = "";
+  let osVersion = "";
+  let isMobile = "";
+  if (navigator.userAgentData) {
+    const highEntropyHints = ["platformVersion"]
+    const userAgentData = await navigator.userAgentData.getHighEntropyValues(highEntropyHints);
+    osVendor = userAgentData.platform;
+    osVersion = userAgentData.platformVersion;
+    isMobile = userAgentData.mobile;
+  }
   const gpuAdapter = await navigator.gpu.requestAdapter();
   const unmaskHints = ['vendor', 'architecture', 'device', 'description'];
   const adapterInfo = await gpuAdapter.requestAdapterInfo(unmaskHints);
@@ -634,12 +642,11 @@ async function initializeRun(tests, pageState) {
       version: platform.version
     },
     os: {
-      vendor: userAgentData.platform,
-      version: userAgentData.platformVersion,
-      mobile: userAgentData.mobile
+      vendor: osVendor,
+      version: osVersion,
+      mobile: isMobile
     }
   };
-
   let generator;
   if (pageState.randomSeed.value.length === 0) {
     generator = PRNG(Math.floor(Math.random() * 2147483647), false);
