@@ -1,5 +1,6 @@
 import Cors from 'cors'
 import fs from 'fs'
+import { databaseConnector } from '../../components/db-connector';
 
 // Initializing the cors middleware
 // You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
