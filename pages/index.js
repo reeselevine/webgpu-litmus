@@ -9,19 +9,19 @@ export default function Home() {
       <h4>Website Guide</h4>
       <p>
         The goals of this website are to explore ways to better test memory models and to use the results of this exploration to empirically verify the implementation of WebGPU's memory model. In order to do this, we define a large suite of litmus tests in several different categories, all of which are available on the left hand navigation panel.
-        <li>
-          <b>Weak Memory Tests</b>: These test the semantics of memory when two threads access multiple memory locations concurrently, specifically whether hardware is allowed to re-order certain combinations of reads and writes to different memory locations.
-        </li>
-        <li>
-          <b>Coherence Tests</b>: These test the semantics of memory when a single memory location is accessed concurrently, ensuring coherency is respected.
-        </li>
-        <li>
-          <b>Atomicity</b>: This test checks that an atomic read-modify-write instruction is, indeed, atomic.
-        </li>
-        <li>
-          <b>Barrier Tests</b>: These test the implementation of WebGPU's barrier synchronization primitives, ensuring memory is properly synchronized with respect to the barrier.
-        </li>
       </p>
+      <li>
+        <b>Weak Memory Tests</b>: These test the semantics of memory when two threads access multiple memory locations concurrently, specifically whether hardware is allowed to re-order certain combinations of reads and writes to different memory locations.
+      </li>
+      <li>
+        <b>Coherence Tests</b>: These test the semantics of memory when a single memory location is accessed concurrently, ensuring coherency is respected.
+      </li>
+      <li>
+        <b>Atomicity</b>: This test checks that an atomic read-modify-write instruction is, indeed, atomic.
+      </li>
+      <li>
+        <b>Barrier Tests</b>: These test the implementation of WebGPU's barrier synchronization primitives, ensuring memory is properly synchronized with respect to the barrier.
+      </li>
       <h4>Test Page Layout</h4>
       <p>
         Each test page contains a brief description of the program under test, as well as pseudocode showing the instructions executed by each thread. The psuedocode also shows where each thread executes relative to the other and calls out the behavior of interest. Switching to the source code shows the actual wgsl shader that runs the test. Along with a "default" test, each page includes variants that vary the memory class and scope of the test, as well as adding barriers and read-modify-write instructions to disallow certain behaviors.
