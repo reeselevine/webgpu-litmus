@@ -28,7 +28,7 @@ class MariaDBConnector {
         )`);
         console.log(res);
     } catch (err) {
-	    throw err;
+      throw err;
     } finally {
 	    if (conn) return conn.end();
     }
@@ -36,4 +36,8 @@ class MariaDBConnector {
 }
 
 export const databaseConnector = new MariaDBConnector();
-await db.setup();
+try {
+  const res = await databaseConnector.setup();
+} catch (err) {
+  //do nothing for now
+}

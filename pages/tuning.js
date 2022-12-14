@@ -293,12 +293,16 @@ function SubmitForm(props) {
       <div className={"modal " + ((props.submitFormIsActive) ? "is-active" : "")}>
         <div className="modal-background" onClick={() => {
           props.setSubmitFormIsActive(!props.submitFormIsActive)
+          setSubmitSuccess("");
+          setSubmitErr("");
         }}></div>
         <div className="modal-card">
           <header className="modal-card-head">
             <p className="modal-card-title">Submit Your Results</p>
             <button className="delete" aria-label="close" onClick={() => {
               props.setSubmitFormIsActive(!props.submitFormIsActive)
+              setSubmitSuccess("");
+              setSubmitErr("");
             }}></button>
           </header>
           <section className="modal-card-body">
