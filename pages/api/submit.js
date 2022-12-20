@@ -1,31 +1,10 @@
-import Cors from 'cors'
-import fs from 'fs'
 import { databaseConnector } from '../../components/db-connector';
 import { validateSubmit } from '../../components/request-validator';
-
-// Initializing the cors middleware
-// You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
-const cors = Cors({
-  origin: process.env.corsAllow
-})
-
-// Helper method to wait for a middleware to execute before continuing
-// And to throw an error when an error happens in a middleware
-function runMiddleware( req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result)
-      }
-
-      return resolve(result)
-    })
-  })
-}
+import { runCors } from '../../components/api-helper';
 
 export default async function handler(req, res) {
   // Run the middleware
-  await runMiddleware(req, res, cors);
+  await runCors(req, res);
   if (req.method !== 'POST') {
     res.status(405).send({ error: 'Only POST requests allowed' });
     return;
