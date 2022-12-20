@@ -95,9 +95,20 @@ const submitSchema = {
       additionalProperties: false
     },
     randomSeed: {type: "string"},
-    userInfo: {type: "object"}
+    userInfo: {
+      type: "object",
+      properties: {
+        name: {type: "string"},
+        email: {type: "string"},
+        gpu: {type: "string"},
+        browser: {type: "string"},
+        os: {type: "string"}
+      },
+      required: ["name", "email"],
+      additionalProperties: false
+    }
   },
-  required: ["platformInfo", "randomSeed"],
+  required: ["platformInfo", "randomSeed", "userInfo"],
   additionalProperties: false
 }
 

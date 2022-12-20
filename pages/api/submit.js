@@ -36,10 +36,11 @@ export default async function handler(req, res) {
     res.status(400).send({ error: validateSubmit.errors});
     return;
   }
-  fs.writeFile('/Users/reeselevine/dev/webgpu-litmus/test.txt', JSON.stringify(req.body), err => {
-    if (err) {
-      console.error(err);
-    }
-  });
-  res.status(200).send();
+  try {
+    databaseConnector.submitTuningResults(req.body);
+    res.status(200).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send({error: err.message});
+  }
 }
