@@ -10,12 +10,14 @@ class SqliteConnector {
       create table if not exists tuning_results (
         name text,
         email text,
+        gpu_vendor text,
+        browser text,
+        os text,
+        random_seed text,
         results text
       );`);
-    const info = setup.run();
-    console.log(info.changes);
+    setup.run();
   }
-
 }
 
 export const databaseConnector = new SqliteConnector();
