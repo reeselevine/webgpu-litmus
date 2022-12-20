@@ -10,7 +10,6 @@ module.exports = {
         test: /\.wgsl$/i,
         loader: "raw-loader",
       });
-      config.experiments = { ...config.experiments, ...{ topLevelAwait: true }};
       return config;
     }
 }
