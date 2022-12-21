@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev2": "next dev -p 8080",
     "build": "next build",
+    "export": "next build && next export",
     "start": "next start"
   },
   "dependencies": {
