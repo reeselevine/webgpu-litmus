@@ -1,11 +1,9 @@
 import Database from 'better-sqlite3'
 
-const DB_PATH = "./gpuharbor.db";
-
 class SqliteConnector {
 
   constructor() {
-    this.db = new Database(DB_PATH);
+    this.db = new Database(process.env.dbPath);
     const setup = this.db.prepare(`
       create table if not exists tuning_results (
         name text,
