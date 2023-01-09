@@ -727,7 +727,7 @@ async function tuneAndConform(tests, pageState) {
       }
     }
   }
-  let i = pageState.tuningTimes.value;
+  let i = parseInt(pageState.tuningTimes.value);
   pageState.totalTests.update(1);
   for (let test in bestConfigs) {
     pageState.activeTests = [tests[tuningTests[test].conformanceTest]];
