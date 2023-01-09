@@ -632,8 +632,7 @@ async function initializeRun(tests, pageState) {
     isMobile = userAgentData.mobile;
   }
   const gpuAdapter = await navigator.gpu.requestAdapter();
-  const unmaskHints = ['vendor', 'architecture', 'device', 'description'];
-  const adapterInfo = await gpuAdapter.requestAdapterInfo(unmaskHints);
+  const adapterInfo = await gpuAdapter.requestAdapterInfo();
   pageState.allStats.internalState["platformInfo"] = {
     gpu: {
       vendor: adapterInfo.vendor,
@@ -649,7 +648,8 @@ async function initializeRun(tests, pageState) {
       vendor: osVendor,
       version: osVersion,
       mobile: isMobile
-    }
+    },
+    framework: "webgpu"
   };
   let generator;
   if (pageState.randomSeed.value.length === 0) {

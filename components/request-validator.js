@@ -89,9 +89,10 @@ const submitSchema = {
           },
           required: ["vendor"],
           additionalProperties: false
-        }
+        },
+        framework: {type: "string"}
       },
-      required: ["gpu", "browser", "os"],
+      required: ["gpu", "browser", "os", "framework"],
       additionalProperties: false
     },
     randomSeed: {type: "string"},

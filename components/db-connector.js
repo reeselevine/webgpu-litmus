@@ -13,6 +13,7 @@ class SqliteConnector {
         gpu_vendor text,
         browser text,
         os text,
+        framework text,
         random_seed text,
         results text
       )`);
@@ -23,9 +24,9 @@ class SqliteConnector {
     if (this.preparedSubmitStmt == undefined) {
       this.preparedSubmitStmt = this.db.prepare(`
         insert into tuning_results 
-          (name, email, gpu_vendor, browser, os, random_seed, results)
+          (name, email, gpu_vendor, browser, os, framework, random_seed, results)
         values
-          (@name, @email, @gpu_vendor, @browser, @os, @random_seed, @results)
+          (@name, @email, @gpu_vendor, @browser, @os, @framework, @random_seed, @results)
       `);
     }
     this.preparedSubmitStmt.run({
@@ -34,6 +35,7 @@ class SqliteConnector {
       gpu_vendor: results.platformInfo.gpu.vendor,
       browser: results.platformInfo.browser.vendor,
       os: results.platformInfo.os.vendor,
+      framework: results.platformInfo.framework,
       random_seed: results.randomSeed,
       results: JSON.stringify(results)
     });
