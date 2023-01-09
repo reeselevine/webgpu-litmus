@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=<username>
+User=reeselevine
 Restart=on-failure
 RestartSec=10
-WorkingDirectory=<path>
+WorkingDirectory=/usr/src/webgpu-litmus
 PermissionsStartOnly=true
 ExecStartPre=/usr/bin/npm install
 ExecStartPre=/usr/bin/npm run build
