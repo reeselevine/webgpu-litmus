@@ -1,5 +1,4 @@
 module.exports = {
-    trailingSlash: true,
     assetPrefix: process.env.ASSET_PREFIX,
     basePath: process.env.BASE_PATH,
     env: {
