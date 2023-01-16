@@ -1,7 +1,7 @@
  struct TestResults {
-  seq0: atomic<u32>;
-  seq1: atomic<u32>;
-  weak: atomic<u32>;
+  seq0: atomic<u32>,
+  seq1: atomic<u32>,
+  weak: atomic<u32>,
 };
 
 struct AtomicMemory {
