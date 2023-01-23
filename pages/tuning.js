@@ -32,6 +32,7 @@ function getPageState() {
   const [completedTests, setCompletedTests] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
   const [allStats, setAllStats] = useState({});
+  const [tuneAndConformRunComplete, setRunComplete] = useState(false);
   return {
     running: {
       value: running,
@@ -64,6 +65,10 @@ function getPageState() {
     tuningRows: {
       value: rows,
       update: setRows
+    },
+    tuneAndConformRunComplete: {
+      value: tuneAndConformRunComplete,
+      update: setRunComplete
     },
     seq: {
       ...buildStateValues(seq, setSeq)
@@ -248,6 +253,19 @@ function getPlatformInfoValue(outerKey, innerKey, stats) {
   return "";
 }
 
+function getGPUInfo(stats) {
+  if (stats.platformInfo) {
+    if ("gpu" in stats.platformInfo) {
+      if (stats.platformInfo["gpu"]["description"] != "") {
+        return stats.platformInfo["gpu"]["description"];
+      } else {
+        return stats.platformInfo["gpu"]["vendor"] + " " + stats.platformInfo["gpu"]["architecture"];
+      }
+    }
+  }
+  return "";
+}
+
 function SubmitForm(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -307,9 +325,7 @@ function SubmitForm(props) {
           </header>
           <section className="modal-card-body">
             <p>
-              Submit your results, and optionally include your name and email for potential follow up.
-              Additionally, if the detected information about your platform is incorrect, or if you'd like to provide more info,
-              submit that as well!
+              By submitting your results, you agree to allow us to collect information about your GPU, browser, and operating system. We do not collect data on location or other usage. Additionally, if you fill out your name and email you agree to allow us to follow up with you on your results if needed. All device information submitted will be used anonymously for research purposes, including publication of papers. We will not use or distribute your name/email for any purposes.
             </p>
             <div className="columns">            
               <div className="column" >
@@ -333,7 +349,7 @@ function SubmitForm(props) {
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>GPU:</b></label>
-                    <p>Detected: {getPlatformInfoValue("gpu", "vendor", props.stats)} {getPlatformInfoValue("gpu", "architecture", props.stats)} </p>
+                    <p>Detected: {getGPUInfo(props.stats)} </p>
                     <input className="input" type="text" value={gpuInfo} onInput={(e) => {
                       setGpuInfo(e.target.value);
                     }}/>
@@ -374,7 +390,6 @@ function SubmitForm(props) {
 
 function RunStatistics(props) {
   const [isActive, setIsActive] = useState(false);
-  const [submitFormIsActive, setSubmitFormIsActive] = useState(false);
   let json = JSON.stringify(props.stats, null, 2);
   return (
     <>
@@ -403,14 +418,8 @@ function RunStatistics(props) {
             <a className="button is-success" href={`data:text/json;charset=utf-8,${encodeURIComponent(json)}`} download="stats.json">
               Download
             </a>
-            <button className={"button is-success " + (props.finalResult ? "" : "is-hidden" )} onClick={() => {
-              setSubmitFormIsActive(!submitFormIsActive);
-            }}>
-              Submit
-            </button>
           </footer>
         </div>
-        <SubmitForm stats={props.stats} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive}/>
       </div>
     </>
   )
@@ -461,7 +470,7 @@ export function StaticRow(props) {
         {props.pageState.curParams.id + 1}
       </td>
       <td>
-        <RunStatistics stats={props.stats} finalResult={false} />
+        <RunStatistics stats={props.stats} />
       </td>
       <td>
         {props.pageState.completedTests.internalState}/{props.pageState.activeTests.length}
@@ -620,6 +629,7 @@ async function initializeRun(tests, pageState) {
   pageState.activeTests = tests; 
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
+  pageState.tuneAndConformRunComplete.update(false);
   // get platform info
   let osVendor = "";
   let osVersion = "";
@@ -737,6 +747,7 @@ async function tuneAndConform(tests, pageState) {
   }
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
+  pageState.tuneAndConformRunComplete.update(true);
 }
 
 async function tune(tests, pageState) {
@@ -757,6 +768,7 @@ async function tune(tests, pageState) {
 
 export default function TuningSuite() {
   const pageState = getPageState();
+  const [submitFormIsActive, setSubmitFormIsActive] = useState(false);
   const testSelector = getTestSelector(pageState);
   return (
     <>
@@ -765,7 +777,11 @@ export default function TuningSuite() {
           <div className="section">
             <h1 className="testName">Tuning Suite</h1>
             <p>
-              The tuning suite is used to tune over user selected tests. Several test presets are included, allowing users to quickly tune over different categories of tests. By default, a new random seed is generated for each tuning run, but by inputting a chosen random seed, parameter combinations can be kept constant across different runs. A random seed can be any string. For example, "webgpu" (without quotation marks) is a valid random seed.
+              The tuning suite is used to tune over user selected tests. Users can either tune over conformance tests, looking for bugs, or tuning tests, to characterize weak behaviors. The "Tune/Conform" action first runs the tuning tests for the set number of configurations/iterations, and then for each tuning test, runs the associated conformance test in the environment that maximizes the rate of weak behaviors.
+            </p>
+
+            <p>
+              After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted. By default, the website only has limited access to information about your GPU. To allow more information in Chrome, you can go to "chrome://flags", search for the flag "#enable-webgpu-developer-features", and enable it. Please make sure to do this before running your tests, as you will need to relaunch Chrome for it to take effect.
             </p>
           </div>
         </div>
@@ -836,7 +852,15 @@ export default function TuningSuite() {
       </div>
       <div>
         <label><b>All Runs:</b></label>
-        <RunStatistics stats={pageState.allStats.visibleState} finalResult={true} />
+        <RunStatistics stats={pageState.allStats.visibleState} />
+      </div>
+      <div>
+        <button className={"button is-primary " + (pageState.tuneAndConformRunComplete.value ? "" : "is-hidden" )} onClick={() => {
+          setSubmitFormIsActive(!submitFormIsActive);
+        }}>
+          Submit Results
+        </button>
+        <SubmitForm stats={pageState.allStats.visibleState} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive}/>
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
