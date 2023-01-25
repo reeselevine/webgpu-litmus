@@ -4,7 +4,7 @@ import { runLitmusTest, reportTime, getCurrentIteration } from './litmus-setup.j
 import * as ReactBootStrap from 'react-bootstrap';
 import { getStressPanel } from './stressPanel.js';
 import ProgressBar, { setProgressBarState } from '../components/progressBar';
-import { clearState, handleResult, randomConfig } from './test-page-utils.js';
+import { clearState, handleResult, randomConfig, setVis } from './test-page-utils.js';
 import TuningTable, { StaticRow } from "../components/tuningTable"
 
 function getPageState(props) {
@@ -146,14 +146,6 @@ function chartConfig(pageState, testParams, uiParams, tooltipFilter) {
     animation: {
       duration: 0
     }
-  }
-}
-
-function setVis(stateVar, str) {
-  if (stateVar) {
-    return str
-  } else {
-    return ""
   }
 }
 

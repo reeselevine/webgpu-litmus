@@ -3,7 +3,7 @@ import Database from 'better-sqlite3'
 class SqliteConnector {
 
   constructor() {
-    this.db = new Database(process.env.dbPath);
+    this.db = new Database(process.env.DB_PATH);
     const setup = this.db.prepare(`
       create table if not exists tuning_results (
         name text,

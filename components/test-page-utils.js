@@ -393,3 +393,11 @@ export function randomConfig(generator, smoothedParameters=true, workgroupLimite
   }
   return generated;
 }
+
+export function setVis(stateVar, str) {
+  if (stateVar) {
+    return str
+  } else {
+    return ""
+  }
+}

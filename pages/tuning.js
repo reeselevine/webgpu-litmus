@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PRNG } from '../components/prng.js';
-import { buildThrottle, randomConfig } from '../components/test-page-utils.js';
+import { buildThrottle, randomConfig, setVis } from '../components/test-page-utils.js';
 import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
 import { defaultTestParams } from '../components/litmus-setup.js'
 
@@ -17,22 +17,21 @@ const coherenceOverrides = {
 
 function getPageState() {
   const [running, setRunning] = useState(false);
-  const [iterations, setIterations] = useState(100);
-  const [randomSeed, setRandomSeed] = useState("webgpu");
+  const [iterations, setIterations] = useState(parseInt(process.env.NEXT_PUBLIC_TUNING_ITERATIONS));
+  const [randomSeed, setRandomSeed] = useState(process.env.NEXT_PUBLIC_TUNING_SEED);
   const [smoothedParameters, setSmoothedParameters] = useState(false);
-  const [maxWorkgroups, setMaxWorkgroups] = useState(1024);
+  const [maxWorkgroups, setMaxWorkgroups] = useState(parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG));
   const [tuningOverrides, setTuningOverrides] = useState({});
-  const [tuningTimes, setTuningTimes] = useState(150);
+  const [tuningTimes, setTuningTimes] = useState(parseInt(process.env.NEXT_PUBLIC_TUNING_CONFIGS));
   const [rows, setRows] = useState([]);
   const [seq, setSeq] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
-  const [logSum, setLogSum] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [completedTests, setCompletedTests] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
   const [allStats, setAllStats] = useState({});
-  const [tuneAndConformRunComplete, setRunComplete] = useState(false);
+  const [tuneAndConform, setTuneAndConform] = useState(true);
   return {
     running: {
       value: running,
@@ -66,9 +65,9 @@ function getPageState() {
       value: rows,
       update: setRows
     },
-    tuneAndConformRunComplete: {
-      value: tuneAndConformRunComplete,
-      update: setRunComplete
+    tuneAndConform: {
+      value: tuneAndConform,
+      update: setTuneAndConform
     },
     seq: {
       ...buildStateValues(seq, setSeq)
@@ -78,9 +77,6 @@ function getPageState() {
     },
     weak: {
       ...buildStateValues(weak, setWeak)
-    },
-    logSum: {
-      ...buildStateValues(logSum, setLogSum)
     },
     totalTime: {
       ...buildStateValues(totalTime, setTotalTime)
@@ -138,7 +134,7 @@ function TestCode(props) {
       <a onClick={() => {
         setIsActive(!isActive);
       }}>
-        {props.testName} 
+        {props.testName}
       </a>
       <div className={"modal " + (isActive ? "is-active" : "")}>
         <div className="modal-background" onClick={() => {
@@ -173,7 +169,7 @@ function TuningTest(props) {
       <div>
         <input type="checkbox" name={props.testName} checked={props.isChecked} onChange={props.handleOnChange} disabled={props.pageState.running.value} />
         <label>
-          <TestCode testName={props.testName} shader={props.shader} resultShader={props.resultShader}/>
+          <TestCode testName={props.testName} shader={props.shader} resultShader={props.resultShader} />
         </label>
       </div>
     </>
@@ -293,7 +289,7 @@ function SubmitForm(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(props.stats)
       };
-      const response = await fetch(process.env.dataApi + "/submit", requestOptions);
+      const response = await fetch(process.env.NEXT_PUBLIC_DATA_API + "/submit", requestOptions);
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`);
       }
@@ -327,50 +323,53 @@ function SubmitForm(props) {
             <p>
               By submitting your results, you agree to allow us to collect information about your GPU, browser, and operating system. We do not collect data on location or other usage. Additionally, if you fill out your name and email you agree to allow us to follow up with you on your results if needed. All device information submitted will be used anonymously for research purposes, including publication of papers. We will not use or distribute your name/email for any purposes.
             </p>
-            <div className="columns">            
+            <p>
+              <b>All fields are optional.</b>
+            </p>
+            <div className="columns">
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>Name:</b></label>
-                    <input className="input" type="text" value={name} onInput={(e) => {
-                      setName(e.target.value);
-                    }}/>
+                  <input className="input" type="text" value={name} onInput={(e) => {
+                    setName(e.target.value);
+                  }} />
                 </div>
               </div>
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>Email:</b></label>
-                    <input className="input" type="email" value={email} onInput={(e) => {
-                      setEmail(e.target.value);
-                    }}/>
+                  <input className="input" type="email" value={email} onInput={(e) => {
+                    setEmail(e.target.value);
+                  }} />
                 </div>
               </div>
             </div>
-            <div className="columns">            
+            <div className="columns">
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>GPU:</b></label>
-                    <p>Detected: {getGPUInfo(props.stats)} </p>
-                    <input className="input" type="text" value={gpuInfo} onInput={(e) => {
-                      setGpuInfo(e.target.value);
-                    }}/>
+                  <p>Detected: {getGPUInfo(props.stats)} </p>
+                  <input className="input" type="text" value={gpuInfo} onInput={(e) => {
+                    setGpuInfo(e.target.value);
+                  }} />
                 </div>
               </div>
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>Browser:</b></label>
-                    <p>Detected: {getPlatformInfoValue("browser", "vendor", props.stats)} {getPlatformInfoValue("browser", "version", props.stats)} </p>
-                    <input className="input" type="text" value={browserInfo} onInput={(e) => {
-                      setBrowserInfo(e.target.value);
-                    }}/>
+                  <p>Detected: {getPlatformInfoValue("browser", "vendor", props.stats)} {getPlatformInfoValue("browser", "version", props.stats)} </p>
+                  <input className="input" type="text" value={browserInfo} onInput={(e) => {
+                    setBrowserInfo(e.target.value);
+                  }} />
                 </div>
               </div>
               <div className="column" >
                 <div className="control mb-2">
                   <label><b>Operating System:</b></label>
-                    <p>Detected: {getPlatformInfoValue("os", "vendor", props.stats)} {getPlatformInfoValue("os", "version", props.stats)} </p>
-                    <input className="input" type="email" value={osInfo} onInput={(e) => {
-                      setOsInfo(e.target.value);
-                    }}/>
+                  <p>Detected: {getPlatformInfoValue("os", "vendor", props.stats)} {getPlatformInfoValue("os", "version", props.stats)} </p>
+                  <input className="input" type="email" value={osInfo} onInput={(e) => {
+                    setOsInfo(e.target.value);
+                  }} />
                 </div>
               </div>
             </div>
@@ -455,10 +454,6 @@ function DynamicRow(props) {
       <td>
         {props.pageState.weak.visibleState}
       </td>
-      <td>
-        {props.pageState.logSum.visibleState.toFixed(3)}
-      </td>
-
     </tr>
   )
 }
@@ -489,9 +484,6 @@ export function StaticRow(props) {
       </td>
       <td>
         {props.pageState.weak.internalState}
-      </td>
-      <td>
-        {props.pageState.logSum.internalState.toFixed(3)}
       </td>
     </tr>
   )
@@ -536,10 +528,10 @@ function setTests(tests, val) {
 }
 
 function presetTuningConfig(pageState) {
-  pageState.tuningTimes.update(150);
-  pageState.iterations.update(100);
-  pageState.maxWorkgroups.update(1024);
-  pageState.randomSeed.update("webgpu");
+  pageState.tuningTimes.update(parseInt(process.env.NEXT_PUBLIC_TUNING_CONFIGS));
+  pageState.iterations.update(parseInt(process.env.NEXT_PUBLIC_TUNING_ITERATIONS));
+  pageState.maxWorkgroups.update(parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG));
+  pageState.randomSeed.update(process.env.NEXT_PUBLIC_TUNING_SEED);
 }
 
 function getTestSelector(pageState) {
@@ -548,7 +540,7 @@ function getTestSelector(pageState) {
     conformanceTestsComponent[key] = buildTest(key, conformanceTests[key], pageState);
   }
   const conformanceJsX = <SelectorTest key="conformance" tests={conformanceTestsComponent} />;
-  
+
   let tuningTestsComponent = {};
   for (const key in tuningTests) {
     tuningTestsComponent[key] = buildTest(key, tuningTests[key], pageState);
@@ -585,20 +577,20 @@ function getTestSelector(pageState) {
                       setTests(conformanceTestsComponent, true);
                       presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
-                      Conformance Tests 
+                      Conformance Tests
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, false);
                       setTests(tuningTestsComponent, true);
                       presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
-                      Tuning Tests 
+                      Tuning Tests
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, true);
                       presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
-                      All Tests 
+                      All Tests
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
                       setTests(allTests, false);
@@ -626,10 +618,9 @@ function clearState(pageState, keys) {
 async function initializeRun(tests, pageState) {
   pageState.tuningRows.update([]);
   pageState.allStats.internalState = {};
-  pageState.activeTests = tests; 
+  pageState.activeTests = tests;
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
-  pageState.tuneAndConformRunComplete.update(false);
   // get platform info
   let osVendor = "";
   let osVersion = "";
@@ -685,7 +676,7 @@ function randomizeParams(testParams, i, generator, pageState) {
 }
 
 async function doTuningIteration(i, testParams, pageState) {
-  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak", "logSum"]);
+  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak"]);
   pageState.curParams = testParams;
   for (let j = 0; j < pageState.activeTests.length; j++) {
     let curTest = pageState.activeTests[j];
@@ -703,10 +694,6 @@ async function doTuningIteration(i, testParams, pageState) {
     pageState.totalTime.update(pageState.totalTime.internalState);
     pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
     pageState.completedTests.update(pageState.completedTests.internalState);
-    if (curTest.state.weak != 0) {
-      pageState.logSum.internalState += Math.log(curTest.state.weak + 1);
-      pageState.logSum.update(pageState.logSum.internalState);
-    }
   }
   let stats = getRunStats(pageState.activeTests, testParams, pageState.iterations.value);
   let row = <StaticRow pageState={pageState} key={testParams.id} stats={stats} />;
@@ -728,7 +715,7 @@ async function tuneAndConform(tests, pageState) {
     await doTuningIteration(i, params, pageState);
     for (let j = 0; j < pageState.activeTests.length; j++) {
       let curTest = pageState.activeTests[j];
-      let curRate = curTest.state.weak/curTest.state.durationSeconds;
+      let curRate = curTest.state.weak / curTest.state.durationSeconds;
       if (!(curTest.testName in bestConfigs) || bestConfigs[curTest.testName].maxRate < curRate) {
         bestConfigs[curTest.testName] = {
           maxRate: curRate,
@@ -747,7 +734,6 @@ async function tuneAndConform(tests, pageState) {
   }
   pageState.allStats.update(pageState.allStats.internalState);
   pageState.running.update(false);
-  pageState.tuneAndConformRunComplete.update(true);
 }
 
 async function tune(tests, pageState) {
@@ -785,82 +771,95 @@ export default function TuningSuite() {
             </p>
           </div>
         </div>
-        {testSelector.jsx}
+        {!pageState.tuneAndConform.value ? testSelector.jsx : <div></div> }
       </div>
-      <div className="columns">
-        <div className="column">
-          <div className="control mb-2">
-            <label><b>Configurations:</b></label>
-            <input className="input" type="text" value={pageState.tuningTimes.value} onInput={(e) => {
-              pageState.tuningTimes.update(e.target.value);
-            }} disabled={pageState.running.value} />
+      <div className="tabs is-medium is-centered">
+        <ul>
+          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => { pageState.tuneAndConform.update(true); }}><a>Tune/Conform</a></li>
+          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => { pageState.tuneAndConform.update(false); }}><a>Tune</a></li>
+        </ul>
+      </div>
+      {pageState.tuneAndConform.value ?
+        <>
+          <div className='m-1'>
+            <button className="button is-primary" onClick={() => {
+              pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
+              tuneAndConform(testSelector.tests, pageState);
+            }} disabled={pageState.running.value}>
+              Tune/Conform
+            </button>
           </div>
-          <button className="button is-primary" onClick={() => {
-            pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-            tune(testSelector.tests, pageState);
-          }} disabled={pageState.running.value}>
-            Tune
-          </button>
-        </div>
-        <div className="column" >
-          <div className="control mb-2">
-            <label><b>Iterations:</b></label>
-            <input className="input" type="text" value={pageState.iterations.value} onInput={(e) => {
-              pageState.iterations.update(e.target.value);
-            }} disabled={pageState.running.value} />
+          <div className="m-1">
+            <button className="button is-light" onClick={() => {
+              setSubmitFormIsActive(!submitFormIsActive);
+            }} disabled={pageState.running.value}>
+              Submit Results
+            </button>
+            <SubmitForm stats={pageState.allStats.visibleState} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive} />
           </div>
-          <button className="button is-primary" onClick={() => {
-            pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-            tuneAndConform(testSelector.tests, pageState);
-          }} disabled={pageState.running.value}>
-            Tune/Conform
-          </button>
-        </div>
-        <div className="column" >
-          <div className="control">
-            <label><b>Random Seed:</b></label>
-            <input className="input" type="text" value={pageState.randomSeed.value} onInput={(e) => {
-              pageState.randomSeed.update(e.target.value);
-            }} disabled={pageState.running.value} />
-          </div>
-        </div>
-        <div className="column" >
-          <div className="control">
-            <label><b>Max Workgroups:</b></label>
-            <input className="input" type="text" value={pageState.maxWorkgroups.value} onInput={(e) => {
-              pageState.maxWorkgroups.update(e.target.value);
-            }} disabled={pageState.running.value} />
-          </div>
-        </div>
-        <div className="column">
-          <div className='control'>
-            <label className="checkbox"><b>Smoothed Parameters:</b></label>
-            <div>
-              <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
-                pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
+        </>
+        :
+        <div className="columns">
+          <div className="column">
+            <div className="control mb-2">
+              <label><b>Configurations:</b></label>
+              <input className="input" type="text" value={pageState.tuningTimes.value} onInput={(e) => {
+                pageState.tuningTimes.update(e.target.value);
               }} disabled={pageState.running.value} />
-              <b>Enabled</b>
+            </div>
+            <button className="button is-primary" onClick={() => {
+              pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
+              tune(testSelector.tests, pageState);
+            }} disabled={pageState.running.value}>
+              Tune
+            </button>
+          </div>
+          <div className="column" >
+            <div className="control mb-2">
+              <label><b>Iterations:</b></label>
+              <input className="input" type="text" value={pageState.iterations.value} onInput={(e) => {
+                pageState.iterations.update(e.target.value);
+              }} disabled={pageState.running.value} />
+            </div>
+          </div>
+          <div className="column" >
+            <div className="control">
+              <label><b>Random Seed:</b></label>
+              <input className="input" type="text" value={pageState.randomSeed.value} onInput={(e) => {
+                pageState.randomSeed.update(e.target.value);
+              }} disabled={pageState.running.value} />
+            </div>
+          </div>
+          <div className="column" >
+            <div className="control">
+              <label><b>Max Workgroups:</b></label>
+              <input className="input" type="text" value={pageState.maxWorkgroups.value} onInput={(e) => {
+                pageState.maxWorkgroups.update(e.target.value);
+              }} disabled={pageState.running.value} />
+            </div>
+          </div>
+          <div className="column">
+            <div className='control'>
+              <label className="checkbox"><b>Smoothed Parameters:</b></label>
+              <div>
+                <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
+                  pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
+                }} disabled={pageState.running.value} />
+                <b>Enabled</b>
+              </div>
+            </div>
+          </div>
+          <div className="column">
+            <div className='control'>
+              <label className="checkbox"><b>Overrides:</b></label>
+              <TuningOverrides pageState={pageState} />
             </div>
           </div>
         </div>
-        <div className="column">
-          <div className='control'>
-            <label className="checkbox"><b>Overrides:</b></label>
-            <TuningOverrides pageState={pageState} />
-          </div>
-        </div>
-      </div>
+      }
       <div>
         <label><b>All Runs:</b></label>
         <RunStatistics stats={pageState.allStats.visibleState} />
-      </div>
-      <div>
-        <button className={"button is-primary " + (pageState.tuneAndConformRunComplete.value ? "" : "is-hidden" )} onClick={() => {
-          setSubmitFormIsActive(!submitFormIsActive);
-        }}>
-          Submit Results
-        </button>
-        <SubmitForm stats={pageState.allStats.visibleState} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive}/>
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
@@ -874,7 +873,6 @@ export default function TuningSuite() {
               <th>Total Sequential Behaviors</th>
               <th>Total Interleaved Behaviors</th>
               <th>Total Weak Behaviors</th>
-              <th>Log Sum of Weak Behaviors</th>
             </tr>
           </thead>
           <tbody>
