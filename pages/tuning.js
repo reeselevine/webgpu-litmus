@@ -774,6 +774,9 @@ export default function TuningSuite() {
           <div className="section">
             <h1 className="testName">Tuning Suite</h1>
             <p>
+              <b>Note:</b> This page is currently only guaranteed to work when running the Chrome web browser. WebGPU is still in development and other browsers may not have stable implementations of WebGPU released publicly yet.
+            </p>
+            <p>
               The tuning suite is used to tune over user selected tests. Users can either tune over conformance tests, looking for bugs, or tuning tests, to characterize weak behaviors. The "Tune/Conform" action first runs the tuning tests for the set number of configurations/iterations, and then for each tuning test, runs the associated conformance test in the environment that maximizes the rate of weak behaviors.
             </p>
 
