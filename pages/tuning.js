@@ -28,6 +28,7 @@ function getPageState() {
   const [interleaved, setInterleaved] = useState(0);
   const [weak, setWeak] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  const [overallTime, setOverallTime] = useState(0);
   const [completedTests, setCompletedTests] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
   const [allStats, setAllStats] = useState({});
@@ -81,6 +82,10 @@ function getPageState() {
     totalTime: {
       ...buildStateValues(totalTime, setTotalTime)
     },
+    overallTime: {
+      ...buildStateValues(overallTime, setOverallTime)
+    },
+
     completedTests: {
       ...buildStateValues(completedTests, setCompletedTests)
     },
@@ -618,6 +623,8 @@ function clearState(pageState, keys) {
 async function initializeRun(tests, pageState) {
   pageState.tuningRows.update([]);
   pageState.allStats.internalState = {};
+  pageState.overallTime.internalState = 0;
+  pageState.overallTime.update(0);
   pageState.activeTests = tests;
   pageState.running.update(true);
   pageState.totalTests.update(pageState.activeTests.length);
@@ -690,8 +697,12 @@ async function doTuningIteration(i, testParams, pageState) {
     }
     await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
     pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
+    pageState.overallTime.internalState = pageState.overallTime.internalState + reportTime();
+
     curTest.state.durationSeconds = reportTime();
     pageState.totalTime.update(pageState.totalTime.internalState);
+    pageState.overallTime.update(pageState.overallTime.internalState);
+
     pageState.completedTests.internalState = pageState.completedTests.internalState + 1;
     pageState.completedTests.update(pageState.completedTests.internalState);
   }
@@ -767,7 +778,11 @@ export default function TuningSuite() {
             </p>
 
             <p>
-              After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted. By default, the website only has limited access to information about your GPU. To allow more information in Chrome, you can go to "chrome://flags", search for the flag "#enable-webgpu-developer-features", and enable it. Please make sure to do this before running your tests, as you will need to relaunch Chrome for it to take effect.
+              Testing should take 10-20 minutes to run. Try to ensure your computer does not go to sleep during the tests, as this might affect their ability to complete. You can change your sleep settings in your system preferences. After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted. 
+            </p>
+
+            <p>
+              <b>Please read before tuning:</b> By default, the website only has limited access to information about your GPU. To allow more information in Chrome, paste "chrome://flags#enable-webgpu-developer-features" into your url bar, press enter, and enable the flag. Please make sure to do this before running your tests, as you will need to relaunch Chrome for it to take effect.
             </p>
           </div>
         </div>
@@ -860,6 +875,9 @@ export default function TuningSuite() {
       <div>
         <label><b>All Runs:</b></label>
         <RunStatistics stats={pageState.allStats.visibleState} />
+      </div>
+      <div>
+        <b>Overall Time:</b> {pageState.overallTime.visibleState.toFixed(3)}s
       </div>
       <div className="table-container">
         <table className="table is-hoverable">
