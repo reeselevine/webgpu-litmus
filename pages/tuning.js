@@ -33,6 +33,8 @@ function getPageState() {
   const [totalTests, setTotalTests] = useState(0);
   const [allStats, setAllStats] = useState({});
   const [tuneAndConform, setTuneAndConform] = useState(true);
+  const [submitFormIsActive, setSubmitFormIsActive] = useState(false);
+  const [submitPossible, setSubmitPossible] = useState(false);
   return {
     running: {
       value: running,
@@ -69,6 +71,14 @@ function getPageState() {
     tuneAndConform: {
       value: tuneAndConform,
       update: setTuneAndConform
+    },
+    submitFormIsActive: {
+      value: submitFormIsActive,
+      update: setSubmitFormIsActive
+    },
+    submitPossible: {
+      value: submitPossible,
+      update: setSubmitPossible 
     },
     seq: {
       ...buildStateValues(seq, setSeq)
@@ -299,6 +309,7 @@ function SubmitForm(props) {
         throw new Error(`Error! status: ${response.status}`);
       }
       setSubmitSuccess("Submit Succeeded!");
+      props.pageState.submitPossible.update(false);
     } catch (err) {
       console.log(err.message);
       setSubmitErr(err.message);
@@ -309,9 +320,9 @@ function SubmitForm(props) {
 
   return (
     <>
-      <div className={"modal " + ((props.submitFormIsActive) ? "is-active" : "")}>
+      <div className={"modal " + ((props.pageState.submitFormIsActive.value) ? "is-active" : "")}>
         <div className="modal-background" onClick={() => {
-          props.setSubmitFormIsActive(!props.submitFormIsActive)
+          props.pageState.submitFormIsActive.update(!props.pageState.submitFormIsActive.value)
           setSubmitSuccess("");
           setSubmitErr("");
         }}></div>
@@ -319,7 +330,7 @@ function SubmitForm(props) {
           <header className="modal-card-head">
             <p className="modal-card-title">Submit Your Results</p>
             <button className="delete" aria-label="close" onClick={() => {
-              props.setSubmitFormIsActive(!props.submitFormIsActive)
+              props.pageState.submitFormIsActive.update(!props.pageState.submitFormIsActive.value)
               setSubmitSuccess("");
               setSubmitErr("");
             }}></button>
@@ -380,7 +391,7 @@ function SubmitForm(props) {
             </div>
           </section>
           <footer className="modal-card-foot">
-            <button className={"button is-success " + (submitLoading ? "is-loading" : "")} onClick={submit}>
+            <button className={"button is-success " + (submitLoading ? "is-loading" : "")} onClick={submit} disabled={!props.pageState.submitPossible.value}>
               Submit
             </button>
             {submitSuccess && <p>{submitSuccess}</p>}
@@ -669,9 +680,9 @@ async function initializeRun(tests, pageState) {
   return generator;
 }
 
-function randomizeParams(testParams, i, generator, pageState) {
+function randomizeParams(testParams, i, generator, pageState, maxWorkgroups, maxWorkgroupSize) {
   let params = {
-    ...randomConfig(generator, pageState.smoothedParameters.value, pageState.maxWorkgroups.value, pageState.tuningOverrides.value),
+    ...randomConfig(generator, pageState.smoothedParameters.value, maxWorkgroups, pageState.tuningOverrides.value, maxWorkgroupSize),
     id: i,
     numMemLocations: testParams.numMemLocations,
     numOutputs: testParams.numOutputs,
@@ -720,9 +731,18 @@ async function tuneAndConform(tests, pageState) {
     tests[test].setIsChecked(true);
     testsToRun.push(tests[test]);
   }
+  let maxWorkgroups;
+  let workgroupSize;
+  if (navigator.userAgentData && await navigator.userAgentData.mobile) {
+    maxWorkgroups = parseInt(process.env.NEXT_PUBLIC_MOBILE_TUNING_MAX_WG);
+    workgroupSize = parseInt(process.env.NEXT_PUBLIC_MOBILE_TUNING_MAX_WG_SIZE);
+  } else {
+    maxWorkgroups = parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG);
+    workgroupSize = parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG_SIZE);
+  }
   const generator = await initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    let params = randomizeParams(testParams, i, generator, pageState);
+    let params = randomizeParams(testParams, i, generator, pageState, maxWorkgroups, workgroupSize);
     await doTuningIteration(i, params, pageState);
     for (let j = 0; j < pageState.activeTests.length; j++) {
       let curTest = pageState.activeTests[j];
@@ -744,6 +764,7 @@ async function tuneAndConform(tests, pageState) {
     i++;
   }
   pageState.allStats.update(pageState.allStats.internalState);
+  pageState.submitPossible.update(true);
   pageState.running.update(false);
 }
 
@@ -756,7 +777,7 @@ async function tune(tests, pageState) {
   }
   const generator = await initializeRun(testsToRun, pageState);
   for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    let params = randomizeParams(testParams, i, generator, pageState);
+    let params = randomizeParams(testParams, i, generator, pageState, pageState.maxWorkgroups.value, pageState.curParams.workgroupSize);
     await doTuningIteration(i, params, pageState);
   }
   pageState.allStats.update(pageState.allStats.internalState);
@@ -765,7 +786,6 @@ async function tune(tests, pageState) {
 
 export default function TuningSuite() {
   const pageState = getPageState();
-  const [submitFormIsActive, setSubmitFormIsActive] = useState(false);
   const testSelector = getTestSelector(pageState);
   return (
     <>
@@ -774,7 +794,7 @@ export default function TuningSuite() {
           <div className="section">
             <h1 className="testName">Tuning Suite</h1>
             <p>
-              <b>Note:</b> This page is currently only guaranteed to work when running the Chrome web browser. WebGPU is still in development and other browsers may not have stable implementations of WebGPU released publicly yet.
+              <b>Note:</b> This page is currently only guaranteed to work when running the Chrome web browser on desktops/laptops, or in Chrome Canary on Android devices with special flags enabled. WebGPU is still in development and other browsers may not have stable implementations of WebGPU released publicly yet.
             </p>
             <p>
               The tuning suite is used to tune over user selected tests. Users can either tune over conformance tests, looking for bugs, or tuning tests, to characterize weak behaviors. The "Tune/Conform" action first runs the tuning tests for the set number of configurations/iterations, and then for each tuning test, runs the associated conformance test in the environment that maximizes the rate of weak behaviors.
@@ -793,8 +813,14 @@ export default function TuningSuite() {
       </div>
       <div className="tabs is-medium is-centered">
         <ul>
-          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => { pageState.tuneAndConform.update(true); }}><a>Tune/Conform</a></li>
-          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => { pageState.tuneAndConform.update(false); }}><a>Tune</a></li>
+          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => { 
+            pageState.tuneAndConform.update(true); 
+            presetTuningConfig(pageState);
+            }}><a>Tune/Conform</a></li>
+          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => { 
+            pageState.tuneAndConform.update(false); 
+            presetTuningConfig(pageState);
+            }}><a>Tune</a></li>
         </ul>
       </div>
       {pageState.tuneAndConform.value ?
@@ -809,11 +835,11 @@ export default function TuningSuite() {
           </div>
           <div className="m-1">
             <button className="button is-light" onClick={() => {
-              setSubmitFormIsActive(!submitFormIsActive);
+              pageState.submitFormIsActive.update(!pageState.submitFormIsActive.value);
             }} disabled={pageState.running.value}>
               Submit Results
             </button>
-            <SubmitForm stats={pageState.allStats.visibleState} submitFormIsActive={submitFormIsActive} setSubmitFormIsActive={setSubmitFormIsActive} />
+            <SubmitForm stats={pageState.allStats.visibleState} pageState={pageState} />
           </div>
         </>
         :
