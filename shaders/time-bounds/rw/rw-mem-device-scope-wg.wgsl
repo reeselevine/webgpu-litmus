@@ -9,7 +9,6 @@ struct AtomicMemory {
 struct ReadResult {
   flag: u32, 
   r0: u32,
-  r1: u32,
 };
 
 struct ReadResults {

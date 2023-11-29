@@ -9,7 +9,6 @@ struct AtomicMemory {
 struct ReadResult {
   flag: u32, 
   r0: u32,
-  r1: u32,
 };
 
 struct ReadResults {
@@ -109,7 +108,11 @@ fn do_stress(iterations: u32, pattern: u32, workgroup_id: u32) {
   }
 }
 
+override workgroupMemLength: u32;
 override workgroupXSize: u32;
+
+var<workgroup> wg_atomic_test_locations: array<atomic<u32>, workgroupMemLength>;
+var<workgroup> wg_non_atomic_test_locations: array<u32, workgroupMemLength>;
 
 @compute @workgroup_size(workgroupXSize) fn main(
   @builtin(local_invocation_id) local_invocation_id : vec3<u32>,
@@ -119,9 +122,9 @@ override workgroupXSize: u32;
     let total_ids = workgroupXSize;
     let id_0 = local_invocation_id[0];
     let id_1 = permute_id(local_invocation_id[0], stress_params.permute_first, workgroupXSize);
-    let x_0 = (shuffled_workgroup * workgroupXSize + id_0) * stress_params.mem_stride;
-    let x_1 = (shuffled_workgroup * workgroupXSize + id_1) * stress_params.mem_stride;
-    let y_1 = (shuffled_workgroup * workgroupXSize + permute_id(id_1, stress_params.permute_second, total_ids)) * stress_params.mem_stride;
+    let x_0 = id_0 * stress_params.mem_stride;
+    let x_1 = id_1 * stress_params.mem_stride;
+    let y_1 = permute_id(id_1, stress_params.permute_second, total_ids) * stress_params.mem_stride;
     if (stress_params.pre_stress == 1u) {
       do_stress(stress_params.pre_stress_iterations, stress_params.pre_stress_pattern, shuffled_workgroup);
     }
@@ -130,19 +133,20 @@ override workgroupXSize: u32;
     }
 
     // Thread 0
-    non_atomic_test_locations.value[x_0] = 1u;
+    wg_non_atomic_test_locations[x_0] = 1u;
     workgroupBarrier();
-    atomicStore(&atomic_test_locations.value[x_0], 1u);
+    atomicStore(&wg_atomic_test_locations[x_0], 1u);
 
     // Thread 1
-    non_atomic_test_locations.value[x_1] = 2u;
-    let flag = atomicLoad(&atomic_test_locations.value[x_1]);
+    wg_non_atomic_test_locations[x_1] = 2u;
+    let flag = atomicLoad(&wg_atomic_test_locations[x_1]);
     workgroupBarrier();
-    non_atomic_test_locations.value[y_1] = 3;
-    let r0 = non_atomic_test_locations.value[x_1];
+    wg_non_atomic_test_locations[y_1] = 3;
+    let r0 = wg_non_atomic_test_locations[x_1];
 
     results.value[shuffled_workgroup * workgroupXSize + id_1].flag = flag;
     results.value[shuffled_workgroup * workgroupXSize + id_1].r0 = r0;
+    non_atomic_test_locations.value[whuffled_workgroup * workgroupXSize * stress_params.mem_stride + x_1] = wg_non_atomic_test_locations[y_1];
   } else if (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }
