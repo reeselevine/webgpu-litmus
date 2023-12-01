@@ -1,19 +1,85 @@
 import { useState } from 'react';
 import { PRNG } from '../components/prng.js';
 import { buildThrottle, randomConfig, setVis } from '../components/test-page-utils.js';
-import { reportTime, getCurrentIteration, runLitmusTest } from '../components/litmus-setup.js'
-import { defaultTestParams } from '../components/litmus-setup.js'
+import { reportTime, getCurrentIteration, runTimeBoundingLitmusTest } from '../components/litmus-setup.js'
 
 import { filteredParams } from '../components/tuningTable.js';
-import { conformanceTests, tuningTests } from '../components/test-setup.js';
 import platform from 'platform';
 
-const testParams = JSON.parse(JSON.stringify(defaultTestParams));
-const defaultKeys = ["seq0", "seq1", "interleaved", "weak"];
-const coherenceOverrides = {
-  aliasedMemory: true,
-  permuteSecond: 1
+import rrMemDeviceScopeWg from '../shaders/time-bounds/rr/rr-mem-device-scope-wg.wgsl'
+import rrMemWgScopeWg from '../shaders/time-bounds/rr/rr-mem-wg-scope-wg.wgsl'
+import rrResults from '../shaders/time-bounds/rr/rr-results.wgsl'
+import rwMemDeviceScopeWg from '../shaders/time-bounds/rw/rw-mem-device-scope-wg.wgsl'
+import rwMemWgScopeWg from '../shaders/time-bounds/rw/rw-mem-wg-scope-wg.wgsl'
+import rwResults from '../shaders/time-bounds/rw/rw-results.wgsl'
+import wrMemDeviceScopeWg from '../shaders/time-bounds/wr/wr-mem-device-scope-wg.wgsl'
+import wrMemWgScopeWg from '../shaders/time-bounds/wr/wr-mem-wg-scope-wg.wgsl'
+import wrResults from '../shaders/time-bounds/wr/wr-results.wgsl'
+
+const testParams = {
+  testingWorkgroups: 2,
+  maxWorkgroups: 4,
+  workgroupSize: 256,
+  shufflePct: 0,
+  barrierPct: 0,
+  numOutputs: 2,
+  scratchMemorySize: 2048,
+  memStride: 1,
+  memStressPct: 0,
+  memStressIterations: 1024,
+  memStressStoreFirstPct: 0,
+  memStressStoreSecondPct: 100,
+  preStressPct: 0,
+  preStressIterations: 128,
+  preStressStoreFirstPct: 0,
+  preStressStoreSecondPct: 100,
+  stressLineSize: 64,
+  stressTargetLines: 2,
+  stressStrategyBalancePct: 100,
+  permuteFirst: 419,
+  permuteSecond: 1,
+  aliasedMemory: true 
+}
+
+export const tests = {
+  rrMemDeviceScopeWg: {
+    shader: rrMemDeviceScopeWg,
+    resultShader: rrResults,
+    overrides: {
+      numOutputs: 3
+    }
+  },
+  rrMemWgScopeWg: {
+    shader: rrMemWgScopeWg,
+    resultShader: rrResults,
+    overrides: {
+      numOutputs: 3
+    }
+  },
+  rwMemDeviceScopeWg: {
+    shader: rwMemDeviceScopeWg,
+    resultShader: rwResults,
+    overrides: {}
+  },
+  rwMemWgScopeWg: {
+    shader: rwMemWgScopeWg,
+    resultShader: rwResults,
+    overrides: {}
+  },
+  wrMemDeviceScopeWg: {
+    shader: wrMemDeviceScopeWg,
+    resultShader: wrResults,
+    overrides: {}
+  },
+  wrMemWgScopeWg: {
+    shader: wrMemWgScopeWg,
+    resultShader: wrResults,
+    overrides: {}
+  }
 };
+
+
+const defaultKeys = ["sequential", "interleaved", "racy", "unbound", "other"];
 
 function getPageState() {
   const [running, setRunning] = useState(false);
@@ -24,9 +90,11 @@ function getPageState() {
   const [tuningOverrides, setTuningOverrides] = useState({});
   const [tuningTimes, setTuningTimes] = useState(parseInt(process.env.NEXT_PUBLIC_TUNING_CONFIGS));
   const [rows, setRows] = useState([]);
-  const [seq, setSeq] = useState(0);
+  const [sequential, setSequential] = useState(0);
   const [interleaved, setInterleaved] = useState(0);
-  const [weak, setWeak] = useState(0);
+  const [racy, setRacy] = useState(0);
+  const [unbound, setUnbound] = useState(0);
+  const [other, setOther] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [overallTime, setOverallTime] = useState(0);
   const [completedTests, setCompletedTests] = useState(0);
@@ -80,14 +148,20 @@ function getPageState() {
       value: submitPossible,
       update: setSubmitPossible 
     },
-    seq: {
-      ...buildStateValues(seq, setSeq)
+    sequential: {
+      ...buildStateValues(sequential, setSequential)
     },
     interleaved: {
       ...buildStateValues(interleaved, setInterleaved)
     },
-    weak: {
-      ...buildStateValues(weak, setWeak)
+    racy: {
+      ...buildStateValues(racy, setRacy)
+    },
+    unbound: {
+      ...buildStateValues(unbound, setUnbound)
+    },
+    other: {
+      ...buildStateValues(other, setOther)
     },
     totalTime: {
       ...buildStateValues(totalTime, setTotalTime)
@@ -198,25 +272,22 @@ function buildTest(testName, testInfo, pageState) {
     setIsChecked(!isChecked);
   };
 
-  let testParamOverrides = {};
-  if (testInfo.coherency) {
-    testParamOverrides = coherenceOverrides;
-  }
-
   return {
     testName: testName,
     shader: testInfo.shader,
     resultShader: testInfo.resultShader,
     state: {
-      seq: 0,
+      sequential: 0,
       interleaved: 0,
-      weak: 0,
+      racy: 0,
+      unbound: 0,
+      other: 0,
       durationSeconds: 0
     },
     keys: defaultKeys,
     isChecked: isChecked,
     setIsChecked: setIsChecked,
-    testParamOverrides: testParamOverrides,
+    testParamOverrides: testInfo.overrides,
     jsx: <TuningTest key={testName} testName={testName} shader={testInfo.shader} resultShader={testInfo.resultShader} isChecked={isChecked} handleOnChange={handleOnChange} pageState={pageState} />
   }
 }
@@ -232,12 +303,7 @@ function buildStateValues(state, updateFunc) {
 function handleResult(test, pageState) {
   return function (result) {
     for (let i = 0; i < test.keys.length; i++) {
-      var key;
-      if (test.keys[i].includes("seq") || test.keys[i] == "nonWeak") {
-        key = "seq";
-      } else {
-        key = test.keys[i];
-      }
+      let key = test.keys[i];
       test.state[key] = test.state[key] + result[i];
       pageState[key].internalState = pageState[key].internalState + result[i];
       pageState[key].update(pageState[key].internalState);
@@ -253,154 +319,6 @@ function getRunStats(activeTests, params, iterations) {
   stats["params"] = JSON.parse(filteredParams(params));
   stats["params"]["iterations"] = parseInt(iterations);
   return stats;
-}
-
-function getPlatformInfoValue(outerKey, innerKey, stats) {
-  if (stats.platformInfo) {
-    if (outerKey in stats.platformInfo) {
-      return stats.platformInfo[outerKey][innerKey];
-    }
-  }
-  return "";
-}
-
-function getGPUInfo(stats) {
-  if (stats.platformInfo) {
-    if ("gpu" in stats.platformInfo) {
-      if (stats.platformInfo["gpu"]["description"] != "") {
-        return stats.platformInfo["gpu"]["description"];
-      } else {
-        return stats.platformInfo["gpu"]["vendor"] + " " + stats.platformInfo["gpu"]["architecture"];
-      }
-    }
-  }
-  return "";
-}
-
-function SubmitForm(props) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [gpuInfo, setGpuInfo] = useState("");
-  const [browserInfo, setBrowserInfo] = useState("");
-  const [osInfo, setOsInfo] = useState("");
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitErr, setSubmitErr] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState('');
-
-  const submit = async () => {
-    props.stats["userInfo"] = {
-      name: name,
-      email: email,
-      gpu: gpuInfo,
-      browser: browserInfo,
-      os: osInfo
-    };
-    setSubmitSuccess("");
-    setSubmitErr("");
-    setSubmitLoading(true);
-    try {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(props.stats)
-      };
-      const response = await fetch(process.env.NEXT_PUBLIC_DATA_API + "/submit", requestOptions);
-      if (!response.ok) {
-        throw new Error(`Error! status: ${response.status}`);
-      }
-      setSubmitSuccess("Submit Succeeded!");
-      props.pageState.submitPossible.update(false);
-    } catch (err) {
-      console.log(err.message);
-      setSubmitErr(err.message);
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <div className={"modal " + ((props.pageState.submitFormIsActive.value) ? "is-active" : "")}>
-        <div className="modal-background" onClick={() => {
-          props.pageState.submitFormIsActive.update(!props.pageState.submitFormIsActive.value)
-          setSubmitSuccess("");
-          setSubmitErr("");
-        }}></div>
-        <div className="modal-card">
-          <header className="modal-card-head">
-            <p className="modal-card-title">Submit Your Results</p>
-            <button className="delete" aria-label="close" onClick={() => {
-              props.pageState.submitFormIsActive.update(!props.pageState.submitFormIsActive.value)
-              setSubmitSuccess("");
-              setSubmitErr("");
-            }}></button>
-          </header>
-          <section className="modal-card-body">
-            <p>
-              By submitting your results, you agree to allow us to collect information about your GPU, browser, and operating system. We do not collect data on location or other usage. Additionally, if you fill out your name and email you agree to allow us to follow up with you on your results if needed. All device information submitted will be used anonymously for research purposes, including publication of papers. We will not use or distribute your name/email for any purposes.
-            </p>
-            <p>
-              <b>All fields are optional.</b>
-            </p>
-            <div className="columns">
-              <div className="column" >
-                <div className="control mb-2">
-                  <label><b>Name:</b></label>
-                  <input className="input" type="text" value={name} onInput={(e) => {
-                    setName(e.target.value);
-                  }} />
-                </div>
-              </div>
-              <div className="column" >
-                <div className="control mb-2">
-                  <label><b>Email:</b></label>
-                  <input className="input" type="email" value={email} onInput={(e) => {
-                    setEmail(e.target.value);
-                  }} />
-                </div>
-              </div>
-            </div>
-            <div className="columns">
-              <div className="column" >
-                <div className="control mb-2">
-                  <label><b>GPU:</b></label>
-                  <p>Detected: {getGPUInfo(props.stats)} </p>
-                  <input className="input" type="text" value={gpuInfo} onInput={(e) => {
-                    setGpuInfo(e.target.value);
-                  }} />
-                </div>
-              </div>
-              <div className="column" >
-                <div className="control mb-2">
-                  <label><b>Browser:</b></label>
-                  <p>Detected: {getPlatformInfoValue("browser", "vendor", props.stats)} {getPlatformInfoValue("browser", "version", props.stats)} </p>
-                  <input className="input" type="text" value={browserInfo} onInput={(e) => {
-                    setBrowserInfo(e.target.value);
-                  }} />
-                </div>
-              </div>
-              <div className="column" >
-                <div className="control mb-2">
-                  <label><b>Operating System:</b></label>
-                  <p>Detected: {getPlatformInfoValue("os", "vendor", props.stats)} {getPlatformInfoValue("os", "version", props.stats)} </p>
-                  <input className="input" type="email" value={osInfo} onInput={(e) => {
-                    setOsInfo(e.target.value);
-                  }} />
-                </div>
-              </div>
-            </div>
-          </section>
-          <footer className="modal-card-foot">
-            <button className={"button is-success " + (submitLoading ? "is-loading" : "")} onClick={submit} disabled={!props.pageState.submitPossible.value}>
-              Submit
-            </button>
-            {submitSuccess && <p>{submitSuccess}</p>}
-            {submitErr && <p>{submitErr}</p>}
-          </footer>
-        </div>
-      </div>
-    </>
-  );
 }
 
 function RunStatistics(props) {
@@ -462,13 +380,19 @@ function DynamicRow(props) {
         {(props.pageState.running.value ? (props.pageState.totalTime.visibleState + time) : props.pageState.totalTime.visibleState).toFixed(3)}
       </td>
       <td>
-        {props.pageState.seq.visibleState}
+        {props.pageState.sequential.visibleState}
       </td>
       <td>
         {props.pageState.interleaved.visibleState}
       </td>
       <td>
-        {props.pageState.weak.visibleState}
+        {props.pageState.racy.visibleState}
+      </td>
+      <td>
+        {props.pageState.unbound.visibleState}
+      </td>
+      <td>
+        {props.pageState.other.visibleState}
       </td>
     </tr>
   )
@@ -493,20 +417,25 @@ export function StaticRow(props) {
         {props.pageState.totalTime.internalState.toFixed(3)}
       </td>
       <td>
-        {props.pageState.seq.internalState}
+        {props.pageState.sequential.internalState}
       </td>
       <td>
         {props.pageState.interleaved.internalState}
       </td>
       <td>
-        {props.pageState.weak.internalState}
+        {props.pageState.racy.internalState}
+      </td>
+      <td>
+        {props.pageState.unbound.internalState}
+      </td>
+      <td>
+        {props.pageState.other.internalState}
       </td>
     </tr>
   )
 }
 
 function SelectorTest(props) {
-  const [testsVisible, setTestsVisible] = useState(true);
   const testRows = [];
   for (const test in props.tests) {
     testRows.push(props.tests[test].jsx);
@@ -514,12 +443,10 @@ function SelectorTest(props) {
   return (
     <>
       <li>
-        <a onClick={() => setTestsVisible(!testsVisible)}>{!testsVisible ? "Expand" : "Collapse"}</a>
-        <ul className={testsVisible ? "is-active" : "is-hidden"}>
+        <ul>
           {testRows}
         </ul>
       </li>
-
     </>
   )
 }
@@ -551,25 +478,14 @@ function presetTuningConfig(pageState) {
 }
 
 function getTestSelector(pageState) {
-  let conformanceTestsComponent = {};
-  for (const key in conformanceTests) {
-    conformanceTestsComponent[key] = buildTest(key, conformanceTests[key], pageState);
+  let testsComponent = {};
+  for (const key in tests) {
+    testsComponent[key] = buildTest(key, tests[key], pageState);
   }
-  const conformanceJsX = <SelectorTest key="conformance" tests={conformanceTestsComponent} />;
-
-  let tuningTestsComponent = {};
-  for (const key in tuningTests) {
-    tuningTestsComponent[key] = buildTest(key, tuningTests[key], pageState);
-  }
-  const tuningJsX = <SelectorTest key="tuning" tests={tuningTestsComponent} />;
-
-  let allTests = {
-    ...conformanceTestsComponent,
-    ...tuningTestsComponent
-  };
+  const testsJsx = <SelectorTest key="Tests" tests={testsComponent} />;
 
   return {
-    tests: allTests,
+    tests: testsComponent,
     jsx: (
       <>
         <div className="column is-two-fifths mr-2">
@@ -579,8 +495,7 @@ function getTestSelector(pageState) {
             </p>
             <div className="container" style={{ overflowY: 'scroll', overflowX: 'scroll', height: '250px' }}>
               <aside className="menu">
-                <SelectorCategory category="Conformance Tests" tests={conformanceJsX} />
-                <SelectorCategory category="Tuning Tests" tests={tuningJsX} />
+                <SelectorCategory category="All Tests" tests={testsJsx} />
               </aside>
             </div>
             <div className="panel-block p-2">
@@ -589,27 +504,13 @@ function getTestSelector(pageState) {
                   <b> Presets </b>
                   <div className="buttons are-small">
                     <button className="button is-link is-outlined " onClick={() => {
-                      setTests(allTests, false);
-                      setTests(conformanceTestsComponent, true);
-                      presetTuningConfig(pageState);
-                    }} disabled={pageState.running.value}>
-                      Conformance Tests
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      setTests(allTests, false);
-                      setTests(tuningTestsComponent, true);
-                      presetTuningConfig(pageState);
-                    }} disabled={pageState.running.value}>
-                      Tuning Tests
-                    </button>
-                    <button className="button is-link is-outlined " onClick={() => {
-                      setTests(allTests, true);
+                      setTests(testsComponent, true);
                       presetTuningConfig(pageState);
                     }} disabled={pageState.running.value}>
                       All Tests
                     </button>
                     <button className="button is-link is-outlined " onClick={() => {
-                      setTests(allTests, false);
+                      setTests(testsComponent, false);
                     }} disabled={pageState.running.value}>
                       Clear all
                     </button>
@@ -694,19 +595,21 @@ function randomizeParams(testParams, i, generator, pageState, maxWorkgroups, max
 }
 
 async function doTuningIteration(i, testParams, pageState) {
-  clearState(pageState, ["totalTime", "completedTests", "seq", "interleaved", "weak"]);
+  clearState(pageState, ["totalTime", "completedTests", "sequential", "interleaved", "racy", "unbound", "other"]);
   pageState.curParams = testParams;
   for (let j = 0; j < pageState.activeTests.length; j++) {
     let curTest = pageState.activeTests[j];
-    curTest.state.seq = 0;
+    curTest.state.sequential = 0;
     curTest.state.interleaved = 0;
-    curTest.state.weak = 0;
+    curTest.state.racy = 0;
+    curTest.state.unbound = 0;
+    curTest.state.other = 0;
     curTest.state.durationSeconds = 0;
     let newParams = JSON.parse(JSON.stringify(testParams));
     for (const key in curTest.testParamOverrides) {
       newParams[key] = curTest.testParamOverrides[key];
     }
-    await runLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
+    await runTimeBoundingLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
     pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
     pageState.overallTime.internalState = pageState.overallTime.internalState + reportTime();
 
@@ -721,51 +624,6 @@ async function doTuningIteration(i, testParams, pageState) {
   let row = <StaticRow pageState={pageState} key={testParams.id} stats={stats} />;
   pageState.allStats.internalState[i] = stats;
   pageState.tuningRows.update(oldRows => [...oldRows, row]);
-}
-
-async function tuneAndConform(tests, pageState) {
-  let bestConfigs = {};
-  setTests(tests, false);
-  let testsToRun = [];
-  for (let test in tuningTests) {
-    tests[test].setIsChecked(true);
-    testsToRun.push(tests[test]);
-  }
-  let maxWorkgroups;
-  let workgroupSize;
-  if (navigator.userAgentData && await navigator.userAgentData.mobile) {
-    maxWorkgroups = parseInt(process.env.NEXT_PUBLIC_MOBILE_TUNING_MAX_WG);
-    workgroupSize = parseInt(process.env.NEXT_PUBLIC_MOBILE_TUNING_MAX_WG_SIZE);
-  } else {
-    maxWorkgroups = parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG);
-    workgroupSize = parseInt(process.env.NEXT_PUBLIC_TUNING_MAX_WG_SIZE);
-  }
-  const generator = await initializeRun(testsToRun, pageState);
-  for (let i = 0; i < pageState.tuningTimes.value; i++) {
-    let params = randomizeParams(testParams, i, generator, pageState, maxWorkgroups, workgroupSize);
-    await doTuningIteration(i, params, pageState);
-    for (let j = 0; j < pageState.activeTests.length; j++) {
-      let curTest = pageState.activeTests[j];
-      let curRate = curTest.state.weak / curTest.state.durationSeconds;
-      if (!(curTest.testName in bestConfigs) || bestConfigs[curTest.testName].maxRate < curRate) {
-        bestConfigs[curTest.testName] = {
-          maxRate: curRate,
-          params: JSON.parse(JSON.stringify(pageState.curParams))
-        };
-      }
-    }
-  }
-  let i = parseInt(pageState.tuningTimes.value);
-  pageState.totalTests.update(1);
-  for (let test in bestConfigs) {
-    pageState.activeTests = [tests[tuningTests[test].conformanceTest]];
-    bestConfigs[test].params.id = i;
-    await doTuningIteration(i, bestConfigs[test].params, pageState);
-    i++;
-  }
-  pageState.allStats.update(pageState.allStats.internalState);
-  pageState.submitPossible.update(true);
-  pageState.running.update(false);
 }
 
 async function tune(tests, pageState) {
@@ -792,57 +650,12 @@ export default function TuningSuite() {
       <div className="columns">
         <div className="column">
           <div className="section">
-            <h1 className="testName">Tuning Suite</h1>
-            <p>
-              <b>Note:</b> This page is currently only guaranteed to work when running the Chrome web browser on desktops/laptops, or in Chrome Canary on Android devices with special flags enabled. WebGPU is still in development and other browsers may not have stable implementations of WebGPU released publicly yet.
-            </p>
-            <p>
-              The tuning suite is used to tune over user selected tests. Users can either tune over conformance tests, looking for bugs, or tuning tests, to characterize weak behaviors. The "Tune/Conform" action first runs the tuning tests for the set number of configurations/iterations, and then for each tuning test, runs the associated conformance test in the environment that maximizes the rate of weak behaviors.
-            </p>
-
-            <p>
-              Testing should take 10-20 minutes to run. Try to ensure your computer does not go to sleep during the tests, as this might affect their ability to complete. You can change your sleep settings in your system preferences. After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted. 
-            </p>
-
-            <p>
-              <b>Please read before tuning:</b> By default, the website only has limited access to information about your GPU. To allow more information in Chrome, paste "chrome://flags#enable-webgpu-developer-features" into your url bar, press enter, and enable the flag. Please make sure to do this before running your tests, as you will need to relaunch Chrome for it to take effect.
-            </p>
+            <h1 className="testName">Bounding Data Races in Time</h1>
+            To see if they are.
           </div>
         </div>
-        {!pageState.tuneAndConform.value ? testSelector.jsx : <div></div> }
+        {testSelector.jsx}
       </div>
-      <div className="tabs is-medium is-centered">
-        <ul>
-          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => { 
-            pageState.tuneAndConform.update(true); 
-            presetTuningConfig(pageState);
-            }}><a>Tune/Conform</a></li>
-          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => { 
-            pageState.tuneAndConform.update(false); 
-            presetTuningConfig(pageState);
-            }}><a>Tune</a></li>
-        </ul>
-      </div>
-      {pageState.tuneAndConform.value ?
-        <>
-          <div className='m-1'>
-            <button className="button is-primary" onClick={() => {
-              pageState.tuningRows.value.splice(0, pageState.tuningRows.length);
-              tuneAndConform(testSelector.tests, pageState);
-            }} disabled={pageState.running.value}>
-              Tune/Conform
-            </button>
-          </div>
-          <div className="m-1">
-            <button className="button is-light" onClick={() => {
-              pageState.submitFormIsActive.update(!pageState.submitFormIsActive.value);
-            }} disabled={pageState.running.value}>
-              Submit Results
-            </button>
-            <SubmitForm stats={pageState.allStats.visibleState} pageState={pageState} />
-          </div>
-        </>
-        :
         <div className="columns">
           <div className="column">
             <div className="control mb-2">
@@ -884,23 +697,11 @@ export default function TuningSuite() {
           </div>
           <div className="column">
             <div className='control'>
-              <label className="checkbox"><b>Smoothed Parameters:</b></label>
-              <div>
-                <input type="checkbox" checked={pageState.smoothedParameters.value} onChange={(e) => {
-                  pageState.smoothedParameters.update(!pageState.smoothedParameters.value);
-                }} disabled={pageState.running.value} />
-                <b>Enabled</b>
-              </div>
-            </div>
-          </div>
-          <div className="column">
-            <div className='control'>
               <label className="checkbox"><b>Overrides:</b></label>
               <TuningOverrides pageState={pageState} />
             </div>
           </div>
         </div>
-      }
       <div>
         <label><b>All Runs:</b></label>
         <RunStatistics stats={pageState.allStats.visibleState} />
@@ -919,7 +720,9 @@ export default function TuningSuite() {
               <th>Time (seconds)</th>
               <th>Total Sequential Behaviors</th>
               <th>Total Interleaved Behaviors</th>
-              <th>Total Weak Behaviors</th>
+              <th>Total Racy Behaviors</th>
+              <th>Total Unbound Behaviors</th>
+              <th>Total Other Behaviors</th>
             </tr>
           </thead>
           <tbody>
