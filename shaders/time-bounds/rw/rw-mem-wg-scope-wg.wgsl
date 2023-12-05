@@ -146,7 +146,7 @@ var<workgroup> wg_non_atomic_test_locations: array<u32, workgroupMemLength>;
 
     results.value[shuffled_workgroup * workgroupXSize + id_1].flag = flag;
     results.value[shuffled_workgroup * workgroupXSize + id_1].r0 = r0;
-    non_atomic_test_locations.value[whuffled_workgroup * workgroupXSize * stress_params.mem_stride + x_1] = wg_non_atomic_test_locations[y_1];
+    non_atomic_test_locations.value[shuffled_workgroup * workgroupXSize * stress_params.mem_stride + x_1] = wg_non_atomic_test_locations[y_1];
   } else if (stress_params.mem_stress == 1u) {
     do_stress(stress_params.mem_stress_iterations, stress_params.mem_stress_pattern, shuffled_workgroup);
   }

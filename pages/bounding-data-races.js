@@ -47,34 +47,46 @@ export const tests = {
     resultShader: rrResults,
     overrides: {
       numOutputs: 3
-    }
+    },
+    workgroupMem: false,
+    needsMem: false
   },
   rrMemWgScopeWg: {
     shader: rrMemWgScopeWg,
     resultShader: rrResults,
     overrides: {
       numOutputs: 3
-    }
+    },
+    workgroupMem: true,
+    needsMem: false
   },
   rwMemDeviceScopeWg: {
     shader: rwMemDeviceScopeWg,
     resultShader: rwResults,
-    overrides: {}
+    overrides: {},
+    workgroupMem: false,
+    needsMem: true 
   },
   rwMemWgScopeWg: {
     shader: rwMemWgScopeWg,
     resultShader: rwResults,
-    overrides: {}
+    overrides: {},
+    workgroupMem: true,
+    needsMem: true
   },
   wrMemDeviceScopeWg: {
     shader: wrMemDeviceScopeWg,
     resultShader: wrResults,
-    overrides: {}
+    overrides: {},
+    workgroupMem: false,
+    needsMem: true 
   },
   wrMemWgScopeWg: {
     shader: wrMemWgScopeWg,
     resultShader: wrResults,
-    overrides: {}
+    overrides: {},
+    workgroupMem: true,
+    needsMem: true
   }
 };
 
@@ -276,6 +288,8 @@ function buildTest(testName, testInfo, pageState) {
     testName: testName,
     shader: testInfo.shader,
     resultShader: testInfo.resultShader,
+    workgroupMem: testInfo.workgroupMem,
+    needsMem: testInfo.needsMem,
     state: {
       sequential: 0,
       interleaved: 0,
@@ -581,9 +595,9 @@ async function initializeRun(tests, pageState) {
   return generator;
 }
 
-function randomizeParams(testParams, i, generator, pageState, maxWorkgroups, maxWorkgroupSize) {
+function randomizeParams(testParams, i, generator, pageState, maxWorkgroups) {
   let params = {
-    ...randomConfig(generator, pageState.smoothedParameters.value, maxWorkgroups, pageState.tuningOverrides.value, maxWorkgroupSize),
+    ...randomConfig(generator, pageState.smoothedParameters.value, maxWorkgroups, pageState.tuningOverrides.value),
     id: i,
     numMemLocations: testParams.numMemLocations,
     numOutputs: testParams.numOutputs,
@@ -609,7 +623,7 @@ async function doTuningIteration(i, testParams, pageState) {
     for (const key in curTest.testParamOverrides) {
       newParams[key] = curTest.testParamOverrides[key];
     }
-    await runTimeBoundingLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState));
+    await runTimeBoundingLitmusTest(curTest.shader, curTest.resultShader, newParams, pageState.iterations.value, handleResult(curTest, pageState), curTest.workgroupMem, curTest.needsMem);
     pageState.totalTime.internalState = pageState.totalTime.internalState + reportTime();
     pageState.overallTime.internalState = pageState.overallTime.internalState + reportTime();
 

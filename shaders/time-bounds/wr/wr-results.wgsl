@@ -51,11 +51,11 @@ override workgroupXSize: u32;
     atomicAdd(&test_results.sequential, 1);
   } else if (flag == 0 && r0 == 3 && mem_val == 1) {
     atomicAdd(&test_results.sequential, 1);
-  } else if (flag == 0 && r0 == 1 & mem_val == 1) {
+  } else if (flag == 0 && r0 == 1 && mem_val == 1) {
     atomicAdd(&test_results.interleaved, 1);
-  } else if (flag == 0 && r0 == 3 & mem_val == 3) {
+  } else if (flag == 0 && r0 == 3 && mem_val == 3) {
     atomicAdd(&test_results.interleaved, 1);
-  } else if (flag == 1 && r0 == 1 & mem_val == 1) {
+  } else if (flag == 1 && r0 == 1 && mem_val == 1) {
     atomicAdd(&test_results.unbound, 1);
   } else {
     atomicAdd(&test_results.other, 1);
