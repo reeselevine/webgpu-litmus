@@ -354,8 +354,7 @@ function createComputePipeline(device, bindGroupLayout, shaderCode, workgroupSiz
       module: computeModule,
       entryPoint: "main",
       constants: {
-        workgroupXSize: workgroupSize,
-        workgroupMemLength: workgroupMemLength
+        workgroupXSize: workgroupSize
       }
     }
   });
