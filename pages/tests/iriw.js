@@ -2,6 +2,8 @@ import { defaultTestParams } from '../../components/litmus-setup.js'
 import { makeFourOutputLitmusTestPage } from '../../components/test-page-utils.js';
 import {TestSetupPseudoCode, buildPseudoCode} from '../../components/testPseudoCode.js'
 import iriw from '../../shaders/iriw/iriw.wgsl'
+import iriwSequentialized from '../../shaders/iriw/iriw-sequentialized.wgsl'
+
 import iriwResults from '../../shaders/iriw/iriw-results.wgsl';
 
 const testParams = JSON.parse(JSON.stringify(defaultTestParams));
@@ -13,11 +15,24 @@ const thread2 = `2.1: let r0 = atomicLoad(x)
 const thread3 = `3.1: let r2 = atomicLoad(y)
 3.2: let r3 = atomicLoad(x)`;
 
+const thread0Sequentialized = `0.1: atomicStore(x, 1)
+0.2: let r0 = atomicLoad(x)
+0.3: let r1 = atomicLoad(y)`;
+const thread1Sequentialized = `1.1: atomicStore(y, 1)
+1.2: let r2 = atomicLoad(y)
+1.3: let r3 = atomicLoad(x)`;
+
 const variants = {
   default: {
     pseudo: buildPseudoCode([thread0, thread1, thread2, thread3]),
     shader: iriw,
     workgroup: false
+  },
+  sequentialized: {
+    pseudo: buildPseudoCode([thread0Sequentialized, thread1Sequentialized]),
+    shader: iriwSequentialized,
+    workgroup: false
+
   }
 };
 
