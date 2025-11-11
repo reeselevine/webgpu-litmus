@@ -38,7 +38,7 @@ const testParams = {
   stressStrategyBalancePct: 100,
   permuteFirst: 419,
   permuteSecond: 1,
-  aliasedMemory: true 
+  aliasedMemory: true
 }
 
 export const tests = {
@@ -65,7 +65,7 @@ export const tests = {
     resultShader: rwResults,
     overrides: {},
     workgroupMem: false,
-    needsMem: true 
+    needsMem: true
   },
   rwMemWgScopeWg: {
     shader: rwMemWgScopeWg,
@@ -79,7 +79,7 @@ export const tests = {
     resultShader: wrResults,
     overrides: {},
     workgroupMem: false,
-    needsMem: true 
+    needsMem: true
   },
   wrMemWgScopeWg: {
     shader: wrMemWgScopeWg,
@@ -158,7 +158,7 @@ function getPageState() {
     },
     submitPossible: {
       value: submitPossible,
-      update: setSubmitPossible 
+      update: setSubmitPossible
     },
     sequential: {
       ...buildStateValues(sequential, setSequential)
@@ -566,7 +566,7 @@ async function initializeRun(tests, pageState) {
     isMobile = userAgentData.mobile;
   }
   const gpuAdapter = await navigator.gpu.requestAdapter();
-  const adapterInfo = await gpuAdapter.requestAdapterInfo();
+  const adapterInfo = gpuAdapter.adapterInfo;
   pageState.allStats.internalState["platformInfo"] = {
     gpu: {
       vendor: adapterInfo.vendor,

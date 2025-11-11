@@ -78,7 +78,7 @@ function getPageState() {
     },
     submitPossible: {
       value: submitPossible,
-      update: setSubmitPossible 
+      update: setSubmitPossible
     },
     seq: {
       ...buildStateValues(seq, setSeq)
@@ -651,7 +651,7 @@ async function initializeRun(tests, pageState) {
     isMobile = userAgentData.mobile;
   }
   const gpuAdapter = await navigator.gpu.requestAdapter();
-  const adapterInfo = await gpuAdapter.requestAdapterInfo();
+  const adapterInfo = gpuAdapter.info;
   pageState.allStats.internalState["platformInfo"] = {
     gpu: {
       vendor: adapterInfo.vendor,
@@ -801,7 +801,7 @@ export default function TuningSuite() {
             </p>
 
             <p>
-              Testing should take 10-20 minutes to run. Try to ensure your computer does not go to sleep during the tests, as this might affect their ability to complete. You can change your sleep settings in your system preferences. After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted. 
+              Testing should take 10-20 minutes to run. Try to ensure your computer does not go to sleep during the tests, as this might affect their ability to complete. You can change your sleep settings in your system preferences. After running the "Tune/Conform" action, the results can be submitted using the "Submit Results" button, which will bring up a form where more information can be submitted.
             </p>
 
             <p>
@@ -813,12 +813,12 @@ export default function TuningSuite() {
       </div>
       <div className="tabs is-medium is-centered">
         <ul>
-          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => { 
-            pageState.tuneAndConform.update(true); 
+          <li className={setVis(pageState.tuneAndConform.value, "is-active")} onClick={() => {
+            pageState.tuneAndConform.update(true);
             presetTuningConfig(pageState);
             }}><a>Tune/Conform</a></li>
-          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => { 
-            pageState.tuneAndConform.update(false); 
+          <li className={setVis(!pageState.tuneAndConform.value, "is-active")} onClick={() => {
+            pageState.tuneAndConform.update(false);
             presetTuningConfig(pageState);
             }}><a>Tune</a></li>
         </ul>
