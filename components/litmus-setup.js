@@ -372,8 +372,8 @@ async function runTestIteration(device, computePipeline, bindGroup, resultComput
   // buffer values. This increases test throughput by about 2x.
   const p1 = map_buffer(buffers.testLocations);
   const p2 = map_buffer(buffers.testResults);
-  const p3 = map_buffer(buffers.shuffledWorkgroups);
-  const p4 = map_buffer(buffers.barrier);
+  const p3 = map_buffer(buffers.barrier);
+  const p4 = map_buffer(buffers.shuffledWorkgroups);
   const p5 = map_buffer(buffers.scratchLocations);
   const p6 = map_buffer(buffers.readResults);
   const p7 = map_buffer(buffers.stressParams);
@@ -765,23 +765,23 @@ export async function runTimeBoundingLitmusTest(shaderCode, resultShaderCode, te
     }
 
     const p3 = map_buffer(buffers.testResults);
-    const p4 = map_buffer(buffers.shuffledWorkgroups);
-    const p5 = map_buffer(buffers.barrier);
+    const p4 = map_buffer(buffers.barrier);
+    const p5 = map_buffer(buffers.shuffledWorkgroups);
     const p6 = map_buffer(buffers.scratchLocations);
     const p7 = map_buffer(buffers.readResults);
     const p8 = map_buffer(buffers.stressParams);
 
     await p3;
     clearBuffer(buffers.testResults, resultsSize);
-    await p3;
-    clearBuffer(buffers.barrier, 1);
     await p4;
-    setShuffledWorkgroups(buffers.shuffledWorkgroups, testParams, numWorkgroups);
+    clearBuffer(buffers.barrier, 1);
     await p5;
-    setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
+    setShuffledWorkgroups(buffers.shuffledWorkgroups, testParams, numWorkgroups);
     await p6;
-    clearBuffer(buffers.readResults, testingThreads * testParams.numOutputs);
+    setScratchLocations(buffers.scratchLocations, testParams, numWorkgroups);
     await p7;
+    clearBuffer(buffers.readResults, testingThreads * testParams.numOutputs);
+    await p8;
     setStressParams(buffers.stressParams, testParams, testParams.testingWorkgroups);
 
     const commandEncoder = device.createCommandEncoder();
