@@ -59,10 +59,10 @@ override workgroupXSize: u32;
   if ((mem_x_0 == 1u && mem_y_0 == 2u)) {
     let unused = atomicAdd(&test_results.seq0, 1u);
   } else if ((mem_x_0 == 2u && mem_y_0 == 1u)) {
-    let unsued = atomicAdd(&test_results.seq1, 1u);
+    let unused = atomicAdd(&test_results.seq1, 1u);
   } else if ((mem_x_0 == 1u && mem_y_0 == 1u)) {
-    let unsued = atomicAdd(&test_results.interleaved, 1u));
+    let unused = atomicAdd(&test_results.interleaved, 1u);
   } else if ((mem_x_0 == 2u && mem_y_0 == 2u)) {
-    let unsued = atomicAdd(&test_results.weak, 1u);
+    let unused = atomicAdd(&test_results.weak, 1u);
   }
 }
