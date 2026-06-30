@@ -99,3 +99,22 @@ img {
 [data-popup='tooltip'].my-popup-overlay {
   background: transparent;
 }
+
+@media screen and (max-width: 768px), screen and (orientation: portrait) {
+  .columns {
+    display: block !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .column,
+  .column.is-half,
+  .column.is-one-fifth,
+  .column.is-one-third,
+  .column.is-two-thirds,
+  .column.is-three-quarters {
+    flex: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}

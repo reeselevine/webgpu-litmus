@@ -77,6 +77,22 @@ function buildTotalWeakBehaviorsDataset(results, color) {
   }
 }
 
+function isPowerOfTen(value) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return false;
+  }
+  const exponent = Math.round(Math.log10(value));
+  return Math.abs(value - Math.pow(10, exponent)) < Number.EPSILON * value;
+}
+
+function formatLogTick(value) {
+  const numericValue = Number(value);
+  if (isPowerOfTen(numericValue)) {
+    return numericValue;
+  }
+  return "";
+}
+
 function totalWeakBehaviorChart(pageState) {
   let colors = [
     'rgba(255, 99, 132, 0.2)',
@@ -92,8 +108,9 @@ function totalWeakBehaviorChart(pageState) {
   let maxValue = 0;
   for (let dataset of pageState.activeDatasets.value) {
     let result = buildTotalWeakBehaviorsDataset(dataset, colors[i]);
-    if (maxValue < Math.max(result.data)) {
-      maxValue = Math.max(result.data);
+    const resultMax = Math.max(...result.data);
+    if (maxValue < resultMax) {
+      maxValue = resultMax;
     }
     datasets.push(result);
     i++;
@@ -108,25 +125,22 @@ function totalWeakBehaviorChart(pageState) {
         display: true,
         position: "top",
         text: ['Total Weak Behaviors'],
-        fontSize: 20
+        font: {
+          size: 20
+        }
       },
     },
     scales: {
-      yAxis: {
-        axis: 'y',
+      y: {
         type: 'logarithmic',
         min: 0.1,
-        max: maxValue,
+        max: maxValue > 1 ? maxValue : 1,
+        grid: {
+          display: false
+        },
         ticks: {
-          callback: function (value, index, values) {
-            var val = value;
-            while (val >= 10 && val % 10 == 0) {
-              val = val / 10;
-            }
-            if (val == 1) {
-              return value;
-            }
-          }
+          autoSkip: false,
+          callback: formatLogTick
         }
       }
     }

@@ -10,6 +10,7 @@ export default function App({ Component, pageProps }) {
     <div>
       <Head>
         <title>WebGPU Memory Model Testing</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <link rel="stylesheet" href="https://www.jsdelivr.com/package/npm/bulma"></link>
         <meta name="originToken" httpEquiv="origin-trial" content="Ah4uWU+/egyrlov7rmCK2NGM3x2rhtHGK7E5WWtmq3ESA+JdCBbr29qZkE2iYWZBZJ72McNs+9cJ8PcIKaI67gAAAABSeyJvcmlnaW4iOiJodHRwczovL2dwdWhhcmJvci51Y3NjLmVkdTo0NDMiLCJmZWF0dXJlIjoiV2ViR1BVIiwiZXhwaXJ5IjoxNjkxNzExOTk5fQ=="></meta>
       </Head>
